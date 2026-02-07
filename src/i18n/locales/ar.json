@@ -1,0 +1,84 @@
+{
+  "app_name": "نور يومي",
+  "home": {
+    "title": "نور يومي",
+    "quran": "القرآن",
+    "hadith": "الحديث",
+    "daily_guidance": "الإرشاد اليومي",
+    "loading": "جاري التحميل...",
+    "error_title": "تعذر تحميل المحتوى",
+    "error_retry": "حاول مرة أخرى"
+  },
+  "mood": {
+    "how_feeling": "كيف تشعر اليوم؟",
+    "grateful": "شاكر",
+    "grateful_desc": "ممتن للنعم",
+    "peace": "سلام",
+    "peace_desc": "أبحث عن الهدوء والسكينة",
+    "strength": "قوة",
+    "strength_desc": "أحتاج الشجاعة والمرونة",
+    "guidance": "إرشاد",
+    "guidance_desc": "أبحث عن التوجيه والوضوح",
+    "celebrating": "احتفال",
+    "celebrating_desc": "فرح ومتفائل",
+    "skip": "تخطي",
+    "ask_ai": "اسأل الذكاء الاصطناعي"
+  },
+  "saved": {
+    "title": "المحفوظات",
+    "verses": "الآيات",
+    "hadiths": "الأحاديث",
+    "empty_verses": "لا توجد آيات محفوظة بعد",
+    "empty_hadiths": "لا توجد أحاديث محفوظة بعد",
+    "empty_desc": "احفظ المحتوى المفضل لديك للوصول إليه في أي وقت"
+  },
+  "history": {
+    "title": "السجل",
+    "stats_title": "رحلتك",
+    "total_days": "إجمالي الأيام",
+    "current_streak": "سلسلة الأيام",
+    "empty_title": "لا يوجد سجل بعد",
+    "empty_desc": "سيظهر المحتوى الذي شاهدته هنا",
+    "clear": "مسح السجل",
+    "clear_confirm": "مسح كل السجل؟",
+    "clear_message": "سيؤدي هذا إلى حذف سجل المشاهدة نهائيًا.",
+    "cancel": "إلغاء"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "notifications": "الإشعارات",
+    "notifications_enabled": "التذكيرات اليومية",
+    "notifications_desc": "تلقي الإرشاد الروحي طوال يومك",
+    "frequency": "تكرار الإشعارات",
+    "frequency_desc": "{{count}} مرات في اليوم",
+    "content_type": "نوع المحتوى",
+    "verses": "الآيات فقط",
+    "hadiths": "الأحاديث فقط",
+    "both": "كلاهما",
+    "quiet_hours": "ساعات الهدوء",
+    "quiet_hours_desc": "لا إشعارات خلال هذه الساعات",
+    "reduce_weekend": "تقليل في عطلة نهاية الأسبوع",
+    "reduce_weekend_desc": "إشعارات أقل يومي السبت والأحد",
+    "appearance": "المظهر",
+    "dark_mode": "الوضع الداكن",
+    "language": "اللغة",
+    "language_desc": "لغة الترجمة",
+    "about": "عن التطبيق",
+    "version": "الإصدار",
+    "privacy": "سياسة الخصوصية",
+    "terms": "شروط الخدمة"
+  },
+  "actions": {
+    "bookmark": "حفظ",
+    "share": "مشاركة",
+    "change_mood": "تغيير المزاج",
+    "view_details": "عرض التفاصيل",
+    "close": "إغلاق"
+  },
+  "languages": {
+    "en": "الإنجليزية",
+    "ar": "العربية",
+    "ur": "الأردية",
+    "tr": "التركية"
+  }
+}

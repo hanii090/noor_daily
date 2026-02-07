@@ -1,0 +1,84 @@
+{
+  "app_name": "Noor Daily",
+  "home": {
+    "title": "Noor Daily",
+    "quran": "Quran",
+    "hadith": "Hadith",
+    "daily_guidance": "DAILY GUIDANCE",
+    "loading": "Loading guidance...",
+    "error_title": "Unable to Load Content",
+    "error_retry": "Try Again"
+  },
+  "mood": {
+    "how_feeling": "How are you feeling today?",
+    "grateful": "Grateful",
+    "grateful_desc": "Thankful for blessings",
+    "peace": "Peace",
+    "peace_desc": "Seeking calm and tranquility",
+    "strength": "Strength",
+    "strength_desc": "Need courage and resilience",
+    "guidance": "Guidance",
+    "guidance_desc": "Seeking direction and clarity",
+    "celebrating": "Celebrating",
+    "celebrating_desc": "Joyful and optimistic",
+    "skip": "Skip",
+    "ask_ai": "Ask AI for Guidance"
+  },
+  "saved": {
+    "title": "Saved",
+    "verses": "Verses",
+    "hadiths": "Hadiths",
+    "empty_verses": "No saved verses yet",
+    "empty_hadiths": "No saved hadiths yet",
+    "empty_desc": "Bookmark your favorite content to access it anytime"
+  },
+  "history": {
+    "title": "History",
+    "stats_title": "Your Journey",
+    "total_days": "Total Days",
+    "current_streak": "Day Streak",
+    "empty_title": "No History Yet",
+    "empty_desc": "Your viewed content will appear here",
+    "clear": "Clear History",
+    "clear_confirm": "Clear all history?",
+    "clear_message": "This will permanently delete your viewing history.",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "title": "Settings",
+    "notifications": "Notifications",
+    "notifications_enabled": "Daily Reminders",
+    "notifications_desc": "Receive spiritual guidance throughout your day",
+    "frequency": "Notification Frequency",
+    "frequency_desc": "{{count}} times per day",
+    "content_type": "Content Type",
+    "verses": "Verses Only",
+    "hadiths": "Hadiths Only",
+    "both": "Both",
+    "quiet_hours": "Quiet Hours",
+    "quiet_hours_desc": "No notifications during these hours",
+    "reduce_weekend": "Reduce on Weekends",
+    "reduce_weekend_desc": "Fewer notifications on Saturday and Sunday",
+    "appearance": "Appearance",
+    "dark_mode": "Dark Mode",
+    "language": "Language",
+    "language_desc": "Translation language",
+    "about": "About",
+    "version": "Version",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "actions": {
+    "bookmark": "Bookmark",
+    "share": "Share",
+    "change_mood": "Change Mood",
+    "view_details": "View Details",
+    "close": "Close"
+  },
+  "languages": {
+    "en": "English",
+    "ar": "Arabic",
+    "ur": "Urdu",
+    "tr": "Turkish"
+  }
+}

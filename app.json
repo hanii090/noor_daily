@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "noor-daily",
+    "name": "Noor Daily",
     "slug": "noor-daily",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,23 +8,56 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F3F2E3"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.noordaily.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save and share verse cards.",
+        "NSPhotoLibraryAddUsageDescription": "This app needs permission to save verse cards to your photo library.",
+        "NSCameraUsageDescription": "This app does not use the camera but may require it for future features.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.noordaily.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#F3F2E3"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "NOTIFICATIONS",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#8B5CF6",
+          "sounds": []
+        }
+      ],
+      "expo-font"
+    ],
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#8B5CF6",
+      "androidMode": "default"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c2c6ebae-dcf3-4631-a6cd-5164956ee2e0"
+      },
+      "aiProxyUrl": "https://us-central1-noor-fd44d.cloudfunctions.net/aiProxy"
     }
   }
 }

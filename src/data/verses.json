@@ -1,0 +1,678 @@
+[
+    {
+        "id": "1",
+        "surah": "Al-Baqarah",
+        "surahNumber": 2,
+        "verseNumber": 286,
+        "arabic": "لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
+        "english": "Allah does not burden a soul beyond that it can bear.",
+        "moods": [
+            "strength",
+            "peace"
+        ],
+        "theme": "comfort"
+    },
+    {
+        "id": "2",
+        "surah": "Ar-Rahman",
+        "surahNumber": 55,
+        "verseNumber": 13,
+        "arabic": "فَبِأَيِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ",
+        "english": "Which of the favors of your Lord will you deny?",
+        "moods": [
+            "grateful",
+            "celebrating"
+        ],
+        "theme": "gratitude"
+    },
+    {
+        "id": "3",
+        "surah": "Al-Inshirah",
+        "surahNumber": 94,
+        "verseNumber": 5,
+        "arabic": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+        "english": "Indeed, with hardship comes ease.",
+        "moods": [
+            "strength",
+            "peace"
+        ],
+        "theme": "hope"
+    },
+    {
+        "id": "4",
+        "surah": "Al-Inshirah",
+        "surahNumber": 94,
+        "verseNumber": 6,
+        "arabic": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+        "english": "Indeed, with hardship comes ease.",
+        "moods": [
+            "strength",
+            "peace"
+        ],
+        "theme": "hope"
+    },
+    {
+        "id": "5",
+        "surah": "Al-Baqarah",
+        "surahNumber": 2,
+        "verseNumber": 153,
+        "arabic": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+        "english": "O you who believe, seek help through patience and prayer.",
+        "moods": [
+            "peace",
+            "strength"
+        ],
+        "theme": "patience"
+    },
+    {
+        "id": "6",
+        "surah": "Al-Imran",
+        "surahNumber": 3,
+        "verseNumber": 159,
+        "arabic": "فَبِمَا رَحْمَةٍ مِّنَ ٱللَّهِ لِنتَ لَهُمْ",
+        "english": "By the mercy of Allah you were gentle with them.",
+        "moods": [
+            "guidance",
+            "peace"
+        ],
+        "theme": "mercy"
+    },
+    {
+        "id": "7",
+        "surah": "Al-Anfal",
+        "surahNumber": 8,
+        "verseNumber": 46,
+        "arabic": "وَأَطِيعُوا۟ ٱللَّهَ وَرَسُولَهُۥ وَلَا تَنَٰزَعُوا۟",
+        "english": "Obey Allah and His Messenger, and do not dispute.",
+        "moods": [
+            "strength",
+            "guidance"
+        ],
+        "theme": "obedience"
+    },
+    {
+        "id": "8",
+        "surah": "Az-Zumar",
+        "surahNumber": 39,
+        "verseNumber": 53,
+        "arabic": "قُلْ يَٰعِبَادِىَ ٱلَّذِينَ أَسْرَفُوا۟ عَلَىٰٓ أَنفُسِهِمْ لَا تَقْنَطُوا۟ مِن رَّحْمَةِ ٱللَّهِ",
+        "english": "Say: O My servants who have transgressed against themselves, do not despair of the mercy of Allah.",
+        "moods": [
+            "peace",
+            "guidance"
+        ],
+        "theme": "mercy"
+    },
+    {
+        "id": "9",
+        "surah": "Al-Furqan",
+        "surahNumber": 25,
+        "verseNumber": 77,
+        "arabic": "قُلْ مَا يَعْبَؤُا۟ بِكُمْ رَبِّى لَوْلَا دُعَآؤُكُمْ",
+        "english": "My Lord would not care for you were it not for your prayer.",
+        "moods": [
+            "grateful",
+            "guidance"
+        ],
+        "theme": "prayer"
+    },
+    {
+        "id": "10",
+        "surah": "Al-Ankabut",
+        "surahNumber": 29,
+        "verseNumber": 69,
+        "arabic": "وَٱلَّذِينَ جَٰهَدُوا۟ فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا",
+        "english": "Those who strive for Us, We will guide them to Our ways.",
+        "moods": [
+            "strength",
+            "guidance"
+        ],
+        "theme": "striving"
+    },
+    {
+        "id": "11",
+        "surah": "Ar-Ra'd",
+        "surahNumber": 13,
+        "verseNumber": 28,
+        "arabic": "أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+        "english": "Verily, in the remembrance of Allah do hearts find rest.",
+        "moods": [
+            "peace",
+            "grateful"
+        ],
+        "theme": "remembrance"
+    },
+    {
+        "id": "12",
+        "surah": "Al-Mulk",
+        "surahNumber": 67,
+        "verseNumber": 2,
+        "arabic": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا",
+        "english": "Who created death and life to test you as to which of you is best in deed.",
+        "moods": [
+            "strength",
+            "guidance"
+        ],
+        "theme": "purpose"
+    },
+    {
+        "id": "13",
+        "surah": "Luqman",
+        "surahNumber": 31,
+        "verseNumber": 17,
+        "arabic": "يَٰبُنَىَّ أَقِمِ ٱلصَّلَوٰةَ وَأْمُرْ بِٱلْمَعْرُوفِ",
+        "english": "O my son, establish prayer and enjoin what is right.",
+        "moods": [
+            "guidance",
+            "strength"
+        ],
+        "theme": "wisdom"
+    },
+    {
+        "id": "14",
+        "surah": "Al-A'raf",
+        "surahNumber": 7,
+        "verseNumber": 56,
+        "arabic": "وَٱدْعُوهُ خَوْفًا وَطَمَعًا إِنَّ رَحْمَتَ ٱللَّهِ قَرِيبٌ مِّنَ ٱلْمُحْسِنِينَ",
+        "english": "Call upon Him with fear and hope. Indeed, the mercy of Allah is near to the doers of good.",
+        "moods": [
+            "peace",
+            "guidance"
+        ],
+        "theme": "mercy"
+    },
+    {
+        "id": "15",
+        "surah": "Al-Hajj",
+        "surahNumber": 22,
+        "verseNumber": 77,
+        "arabic": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱرْكَعُوا۟ وَٱسْجُدُوا۟",
+        "english": "O you who believe, bow down and prostrate.",
+        "moods": [
+            "grateful",
+            "peace"
+        ],
+        "theme": "worship"
+    },
+    {
+        "id": "16",
+        "surah": "Ibrahim",
+        "surahNumber": 14,
+        "verseNumber": 7,
+        "arabic": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+        "english": "If you are grateful, I will surely increase you in favor.",
+        "moods": [
+            "grateful",
+            "celebrating"
+        ],
+        "theme": "gratitude"
+    },
+    {
+        "id": "17",
+        "surah": "Al-Baqarah",
+        "surahNumber": 2,
+        "verseNumber": 186,
+        "arabic": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+        "english": "And when My servants ask you about Me, indeed I am near.",
+        "moods": [
+            "peace",
+            "grateful"
+        ],
+        "theme": "closeness"
+    },
+    {
+        "id": "18",
+        "surah": "Al-Imran",
+        "surahNumber": 3,
+        "verseNumber": 173,
+        "arabic": "حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
+        "english": "Sufficient for us is Allah, and He is the best Disposer of affairs.",
+        "moods": [
+            "peace",
+            "strength"
+        ],
+        "theme": "trust"
+    },
+    {
+        "id": "19",
+        "surah": "Al-Baqarah",
+        "surahNumber": 2,
+        "verseNumber": 45,
+        "arabic": "وَٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+        "english": "Seek help through patience and prayer.",
+        "moods": [
+            "peace",
+            "strength"
+        ],
+        "theme": "patience"
+    },
+    {
+        "id": "20",
+        "surah": "At-Tawbah",
+        "surahNumber": 9,
+        "verseNumber": 51,
+        "arabic": "قُل لَّن يُصِيبَنَآ إِلَّا مَا كَتَبَ ٱللَّهُ لَنَا",
+        "english": "Say: Nothing will happen to us except what Allah has decreed for us.",
+        "moods": [
+            "peace",
+            "strength"
+        ],
+        "theme": "decree"
+    },
+    {
+        "id": "21",
+        "surah": "Al-Ahzab",
+        "surahNumber": 33,
+        "verseNumber": 41,
+        "arabic": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱذْكُرُوا۟ ٱللَّهَ ذِكْرًا كَثِيرًا",
+        "english": "O you who believe, remember Allah with much remembrance.",
+        "moods": [
+            "grateful",
+            "peace"
+        ],
+        "theme": "remembrance"
+    },
+    {
+        "id": "22",
+        "surah": "An-Nisa",
+        "surahNumber": 4,
+        "verseNumber": 103,
+        "arabic": "إِنَّ ٱلصَّلَوٰةَ كَانَتْ عَلَى ٱلْمُؤْمِنِينَ كِتَٰبًا مَّوْقُوتًا",
+        "english": "Indeed, prayer has been decreed upon the believers at specific times.",
+        "moods": [
+            "guidance",
+            "strength"
+        ],
+        "theme": "prayer"
+    },
+    {
+        "id": "23",
+        "surah": "Al-Ma'idah",
+        "surahNumber": 5,
+        "verseNumber": 2,
+        "arabic": "وَتَعَاوَنُوا۟ عَلَى ٱلْبِرِّ وَٱلتَّقْوَىٰ",
+        "english": "Cooperate in righteousness and piety.",
+        "moods": [
+            "guidance",
+            "celebrating"
+        ],
+        "theme": "cooperation"
+    },
+    {
+        "id": "24",
+        "surah": "Al-Hadid",
+        "surahNumber": 57,
+        "verseNumber": 3,
+        "arabic": "هُوَ ٱلْأَوَّلُ وَٱلْءَاخِرُ وَٱلظَّٰهِرُ وَٱلْبَاطِنُ",
+        "english": "He is the First and the Last, the Manifest and the Hidden.",
+        "moods": [
+            "guidance",
+            "grateful"
+        ],
+        "theme": "unity"
+    },
+    {
+        "id": "25",
+        "surah": "Al-Qamar",
+        "surahNumber": 54,
+        "verseNumber": 17,
+        "arabic": "وَلَقَدْ يَسَّرْنَا ٱلْقُرْءَانَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ",
+        "english": "We have made the Quran easy to remember. Is there anyone who will be mindful?",
+        "moods": [
+            "grateful",
+            "guidance"
+        ],
+        "theme": "remembrance"
+    },
+    {
+        "id": "26",
+        "surah": "Al-Asr",
+        "surahNumber": 103,
+        "verseNumber": 3,
+        "arabic": "إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّٰلِحَٰتِ",
+        "english": "Except those who believe and do righteous deeds.",
+        "moods": [
+            "strength",
+            "guidance"
+        ],
+        "theme": "success"
+    },
+    {
+        "id": "27",
+        "surah": "Al-Hujurat",
+        "surahNumber": 49,
+        "verseNumber": 13,
+        "arabic": "إِنَّ أَكْرَمَكُمْ عِندَ ٱللَّهِ أَتْقَىٰكُمْ",
+        "english": "Indeed, the most honored among you in the sight of Allah is the most righteous.",
+        "moods": [
+            "guidance",
+            "strength"
+        ],
+        "theme": "piety"
+    },
+    {
+        "id": "28",
+        "surah": "Al-Mumtahanah",
+        "surahNumber": 60,
+        "verseNumber": 8,
+        "arabic": "لَّا يَنْهَىٰكُمُ ٱللَّهُ عَنِ ٱلَّذِينَ لَمْ يُقَٰتِلُوكُمْ فِى ٱلدِّينِ",
+        "english": "Allah does not forbid you from dealing kindly with those who do not fight you.",
+        "moods": [
+            "peace",
+            "guidance"
+        ],
+        "theme": "justice"
+    },
+    {
+        "id": "29",
+        "surah": "An-Nahl",
+        "surahNumber": 16,
+        "verseNumber": 90,
+        "arabic": "إِنَّ ٱللَّهَ يَأْمُرُ بِٱلْعَدْلِ وَٱلْإِحْسَٰنِ",
+        "english": "Indeed, Allah commands justice and good conduct.",
+        "moods": [
+            "guidance",
+            "peace"
+        ],
+        "theme": "justice"
+    },
+    {
+        "id": "30",
+        "surah": "Al-Furqan",
+        "surahNumber": 25,
+        "verseNumber": 63,
+        "arabic": "وَعِبَادُ ٱلرَّحْمَٰنِ ٱلَّذِينَ يَمْشُونَ عَلَى ٱلْأَرْضِ هَوْنًا",
+        "english": "The servants of the Most Merciful are those who walk upon the earth in humility.",
+        "moods": [
+            "peace",
+            "guidance"
+        ],
+        "theme": "humility"
+    },
+    {
+        "id": "31",
+        "surah": "Adh-Dhariyat",
+        "surahNumber": 51,
+        "verseNumber": 56,
+        "arabic": "وَمَا خَلَقْتُ ٱلْجِنَّ وَٱلْإِنسَ إِلَّا لِيَعْبُدُونِ",
+        "english": "I did not create jinn and humans except to worship Me.",
+        "moods": [
+            "guidance",
+            "grateful"
+        ],
+        "theme": "purpose"
+    },
+    {
+        "id": "32",
+        "surah": "Al-Qasas",
+        "surahNumber": 28,
+        "verseNumber": 77,
+        "arabic": "وَٱبْتَغِ فِيمَآ ءَاتَىٰكَ ٱللَّهُ ٱلدَّارَ ٱلْءَاخِرَةَ",
+        "english": "Seek the home of the Hereafter through what Allah has given you.",
+        "moods": [
+            "guidance",
+            "grateful"
+        ],
+        "theme": "balance"
+    },
+    {
+        "id": "33",
+        "surah": "Al-Balad",
+        "surahNumber": 90,
+        "verseNumber": 17,
+        "arabic": "ثُمَّ كَانَ مِنَ ٱلَّذِينَ ءَامَنُوا۟ وَتَوَاصَوْا۟ بِٱلصَّبْرِ",
+        "english": "Being one of those who believe and encourage one another to patience.",
+        "moods": [
+            "strength",
+            "guidance"
+        ],
+        "theme": "patience"
+    },
+    {
+        "id": "34",
+        "surah": "Al-Fajr",
+        "surahNumber": 89,
+        "verseNumber": 27,
+        "arabic": "يَٰٓأَيَّتُهَا ٱلنَّفْسُ ٱلْمُطْمَئِنَّةُ",
+        "english": "O tranquil soul!",
+        "moods": [
+            "peace",
+            "celebrating"
+        ],
+        "theme": "tranquility"
+    },
+    {
+        "id": "35",
+        "surah": "Al-Isra",
+        "surahNumber": 17,
+        "verseNumber": 80,
+        "arabic": "رَّبِّ أَدْخِلْنِى مُدْخَلَ صِدْقٍ وَأَخْرِجْنِى مُخْرَجَ صِدْقٍ",
+        "english": "My Lord, cause me to enter with truth and exit with truth.",
+        "moods": [
+            "guidance",
+            "peace"
+        ],
+        "theme": "sincerity"
+    },
+    {
+        "id": "36",
+        "surah": "Fatir",
+        "surahNumber": 35,
+        "verseNumber": 29,
+        "arabic": "إِنَّ ٱلَّذِينَ يَتْلُونَ كِتَٰبَ ٱللَّهِ وَأَقَامُوا۟ ٱلصَّلَوٰةَ",
+        "english": "Indeed, those who recite the Book of Allah and establish prayer.",
+        "moods": [
+            "grateful",
+            "peace"
+        ],
+        "theme": "devotion"
+    },
+    {
+        "id": "37",
+        "surah": "Al-Kahf",
+        "surahNumber": 18,
+        "verseNumber": 46,
+        "arabic": "ٱلْمَالُ وَٱلْبَنُونَ زِينَةُ ٱلْحَيَوٰةِ ٱلدُّنْيَا",
+        "english": "Wealth and children are the adornment of this worldly life.",
+        "moods": [
+            "celebrating",
+            "grateful"
+        ],
+        "theme": "worldlife"
+    },
+    {
+        "id": "38",
+        "surah": "Yunus",
+        "surahNumber": 10,
+        "verseNumber": 65,
+        "arabic": "لَا تَحْزَنْ إِنَّ ٱللَّهَ مَعَنَا",
+        "english": "Do not grieve; indeed Allah is with us.",
+        "moods": [
+            "peace",
+            "strength"
+        ],
+        "theme": "companionship"
+    },
+    {
+        "id": "39",
+        "surah": "Yusuf",
+        "surahNumber": 12,
+        "verseNumber": 87,
+        "arabic": "وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ",
+        "english": "Do not despair of the mercy of Allah.",
+        "moods": [
+            "peace",
+            "guidance"
+        ],
+        "theme": "hope"
+    },
+    {
+        "id": "40",
+        "surah": "Al-Mu'minun",
+        "surahNumber": 23,
+        "verseNumber": 118,
+        "arabic": "رَّبِّ ٱغْفِرْ وَٱرْحَمْ وَأَنتَ خَيْرُ ٱلرَّٰحِمِينَ",
+        "english": "My Lord, forgive and have mercy, for You are the best of those who show mercy.",
+        "moods": [
+            "peace",
+            "grateful"
+        ],
+        "theme": "mercy"
+    },
+    {
+        "id": "41",
+        "surah": "Ash-Shura",
+        "surahNumber": 42,
+        "verseNumber": 38,
+        "arabic": "وَأَمْرُهُمْ شُورَىٰ بَيْنَهُمْ",
+        "english": "Their affairs are determined by mutual consultation.",
+        "moods": [
+            "guidance",
+            "peace"
+        ],
+        "theme": "consultation"
+    },
+    {
+        "id": "42",
+        "surah": "Al-Qalam",
+        "surahNumber": 68,
+        "verseNumber": 4,
+        "arabic": "وَإِنَّكَ لَعَلَىٰ خُلُقٍ عَظِيمٍ",
+        "english": "Indeed, you are of great moral character.",
+        "moods": [
+            "celebrating",
+            "grateful"
+        ],
+        "theme": "character"
+    },
+    {
+        "id": "43",
+        "surah": "Al-Waqi'ah",
+        "surahNumber": 56,
+        "verseNumber": 80,
+        "arabic": "تَنزِيلٌ مِّن رَّبِّ ٱلْعَٰلَمِينَ",
+        "english": "A revelation from the Lord of the worlds.",
+        "moods": [
+            "grateful",
+            "celebrating"
+        ],
+        "theme": "revelation"
+    },
+    {
+        "id": "44",
+        "surah": "Al-Hud",
+        "surahNumber": 11,
+        "verseNumber": 112,
+        "arabic": "فَٱسْتَقِمْ كَمَآ أُمِرْتَ",
+        "english": "So remain steadfast as you have been commanded.",
+        "moods": [
+            "strength",
+            "guidance"
+        ],
+        "theme": "steadfastness"
+    },
+    {
+        "id": "45",
+        "surah": "Al-Hadid",
+        "surahNumber": 57,
+        "verseNumber": 22,
+        "arabic": "مَآ أَصَابَ مِن مُّصِيبَةٍ فِى ٱلْأَرْضِ وَلَا فِىٓ أَنفُسِكُمْ",
+        "english": "No disaster strikes upon the earth or among yourselves.",
+        "moods": [
+            "peace",
+            "strength"
+        ],
+        "theme": "decree"
+    },
+    {
+        "id": "46",
+        "surah": "Al-Anbiya",
+        "surahNumber": 21,
+        "verseNumber": 107,
+        "arabic": "وَمَآ أَرْسَلْنَٰكَ إِلَّا رَحْمَةً لِّلْعَٰلَمِينَ",
+        "english": "We have sent you only as a mercy to the worlds.",
+        "moods": [
+            "grateful",
+            "celebrating"
+        ],
+        "theme": "mercy"
+    },
+    {
+        "id": "47",
+        "surah": "Ghafir",
+        "surahNumber": 40,
+        "verseNumber": 60,
+        "arabic": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ",
+        "english": "Your Lord says: Call upon Me, I will respond to you.",
+        "moods": [
+            "peace",
+            "grateful"
+        ],
+        "theme": "prayer"
+    },
+    {
+        "id": "48",
+        "surah": "At-Talaq",
+        "surahNumber": 65,
+        "verseNumber": 3,
+        "arabic": "وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥ",
+        "english": "Whoever relies upon Allah, He is sufficient for him.",
+        "moods": [
+            "peace",
+            "strength"
+        ],
+        "theme": "trust"
+    },
+    {
+        "id": "49",
+        "surah": "Al-Hijr",
+        "surahNumber": 15,
+        "verseNumber": 99,
+        "arabic": "وَٱعْبُدْ رَبَّكَ حَتَّىٰ يَأْتِيَكَ ٱلْيَقِينُ",
+        "english": "Worship your Lord until certainty comes to you.",
+        "moods": [
+            "guidance",
+            "strength"
+        ],
+        "theme": "worship"
+    },
+    {
+        "id": "50",
+        "surah": "Al-Nisa",
+        "surahNumber": 4,
+        "verseNumber": 58,
+        "arabic": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَٰنَٰتِ إِلَىٰٓ أَهْلِهَا",
+        "english": "Indeed, Allah commands you to return trusts to their rightful owners.",
+        "moods": [
+            "guidance",
+            "peace"
+        ],
+        "theme": "trust"
+    },
+    {
+        "id": "51",
+        "surah": "Ar-Rum",
+        "surahNumber": 30,
+        "verseNumber": 21,
+        "arabic": "وَمِنْ ءَايَٰتِهِۦٓ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَٰجًا",
+        "english": "Among His signs is that He created for you mates from among yourselves.",
+        "moods": [
+            "grateful",
+            "celebrating"
+        ],
+        "theme": "love"
+    },
+    {
+        "id": "52",
+        "surah": "Az-Zariyat",
+        "surahNumber": 51,
+        "verseNumber": 50,
+        "arabic": "فَفِرُّوٓا۟ إِلَى ٱللَّهِ",
+        "english": "So flee to Allah.",
+        "moods": [
+            "peace",
+            "guidance"
+        ],
+        "theme": "refuge"
+    }
+]

@@ -1,0 +1,84 @@
+{
+  "app_name": "Noor Daily",
+  "home": {
+    "title": "Noor Daily",
+    "quran": "Kuran",
+    "hadith": "Hadis",
+    "daily_guidance": "GÜNLÜK REHBERLİK",
+    "loading": "Yükleniyor...",
+    "error_title": "İçerik Yüklenemedi",
+    "error_retry": "Tekrar Dene"
+  },
+  "mood": {
+    "how_feeling": "Bugün kendinizi nasıl hissediyorsunuz?",
+    "grateful": "Şükran",
+    "grateful_desc": "Nimetler için şükrediyorum",
+    "peace": "Huzur",
+    "peace_desc": "Sakinlik ve huzur arıyorum",
+    "strength": "Güç",
+    "strength_desc": "Cesaret ve dayanıklılığa ihtiyacım var",
+    "guidance": "Rehberlik",
+    "guidance_desc": "Yön ve netlik arıyorum",
+    "celebrating": "Kutlama",
+    "celebrating_desc": "Neşeli ve iyimser",
+    "skip": "Atla",
+    "ask_ai": "AI'dan Rehberlik İste"
+  },
+  "saved": {
+    "title": "Kaydedilenler",
+    "verses": "Ayetler",
+    "hadiths": "Hadisler",
+    "empty_verses": "Henüz kaydedilmiş ayet yok",
+    "empty_hadiths": "Henüz kaydedilmiş hadis yok",
+    "empty_desc": "Favori içeriğinizi istediğiniz zaman erişmek için kaydedin"
+  },
+  "history": {
+    "title": "Geçmiş",
+    "stats_title": "Yolculuğunuz",
+    "total_days": "Toplam Gün",
+    "current_streak": "Günlük Seri",
+    "empty_title": "Henüz Geçmiş Yok",
+    "empty_desc": "Görüntülediğiniz içerik burada görünecek",
+    "clear": "Geçmişi Temizle",
+    "clear_confirm": "Tüm geçmişi temizle?",
+    "clear_message": "Bu, görüntüleme geçmişinizi kalıcı olarak siler.",
+    "cancel": "İptal"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "notifications": "Bildirimler",
+    "notifications_enabled": "Günlük Hatırlatıcılar",
+    "notifications_desc": "Gün boyunca manevi rehberlik alın",
+    "frequency": "Bildirim Sıklığı",
+    "frequency_desc": "Günde {{count}} kez",
+    "content_type": "İçerik Türü",
+    "verses": "Sadece Ayetler",
+    "hadiths": "Sadece Hadisler",
+    "both": "Her İkisi",
+    "quiet_hours": "Sessiz Saatler",
+    "quiet_hours_desc": "Bu saatlerde bildirim yok",
+    "reduce_weekend": "Hafta Sonlarını Azalt",
+    "reduce_weekend_desc": "Cumartesi ve Pazar daha az bildirim",
+    "appearance": "Görünüm",
+    "dark_mode": "Karanlık Mod",
+    "language": "Dil",
+    "language_desc": "Çeviri dili",
+    "about": "Hakkında",
+    "version": "Sürüm",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Hizmet Şartları"
+  },
+  "actions": {
+    "bookmark": "Yer İmi",
+    "share": "Paylaş",
+    "change_mood": "Ruh Halini Değiştir",
+    "view_details": "Detayları Görüntüle",
+    "close": "Kapat"
+  },
+  "languages": {
+    "en": "İngilizce",
+    "ar": "Arapça",
+    "ur": "Urduca",
+    "tr": "Türkçe"
+  }
+}

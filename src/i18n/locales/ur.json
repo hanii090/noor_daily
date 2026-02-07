@@ -1,0 +1,84 @@
+{
+  "app_name": "نور ڈیلی",
+  "home": {
+    "title": "نور ڈیلی",
+    "quran": "قرآن",
+    "hadith": "حدیث",
+    "daily_guidance": "روزانہ رہنمائی",
+    "loading": "لوڈ ہو رہا ہے...",
+    "error_title": "مواد لوڈ نہیں ہو سکا",
+    "error_retry": "دوبارہ کوشش کریں"
+  },
+  "mood": {
+    "how_feeling": "آج آپ کیسا محسوس کر رہے ہیں؟",
+    "grateful": "شکر گزار",
+    "grateful_desc": "نعمتوں کے لیے شکر گزار",
+    "peace": "سکون",
+    "peace_desc": "سکون اور اطمینان کی تلاش",
+    "strength": "طاقت",
+    "strength_desc": "ہمت اور لچک کی ضرورت",
+    "guidance": "رہنمائی",
+    "guidance_desc": "سمت اور وضاحت کی تلاش",
+    "celebrating": "جشن",
+    "celebrating_desc": "خوش اور پر امید",
+    "skip": "چھوڑیں",
+    "ask_ai": "AI سے رہنمائی مانگیں"
+  },
+  "saved": {
+    "title": "محفوظ شدہ",
+    "verses": "آیات",
+    "hadiths": "احادیث",
+    "empty_verses": "ابھی کوئی آیات محفوظ نہیں ہیں",
+    "empty_hadiths": "ابھی کوئی احادیث محفوظ نہیں ہیں",
+    "empty_desc": "اپنی پسندیدہ مواد کو کسی بھی وقت رسائی کے لیے محفوظ کریں"
+  },
+  "history": {
+    "title": "تاریخچہ",
+    "stats_title": "آپ کا سفر",
+    "total_days": "کل دن",
+    "current_streak": "دن کی لکیر",
+    "empty_title": "ابھی کوئی تاریخچہ نہیں",
+    "empty_desc": "آپ کا دیکھا ہوا مواد یہاں ظاہر ہوگا",
+    "clear": "تاریخچہ صاف کریں",
+    "clear_confirm": "تمام تاریخچہ صاف کریں؟",
+    "clear_message": "یہ آپ کی دیکھنے کی تاریخ کو مستقل طور پر حذف کر دے گا۔",
+    "cancel": "منسوخ کریں"
+  },
+  "settings": {
+    "title": "ترتیبات",
+    "notifications": "اطلاعات",
+    "notifications_enabled": "روزانہ یاد دہانیاں",
+    "notifications_desc": "اپنے دن بھر روحانی رہنمائی حاصل کریں",
+    "frequency": "اطلاع کی تعدد",
+    "frequency_desc": "دن میں {{count}} بار",
+    "content_type": "مواد کی قسم",
+    "verses": "صرف آیات",
+    "hadiths": "صرف احادیث",
+    "both": "دونوں",
+    "quiet_hours": "خاموش گھنٹے",
+    "quiet_hours_desc": "ان گھنٹوں کے دوران کوئی اطلاعات نہیں",
+    "reduce_weekend": "ہفتے کے آخر میں کم کریں",
+    "reduce_weekend_desc": "ہفتہ اور اتوار کو کم اطلاعات",
+    "appearance": "ظہور",
+    "dark_mode": "ڈارک موڈ",
+    "language": "زبان",
+    "language_desc": "ترجمہ کی زبان",
+    "about": "کے بارے میں",
+    "version": "ورژن",
+    "privacy": "رازداری کی پالیسی",
+    "terms": "خدمت کی شرائط"
+  },
+  "actions": {
+    "bookmark": "بک مارک",
+    "share": "شیئر کریں",
+    "change_mood": "موڈ تبدیل کریں",
+    "view_details": "تفصیلات دیکھیں",
+    "close": "بند کریں"
+  },
+  "languages": {
+    "en": "انگریزی",
+    "ar": "عربی",
+    "ur": "اردو",
+    "tr": "ترکی"
+  }
+}
