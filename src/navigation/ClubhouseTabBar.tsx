@@ -5,6 +5,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, spacing } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
     state,
@@ -12,6 +13,7 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
     navigation,
 }) => {
     const { colors, isDark } = useTheme();
+    const { t } = useTranslation();
     const scaleAnims = React.useRef(
         state.routes.map(() => new Animated.Value(1))
     ).current;
@@ -50,23 +52,23 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
         switch (routeName) {
             case 'Home':
                 iconName = isFocused ? 'home' : 'home-outline';
-                label = 'Home';
+                label = t('tabs.home', { defaultValue: 'Home' });
                 break;
             case 'Journey':
                 iconName = isFocused ? 'flame' : 'flame-outline';
-                label = 'Journey';
+                label = t('tabs.journey', { defaultValue: 'Journey' });
                 break;
             case 'History':
                 iconName = isFocused ? 'calendar' : 'calendar-outline';
-                label = 'History';
+                label = t('tabs.history', { defaultValue: 'History' });
                 break;
             case 'Saved':
                 iconName = isFocused ? 'bookmark' : 'bookmark-outline';
-                label = 'Saved';
+                label = t('tabs.saved', { defaultValue: 'Saved' });
                 break;
             case 'Settings':
                 iconName = isFocused ? 'settings' : 'settings-outline';
-                label = 'Settings';
+                label = t('tabs.settings', { defaultValue: 'Settings' });
                 break;
             default:
                 iconName = 'help-outline';

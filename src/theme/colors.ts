@@ -66,8 +66,8 @@ export const darkColors = {
   border: 'rgba(255, 255, 255, 0.1)',
   shadow: 'rgba(0, 0, 0, 0.3)',
   overlay: 'rgba(0, 0, 0, 0.6)',
-  white: '#FFFFFF',
-  black: '#000000',
+  white: '#1E1E1E',
+  black: '#F5F5F5',
   
   // Mood colors - same vibrant accents
   moods: {

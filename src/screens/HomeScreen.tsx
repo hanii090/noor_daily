@@ -295,7 +295,7 @@ const HomeScreen = () => {
                 <View style={styles.headerFixedContainer}>
                     <ClubhouseHeader 
                         title={selectedContent ? (contentType === 'verse' ? t('home.quran') : t('home.hadith')) : getGreeting(settings.userName || undefined, t)}
-                        subtitle={selectedContent ? (selectedMood ? `${t(`mood.${selectedMood}`).toUpperCase()} GUIDANCE` : t('home.daily_guidance')) : toHijri().formatted.toUpperCase()}
+                        subtitle={selectedContent ? (selectedMood ? `${t(`mood.${selectedMood}`).toUpperCase()} · ${t('home.daily_guidance')}` : t('home.daily_guidance')) : toHijri().formatted.toUpperCase()}
                         onBack={selectedContent ? handleChangeMood : undefined}
                     />
                 </View>

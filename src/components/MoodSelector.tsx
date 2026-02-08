@@ -208,7 +208,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({ onMoodSelect }) => {
                                 <View style={[styles.nameIconCircle, { backgroundColor: themeColors.teal + '12' }]}>
                                     <Ionicons name="star" size={14} color={themeColors.teal} />
                                 </View>
-                                <Text style={[styles.nameHeaderLabel, { color: themeColors.teal }]}>NAME OF THE DAY</Text>
+                                <Text style={[styles.nameHeaderLabel, { color: themeColors.teal }]}>{t('guidance.name_of_day')}</Text>
                                 <Ionicons name={nameExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={themeColors.textTertiary} />
                             </View>
                             <Text style={[styles.nameArabic, { color: themeColors.text }]}>{dailyName.arabic}</Text>

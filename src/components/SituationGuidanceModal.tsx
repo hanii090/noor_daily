@@ -91,11 +91,11 @@ export const SituationGuidanceModal: React.FC<SituationGuidanceModalProps> = ({
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     {!response ? (
                         <View style={styles.inputContainer}>
-                            <View style={styles.iconContainer}>
-                                <Ionicons name="sparkles" size={40} color={colors.purple} />
+                            <View style={[styles.iconContainer, { backgroundColor: tc.purple + '10' }]}>
+                                <Ionicons name="sparkles" size={40} color={tc.purple} />
                             </View>
-                            <Text style={styles.title}>What's on your heart?</Text>
-                            <Text style={styles.subtitle}>
+                            <Text style={[styles.title, { color: tc.text }]}>What's on your heart?</Text>
+                            <Text style={[styles.subtitle, { color: tc.textSecondary }]}>
                                 Describe how you're feeling or a situation you're facing, and I'll provide guidance from Islamic wisdom.
                             </Text>
 
@@ -132,7 +132,7 @@ export const SituationGuidanceModal: React.FC<SituationGuidanceModalProps> = ({
                                 </View>
                             )}
 
-                            {error && <Text style={styles.errorText}>{error}</Text>}
+                            {error && <Text style={[styles.errorText, { color: tc.coral }]}>{error}</Text>}
 
                             <ClubhouseButton
                                 title={isLoading ? "Consulting..." : "Seek Guidance"}
@@ -146,10 +146,10 @@ export const SituationGuidanceModal: React.FC<SituationGuidanceModalProps> = ({
                         <View style={styles.responseContainer}>
                             <ClubhouseCard style={styles.responseCard}>
                                 <View style={styles.responseHeader}>
-                                    <Ionicons name="sparkles" size={20} color={colors.purple} />
-                                    <Text style={styles.responseHeaderText}>GUIDANCE FOR YOU</Text>
+                                    <Ionicons name="sparkles" size={20} color={tc.purple} />
+                                    <Text style={[styles.responseHeaderText, { color: tc.purple }]}>GUIDANCE FOR YOU</Text>
                                 </View>
-                                <Text style={styles.responseText}>{response}</Text>
+                                <Text style={[styles.responseText, { color: tc.text }]}>{response}</Text>
                             </ClubhouseCard>
 
                             <ClubhouseButton
@@ -159,7 +159,7 @@ export const SituationGuidanceModal: React.FC<SituationGuidanceModalProps> = ({
                                 style={styles.resetButton}
                             />
                             
-                            <Text style={styles.disclaimer}>
+                            <Text style={[styles.disclaimer, { color: tc.textTertiary }]}>
                                 AI guidance is for spiritual support and does not replace professional or formal religious advice.
                             </Text>
                         </View>

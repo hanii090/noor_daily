@@ -243,7 +243,23 @@
     "your_verse": "Your Verse",
     "study_timer": "Study Timer",
     "post_exam": "Post-Exam Reflection",
-    "exam_history": "Exam History"
+    "exam_history": "Exam History",
+    "when_exam_desc": "We'll find the perfect verse to help you prepare",
+    "tell_us_more": "Tell us more",
+    "what_subject": "What subject?",
+    "get_verse": "Get My Verse",
+    "get_another": "Get Another Verse",
+    "no_sessions": "No sessions yet",
+    "no_sessions_desc": "Your exam sessions will appear here after you use Exam Mode.",
+    "pre_exam_dua": "Pre-Exam Dua",
+    "for_your_exam": "For Your {{subject}} Exam"
+  },
+  "tabs": {
+    "home": "Home",
+    "journey": "Journey",
+    "history": "History",
+    "saved": "Saved",
+    "settings": "Settings"
   },
   "languages": {
     "en": "English",

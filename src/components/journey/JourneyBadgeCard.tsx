@@ -9,19 +9,20 @@ interface JourneyBadgeCardProps {
     earned: boolean;
 }
 
-const BADGE_COLORS: Record<string, string> = {
-    first_step: colors.green,
-    week_one: colors.teal,
-    consistent: colors.purple,
-    halfway: colors.orange,
-    dedicated: colors.coral,
-    journaler: colors.purple,
-    completionist: '#FFB800',
+const BADGE_COLOR_KEYS: Record<string, string> = {
+    first_step: 'green',
+    week_one: 'teal',
+    consistent: 'purple',
+    halfway: 'orange',
+    dedicated: 'coral',
+    journaler: 'purple',
+    completionist: 'orange',
 };
 
 export const JourneyBadgeCard: React.FC<JourneyBadgeCardProps> = ({ badge, earned }) => {
     const { colors: tc } = useTheme();
-    const accentColor = BADGE_COLORS[badge.id] || tc.orange;
+    const colorKey = BADGE_COLOR_KEYS[badge.id] || 'orange';
+    const accentColor = (tc as any)[colorKey] || tc.orange;
 
     return (
         <View style={[

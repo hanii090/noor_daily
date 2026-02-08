@@ -11,7 +11,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { ClubhouseCard } from './clubhouse';
-import { colors, typography, spacing } from '../theme';
+import { colors, useTheme, typography, spacing } from '../theme';
 import { VerseCardTemplate, VerseCardSize } from '../types';
 
 interface TemplateOption {
@@ -55,6 +55,7 @@ export const TemplateSelectorModal: React.FC<TemplateSelectorModalProps> = ({
     onSelectTemplate,
     moodColor,
 }) => {
+    const { colors: tc } = useTheme();
     const [selectedSize, setSelectedSize] = React.useState<VerseCardSize>('post');
 
     const handleSelect = (template: VerseCardTemplate) => {
@@ -81,24 +82,25 @@ export const TemplateSelectorModal: React.FC<TemplateSelectorModalProps> = ({
                     onPress={handleClose}
                 />
 
-                <View style={styles.modalContent}>
+                <View style={[styles.modalContent, { backgroundColor: tc.creamLight }]}>
                     {/* Header */}
-                    <View style={styles.header}>
-                        <View style={styles.handle} />
-                        <Text style={styles.title}>Choose Template</Text>
+                    <View style={[styles.header, { borderBottomColor: tc.border }]}>
+                        <View style={[styles.handle, { backgroundColor: tc.textTertiary + '40' }]} />
+                        <Text style={[styles.title, { color: tc.text }]}>Choose Template</Text>
                         <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                            <Ionicons name="close" size={28} color={colors.text} />
+                            <Ionicons name="close" size={28} color={tc.text} />
                         </TouchableOpacity>
                     </View>
 
                     {/* Size Selector */}
                     <View style={styles.sizeSelector}>
-                        <Text style={styles.sizeSelectorLabel}>Format</Text>
+                        <Text style={[styles.sizeSelectorLabel, { color: tc.textSecondary }]}>Format</Text>
                         <View style={styles.sizeButtons}>
                             <TouchableOpacity
                                 style={[
                                     styles.sizeButton,
-                                    selectedSize === 'post' && [styles.sizeButtonActive, { borderColor: moodColor }],
+                                    { backgroundColor: tc.white, borderColor: tc.border },
+                                    selectedSize === 'post' && [styles.sizeButtonActive, { borderColor: moodColor, backgroundColor: tc.backgroundSecondary }],
                                 ]}
                                 onPress={() => {
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -108,11 +110,12 @@ export const TemplateSelectorModal: React.FC<TemplateSelectorModalProps> = ({
                                 <Ionicons
                                     name="square-outline"
                                     size={20}
-                                    color={selectedSize === 'post' ? moodColor : colors.textSecondary}
+                                    color={selectedSize === 'post' ? moodColor : tc.textSecondary}
                                 />
                                 <Text
                                     style={[
                                         styles.sizeButtonText,
+                                        { color: tc.textSecondary },
                                         selectedSize === 'post' && { color: moodColor },
                                     ]}
                                 >
@@ -123,7 +126,8 @@ export const TemplateSelectorModal: React.FC<TemplateSelectorModalProps> = ({
                             <TouchableOpacity
                                 style={[
                                     styles.sizeButton,
-                                    selectedSize === 'story' && [styles.sizeButtonActive, { borderColor: moodColor }],
+                                    { backgroundColor: tc.white, borderColor: tc.border },
+                                    selectedSize === 'story' && [styles.sizeButtonActive, { borderColor: moodColor, backgroundColor: tc.backgroundSecondary }],
                                 ]}
                                 onPress={() => {
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -133,11 +137,12 @@ export const TemplateSelectorModal: React.FC<TemplateSelectorModalProps> = ({
                                 <Ionicons
                                     name="phone-portrait-outline"
                                     size={20}
-                                    color={selectedSize === 'story' ? moodColor : colors.textSecondary}
+                                    color={selectedSize === 'story' ? moodColor : tc.textSecondary}
                                 />
                                 <Text
                                     style={[
                                         styles.sizeButtonText,
+                                        { color: tc.textSecondary },
                                         selectedSize === 'story' && { color: moodColor },
                                     ]}
                                 >
@@ -164,10 +169,10 @@ export const TemplateSelectorModal: React.FC<TemplateSelectorModalProps> = ({
                                             <Ionicons name={option.icon} size={32} color={moodColor} />
                                         </View>
                                         <View style={styles.templateInfo}>
-                                            <Text style={styles.templateName}>{option.name}</Text>
-                                            <Text style={styles.templateDescription}>{option.description}</Text>
+                                            <Text style={[styles.templateName, { color: tc.text }]}>{option.name}</Text>
+                                            <Text style={[styles.templateDescription, { color: tc.textSecondary }]}>{option.description}</Text>
                                         </View>
-                                        <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                                        <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                     </View>
                                 </ClubhouseCard>
                             </TouchableOpacity>

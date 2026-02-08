@@ -24,6 +24,9 @@ import { PostExamReflection } from '../components/exam/PostExamReflection';
 import examService from '../services/examService';
 import shareService from '../services/shareService';
 import analyticsService from '../services/analyticsService';
+import { ShareBottomSheet } from '../components/common/ShareBottomSheet';
+import type { ShareOption } from '../components/common/ShareBottomSheet';
+import { useTranslation } from 'react-i18next';
 
 type Step = 'timing' | 'details' | 'result' | 'study_timer' | 'post_exam' | 'history';
 
@@ -56,6 +59,7 @@ interface ExamModeScreenProps {
 
 const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
     const { colors: tc } = useTheme();
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const [step, setStep] = useState<Step>('timing');
     const [timing, setTiming] = useState<ExamTiming | null>(null);
@@ -166,6 +170,12 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
         setShowTemplateSelector(true);
     };
 
+    const shareOptions: ShareOption[] = [
+        { id: 'image', icon: 'image-outline', label: t('guidance.share_as_image'), subtitle: t('guidance.share_as_image_desc'), color: tc.purple, onPress: handleShareAsImage },
+        { id: 'text', icon: 'text-outline', label: t('guidance.share_as_text'), subtitle: t('guidance.share_as_text_desc'), color: tc.purple, onPress: handleShareAsText },
+        { id: 'save', icon: 'download-outline', label: t('guidance.save_to_photos'), subtitle: t('guidance.save_to_photos_desc'), color: tc.green, onPress: handleSaveToPhotos },
+    ];
+
     const handleTemplateSelect = async (template: VerseCardTemplate, size: VerseCardSize) => {
         setSelectedTemplate(template);
         setSelectedSize(size);
@@ -229,7 +239,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
     return (
         <ClubhouseBackground>
             {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top || spacing.lg }]}>
+            <View style={[styles.header, { paddingTop: insets.top || spacing.lg, borderBottomColor: tc.border }]}>
                 <TouchableOpacity onPress={step === 'timing' ? onClose : handleBack} style={styles.headerBtn}>
                     <Ionicons
                         name={step === 'timing' ? 'close' : 'chevron-back'}
@@ -238,7 +248,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                     />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, { color: tc.text }]}>
-                    {step === 'timing' ? 'Exam Mode' : step === 'result' ? 'Your Verse' : step === 'study_timer' ? 'Study Timer' : step === 'post_exam' ? 'Reflection' : step === 'history' ? 'Session History' : 'Exam Mode'}
+                    {step === 'timing' ? t('exam.title') : step === 'result' ? t('exam.your_verse') : step === 'study_timer' ? t('exam.study_timer') : step === 'post_exam' ? t('exam.post_exam') : step === 'history' ? t('exam.exam_history') : t('exam.title')}
                 </Text>
                 <View style={styles.headerBtn} />
             </View>
@@ -254,9 +264,9 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                         <>
                             <View style={styles.stepHeader}>
                                 <Text style={styles.stepEmoji}>📚</Text>
-                                <Text style={[styles.stepTitle, { color: tc.text }]}>When is your exam?</Text>
+                                <Text style={[styles.stepTitle, { color: tc.text }]}>{t('exam.when_exam')}</Text>
                                 <Text style={[styles.stepDesc, { color: tc.textSecondary }]}>
-                                    We'll find the perfect verse to help you prepare
+                                    {t('exam.when_exam_desc', { defaultValue: "We'll find the perfect verse to help you prepare" })}
                                 </Text>
                             </View>
 
@@ -289,31 +299,31 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                             {/* Quick Actions */}
                             <View style={styles.quickActions}>
                                 <TouchableOpacity
-                                    style={styles.quickAction}
+                                    style={[styles.quickAction, { backgroundColor: tc.cream, borderColor: tc.border }]}
                                     onPress={() => {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                         animateTransition(() => setStep('study_timer'));
                                     }}
                                 >
                                     <Ionicons name="timer-outline" size={22} color={tc.purple} />
-                                    <Text style={[styles.quickActionText, { color: tc.text }]}>Study Timer</Text>
+                                    <Text style={[styles.quickActionText, { color: tc.text }]}>{t('exam.study_timer')}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={styles.quickAction}
+                                    style={[styles.quickAction, { backgroundColor: tc.cream, borderColor: tc.border }]}
                                     onPress={() => {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                         animateTransition(() => setStep('post_exam'));
                                     }}
                                 >
                                     <Ionicons name="chatbubble-ellipses-outline" size={22} color={tc.green} />
-                                    <Text style={[styles.quickActionText, { color: tc.text }]}>Post-Exam</Text>
+                                    <Text style={[styles.quickActionText, { color: tc.text }]}>{t('exam.post_exam')}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={styles.quickAction}
+                                    style={[styles.quickAction, { backgroundColor: tc.cream, borderColor: tc.border }]}
                                     onPress={handleShowHistory}
                                 >
                                     <Ionicons name="time-outline" size={22} color={tc.orange} />
-                                    <Text style={[styles.quickActionText, { color: tc.text }]}>History</Text>
+                                    <Text style={[styles.quickActionText, { color: tc.text }]}>{t('exam.exam_history')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </>
@@ -323,10 +333,10 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                     {step === 'details' && (
                         <>
                             <View style={styles.stepHeader}>
-                                <Text style={[styles.stepTitle, { color: tc.text }]}>Tell us more</Text>
+                                <Text style={[styles.stepTitle, { color: tc.text }]}>{t('exam.tell_us_more', { defaultValue: 'Tell us more' })}</Text>
                             </View>
 
-                            <Text style={[styles.sectionLabel, { color: tc.textSecondary }]}>What subject?</Text>
+                            <Text style={[styles.sectionLabel, { color: tc.textSecondary }]}>{t('exam.what_subject', { defaultValue: 'What subject?' })}</Text>
                             <View style={styles.chipGrid}>
                                 {SUBJECT_OPTIONS.map((opt) => (
                                     <TouchableOpacity
@@ -355,7 +365,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                 ))}
                             </View>
 
-                            <Text style={[styles.sectionLabel, { color: tc.textSecondary }]}>How are you feeling?</Text>
+                            <Text style={[styles.sectionLabel, { color: tc.textSecondary }]}>{t('exam.feeling')}</Text>
                             <View style={styles.chipGrid}>
                                 {FEELING_OPTIONS.map((opt) => (
                                     <TouchableOpacity
@@ -388,7 +398,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                             </View>
 
                             <ClubhouseButton
-                                title="Get My Verse"
+                                title={t('exam.get_verse', { defaultValue: 'Get My Verse' })}
                                 onPress={handleGetVerse}
                                 variant="primary"
                                 disabled={!subject || !feeling}
@@ -437,10 +447,10 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                 <Text style={[styles.footerText, { color: tc.textTertiary }]}>VERSE {resultVerse.verseNumber}</Text>
 
                                 {/* Action Bar */}
-                                <View style={styles.actions}>
+                                <View style={[styles.actions, { borderTopColor: tc.border }]}>
                                     <View style={styles.actionsLeft}>
                                         <TouchableOpacity
-                                            style={styles.circleAction}
+                                            style={[styles.circleAction, { backgroundColor: tc.backgroundSecondary }]}
                                             onPress={() => {
                                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                                 animateTransition(() => setStep('study_timer'));
@@ -466,7 +476,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                             </View>
 
                             <ClubhouseButton
-                                title="Get Another Verse"
+                                title={t('exam.get_another', { defaultValue: 'Get Another Verse' })}
                                 onPress={handleNewVerse}
                                 variant="teal"
                                 style={styles.anotherButton}
@@ -486,8 +496,8 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                             {examHistory.length === 0 ? (
                                 <View style={styles.stepHeader}>
                                     <Ionicons name="time-outline" size={48} color={tc.textTertiary} />
-                                    <Text style={[styles.stepTitle, { color: tc.text }]}>No sessions yet</Text>
-                                    <Text style={[styles.stepDesc, { color: tc.textSecondary }]}>Your exam sessions will appear here after you use Exam Mode.</Text>
+                                    <Text style={[styles.stepTitle, { color: tc.text }]}>{t('exam.no_sessions', { defaultValue: 'No sessions yet' })}</Text>
+                                    <Text style={[styles.stepDesc, { color: tc.textSecondary }]}>{t('exam.no_sessions_desc', { defaultValue: 'Your exam sessions will appear here after you use Exam Mode.' })}</Text>
                                 </View>
                             ) : (
                                 <View style={{ gap: spacing.md }}>
@@ -537,46 +547,28 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                 </View>
             )}
 
-            {/* Share Options Menu */}
-            {showShareOptions && (
-                <TouchableOpacity
-                    style={styles.shareOptionsOverlay}
-                    activeOpacity={1}
-                    onPress={() => setShowShareOptions(false)}
-                >
-                    <View style={styles.shareOptionsMenu}>
-                        <TouchableOpacity style={styles.shareOption} onPress={handleShareAsImage}>
-                            <Ionicons name="image-outline" size={24} color={colors.purple} />
-                            <Text style={styles.shareOptionText}>Share as Image</Text>
-                        </TouchableOpacity>
-                        <View style={styles.shareDivider} />
-                        <TouchableOpacity style={styles.shareOption} onPress={handleShareAsText}>
-                            <Ionicons name="text-outline" size={24} color={colors.purple} />
-                            <Text style={styles.shareOptionText}>Share as Text</Text>
-                        </TouchableOpacity>
-                        <View style={styles.shareDivider} />
-                        <TouchableOpacity style={styles.shareOption} onPress={handleSaveToPhotos}>
-                            <Ionicons name="download-outline" size={24} color={colors.purple} />
-                            <Text style={styles.shareOptionText}>Save to Photos</Text>
-                        </TouchableOpacity>
-                    </View>
-                </TouchableOpacity>
-            )}
+            {/* Share Options Bottom Sheet */}
+            <ShareBottomSheet
+                visible={showShareOptions}
+                onClose={() => setShowShareOptions(false)}
+                options={shareOptions}
+                title="Share"
+            />
 
             {/* Template Selector Modal */}
             <TemplateSelectorModal
                 visible={showTemplateSelector}
                 onClose={() => setShowTemplateSelector(false)}
                 onSelectTemplate={handleTemplateSelect}
-                moodColor={colors.purple}
+                moodColor={tc.purple}
             />
 
             {/* Generating Indicator */}
             {isGenerating && (
                 <View style={styles.generatingOverlay}>
-                    <View style={styles.generatingCard}>
-                        <ActivityIndicator size="large" color={colors.purple} />
-                        <Text style={styles.generatingText}>Generating card...</Text>
+                    <View style={[styles.generatingCard, { backgroundColor: tc.creamLight }]}>
+                        <ActivityIndicator size="large" color={tc.purple} />
+                        <Text style={[styles.generatingText, { color: tc.text }]}>{t('guidance.generating')}</Text>
                     </View>
                 </View>
             )}
@@ -897,46 +889,10 @@ const styles = StyleSheet.create({
         marginTop: spacing.xs,
     },
 
-    // Share options overlay — matches UnifiedGuidanceDisplay
     hiddenCard: {
         position: 'absolute',
         left: -10000,
         top: -10000,
-    },
-    shareOptionsOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
-    },
-    shareOptionsMenu: {
-        backgroundColor: colors.creamLight,
-        borderRadius: 24,
-        marginHorizontal: spacing.xl,
-        width: '80%',
-        overflow: 'hidden',
-        ...shadows.large,
-    },
-    shareOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: spacing.lg,
-        paddingHorizontal: spacing.xl,
-        gap: spacing.md,
-    },
-    shareOptionText: {
-        ...typography.body,
-        fontWeight: '600',
-        color: colors.text,
-    },
-    shareDivider: {
-        height: 1,
-        backgroundColor: colors.border + '10',
     },
     generatingOverlay: {
         position: 'absolute',
