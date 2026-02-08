@@ -155,7 +155,6 @@ class VerseService {
             preloadRefs.push(dailyRef);
 
             // Fetch all in background (don't await, let it run)
-            console.log(`Preloading ${preloadRefs.length} verses...`);
 
             // Limit concurrent requests to avoid overwhelming the API
             const batchSize = 5;
@@ -173,7 +172,6 @@ class VerseService {
                 );
             }
 
-            console.log('Verse preloading complete');
         } catch (error) {
             console.warn('Error preloading verses:', error);
             // Don't throw - preloading is optional

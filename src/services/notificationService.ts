@@ -86,12 +86,12 @@ class NotificationService {
                 }),
             });
 
-            // Define Interactive Categories (The Apple Way)
+            // Define Interactive Categories
             if (Platform.OS === 'ios') {
                 await Notifications.setNotificationCategoryAsync('GUIDANCE_NOTIFICATION', [
                     {
                         identifier: 'SAVE_ACTION',
-                        buttonTitle: 'Bookmark Heart',
+                        buttonTitle: '❤️ Save',
                         options: {
                             opensAppToForeground: false,
                         },
@@ -114,7 +114,26 @@ class NotificationService {
     }
 
     /**
-     * Schedule random notifications based on frequency and settings
+     * Cancel only daily guidance notifications, preserving journey-related ones.
+     */
+    async cancelDailyGuidanceNotifications(): Promise<void> {
+        try {
+            const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+            for (const notif of scheduled) {
+                const data = notif.content.data as Record<string, any> | undefined;
+                // Only cancel non-journey notifications
+                if (!data?.type?.startsWith('journey_')) {
+                    await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+                }
+            }
+        } catch (error) {
+            console.error('Error cancelling daily guidance notifications:', error);
+        }
+    }
+
+    /**
+     * Schedule random notifications based on frequency and settings.
+     * Now schedules for 14 days (was 7) and preserves journey notifications.
      */
     async scheduleRandomDailyNotifications(
         frequency: number = 3, 
@@ -123,9 +142,9 @@ class NotificationService {
         isWeekend: boolean = false
     ): Promise<void> {
         try {
-            await this.cancelAllNotifications();
+            // Only cancel daily guidance, preserve journey notifications
+            await this.cancelDailyGuidanceNotifications();
 
-            // Handle potential undefined values
             const safeFrequency = frequency || 3;
             const safeContentType = contentType || 'both';
 
@@ -139,23 +158,20 @@ class NotificationService {
 
             analyticsService.logNotificationScheduled(safeFrequency, safeContentType);
 
-            // Schedule for the next 7 days to ensure variety and reliability
-            for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+            // Schedule for 14 days to reduce the notification cliff
+            for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
                 const date = new Date();
                 date.setDate(date.getDate() + dayOffset);
                 
                 const isDayWeekend = date.getDay() === 0 || date.getDay() === 6;
                 const actualFrequency = (isWeekend && isDayWeekend) ? Math.max(1, safeFrequency - 1) : safeFrequency;
 
-                // Select windows based on frequency
                 let selectedWindows = [];
                 if (actualFrequency === 1) selectedWindows = [timeWindows[0]];
                 else if (actualFrequency === 2) selectedWindows = [timeWindows[0], timeWindows[3]];
                 else if (actualFrequency === 3) selectedWindows = [timeWindows[0], timeWindows[1], timeWindows[3]];
                 else selectedWindows = [...timeWindows];
 
-                // Assign a guaranteed content type to each window slot:
-                // slot 0 = verse, slot 1 = hadith, slot 2 = name, slot 3 = random
                 const slotTypes: (ContentType | undefined)[] = ['verse', 'hadith', 'name', undefined];
 
                 for (let wi = 0; wi < selectedWindows.length; wi++) {
@@ -166,14 +182,13 @@ class NotificationService {
                         date
                     );
 
-                    // Skip if time is in the past (only relevant for dayOffset 0)
                     if (triggerTime < new Date()) continue;
 
-                    // Check if triggerTime falls within quiet hours
                     if (quietHours && this.isTimeInQuietHours(triggerTime, quietHours)) {
                         continue;
                     }
 
+                    // Use local fallback content if network fails
                     const forcedType = slotTypes[wi % slotTypes.length];
                     const content = await this.getContentForNotification(forcedType);
                     if (!content) continue;
@@ -194,7 +209,8 @@ class NotificationService {
                                 id: content.id,
                                 type: content.type,
                             },
-                            categoryIdentifier: 'GUIDANCE_NOTIFICATION'
+                            categoryIdentifier: 'GUIDANCE_NOTIFICATION',
+                            ...(Platform.OS === 'ios' ? { threadId: 'noor-daily-guidance' } : {}),
                         },
                         trigger: {
                             date: triggerTime,
@@ -203,8 +219,6 @@ class NotificationService {
                     });
                 }
             }
-
-            console.log(`Scheduled notifications for the next 7 days`);
         } catch (error) {
             console.error('Error scheduling random notifications:', error);
         }
@@ -317,7 +331,7 @@ class NotificationService {
     }
 
     /**
-     * Cancel all scheduled notifications
+     * Cancel all scheduled notifications (use sparingly — prefer cancelDailyGuidanceNotifications)
      */
     async cancelAllNotifications(): Promise<void> {
         await Notifications.cancelAllScheduledNotificationsAsync();
@@ -333,63 +347,85 @@ class NotificationService {
     // ── Journey Notifications ──
 
     /**
-     * Schedule a daily journey reminder at the user's preferred notification time
+     * Schedule daily journey reminders for the next 7 days (not just one-shot).
      */
     async scheduleJourneyReminder(currentDay: number, notificationTime: string = '08:00'): Promise<void> {
         try {
-            // Cancel existing journey reminders first
             await this.cancelJourneyReminders();
 
             const [hours, minutes] = notificationTime.split(':').map(Number);
             if (isNaN(hours) || isNaN(minutes)) return;
 
-            const trigger = new Date();
-            trigger.setHours(hours, minutes, 0, 0);
+            // Schedule for the next 7 days so reminders persist
+            for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+                const trigger = new Date();
+                trigger.setDate(trigger.getDate() + dayOffset);
+                trigger.setHours(hours, minutes, 0, 0);
 
-            // If the time has already passed today, schedule for tomorrow
-            if (trigger <= new Date()) {
-                trigger.setDate(trigger.getDate() + 1);
+                if (trigger <= new Date()) continue;
+
+                const dayNum = currentDay + dayOffset;
+                if (dayNum > 30) break;
+
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title: `Your Day ${dayNum} verse awaits 🌙`,
+                        body: 'Continue your 30-day spiritual journey today.',
+                        sound: true,
+                        data: { type: 'journey_reminder', day: dayNum },
+                        ...(Platform.OS === 'ios' ? { threadId: 'noor-daily-journey' } : {}),
+                    },
+                    trigger: {
+                        date: trigger,
+                        type: Notifications.SchedulableTriggerInputTypes.DATE,
+                    } as Notifications.NotificationTriggerInput,
+                });
             }
-
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: `Your Day ${currentDay} verse awaits 🌙`,
-                    body: 'Continue your 30-day spiritual journey today.',
-                    sound: true,
-                    data: { type: 'journey_reminder', day: currentDay },
-                },
-                trigger: {
-                    date: trigger,
-                    type: Notifications.SchedulableTriggerInputTypes.DATE,
-                } as Notifications.NotificationTriggerInput,
-            });
-
-            console.log(`Journey reminder scheduled for day ${currentDay}`);
         } catch (error) {
             console.error('Error scheduling journey reminder:', error);
         }
     }
 
     /**
-     * Schedule a streak-at-risk notification for the evening
+     * Schedule streak-at-risk notifications: 8 PM today and 8 AM next morning.
      */
     async scheduleStreakRiskNotification(streak: number): Promise<void> {
         try {
-            const trigger = new Date();
-            trigger.setHours(20, 0, 0, 0); // 8 PM
+            const now = new Date();
 
-            // Only schedule if 8 PM hasn't passed yet
-            if (trigger <= new Date()) return;
+            // Evening reminder at 8 PM (if not past)
+            const evening = new Date();
+            evening.setHours(20, 0, 0, 0);
+            if (evening > now) {
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title: `Don't break your ${streak}-day streak! 🔥`,
+                        body: "You haven't completed today's journey reflection yet.",
+                        sound: true,
+                        data: { type: 'journey_streak_risk', streak },
+                        ...(Platform.OS === 'ios' ? { threadId: 'noor-daily-journey' } : {}),
+                    },
+                    trigger: {
+                        date: evening,
+                        type: Notifications.SchedulableTriggerInputTypes.DATE,
+                    } as Notifications.NotificationTriggerInput,
+                });
+            }
 
+            // Next morning fallback at 8 AM
+            const morning = new Date();
+            morning.setDate(morning.getDate() + 1);
+            morning.setHours(8, 0, 0, 0);
             await Notifications.scheduleNotificationAsync({
                 content: {
-                    title: `Don't break your ${streak}-day streak! 🔥`,
-                    body: "You haven't completed today's journey reflection yet.",
+                    title: `Your ${streak}-day streak needs you! 🌅`,
+                    body: 'Open your journey to keep your streak alive.',
                     sound: true,
                     data: { type: 'journey_streak_risk', streak },
+                    ...(Platform.OS === 'ios' ? { threadId: 'noor-daily-journey' } : {}),
                 },
                 trigger: {
-                    date: trigger,
+                    date: morning,
                     type: Notifications.SchedulableTriggerInputTypes.DATE,
                 } as Notifications.NotificationTriggerInput,
             });

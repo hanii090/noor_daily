@@ -21,6 +21,7 @@ interface MoodSelectorProps {
     onMoodSelect: (mood: Mood) => void;
     onSkip: () => void;
     onAskAI?: () => void;
+    headerContent?: React.ReactNode;
 }
 
 interface MoodConfig {
@@ -146,7 +147,7 @@ const MoodCard: React.FC<{
     );
 });
 
-export const MoodSelector: React.FC<MoodSelectorProps> = ({ onMoodSelect }) => {
+export const MoodSelector: React.FC<MoodSelectorProps> = ({ onMoodSelect, headerContent }) => {
     const { colors: themeColors } = useTheme();
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
@@ -185,6 +186,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({ onMoodSelect }) => {
             showsVerticalScrollIndicator={false}
             keyboardDismissMode="on-drag"
         >
+            {headerContent}
             <Text style={[styles.title, { color: themeColors.text }]}>{t('mood.how_feeling')}</Text>
             <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
                 {t('mood.select_desc', { defaultValue: 'Select a mood to find relevant verses for your heart.' })}

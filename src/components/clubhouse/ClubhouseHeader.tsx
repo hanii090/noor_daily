@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         ...typography.h2,
-        fontSize: 22,
+        fontSize: 18,
         fontWeight: '700',
         marginBottom: 2,
     },

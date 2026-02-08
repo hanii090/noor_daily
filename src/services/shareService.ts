@@ -164,8 +164,8 @@ class ShareService {
     async cleanupTempFile(uri: string): Promise<void> {
         try {
             await FileSystem.deleteAsync(uri, { idempotent: true });
-        } catch (error) {
-            console.error('Error cleaning up temp file:', error);
+        } catch (_e) {
+            // Non-critical: OS may have already cleaned up the temp file
         }
     }
 }

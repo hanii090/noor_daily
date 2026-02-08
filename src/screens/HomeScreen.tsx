@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, ActivityIndicator, Modal, Platform, ScrollView, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +35,7 @@ const getGreeting = (name: string | undefined, t: (key: string, opts?: any) => s
 const HomeScreen = () => {
     const { colors, isDark } = useTheme();
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const [showMoodSelector, setShowMoodSelector] = useState(true);
     const [showAIModal, setShowAIModal] = useState(false);
     const [selectedContent, setSelectedContent] = useState<GuidanceContent | null>(null);
@@ -55,7 +57,9 @@ const HomeScreen = () => {
         removeHadithFromFavorites, 
         addToHistory,
         settings,
+        dailyInspiration,
     } = useAppStore();
+    const [showInspiration, setShowInspiration] = useState(true);
 
     // Auto-save to history after 5 seconds of viewing
     useEffect(() => {
@@ -97,7 +101,7 @@ const HomeScreen = () => {
                         throw new Error('Content not found');
                     }
                 } catch (err) {
-                    console.error('Error loading content from notification:', err);
+                    // Failed to load content from notification deep link
                     setError('Unable to load content. Please check your connection.');
                 } finally {
                     setIsLoading(false);
@@ -275,7 +279,8 @@ const HomeScreen = () => {
             if (contentType === 'hadith') {
                 analyticsService.logHadithShared(selectedContent.id, 'text');
             }
-        } catch (error) {
+        } catch (_e) {
+            // Share cancelled by user
         }
     };
 
@@ -317,7 +322,7 @@ const HomeScreen = () => {
                         ) : undefined
                     }
                 >
-                    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+                    <Animated.View style={{ flexGrow: 1, opacity: fadeAnim }}>
                         {isLoading && (
                             <GuidanceSkeleton />
                         )}
@@ -344,6 +349,24 @@ const HomeScreen = () => {
                                 onMoodSelect={handleMoodSelect} 
                                 onSkip={handleSkip} 
                                 onAskAI={() => setShowAIModal(true)}
+                                headerContent={
+                                    dailyInspiration && showInspiration ? (
+                                        <View style={styles.inspirationCard}>
+                                            <View style={[styles.inspirationInner, { backgroundColor: colors.purple + '08', borderColor: colors.purple + '20' }]}>
+                                                <View style={styles.inspirationHeader}>
+                                                    <Ionicons name="sparkles" size={14} color={colors.purple} />
+                                                    <Text style={[styles.inspirationLabel, { color: colors.purple }]}>{t('home.daily_inspiration', { defaultValue: 'DAILY REFLECTION' })}</Text>
+                                                    <TouchableOpacity onPress={() => setShowInspiration(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                                                        <Ionicons name="close" size={16} color={colors.textTertiary} />
+                                                    </TouchableOpacity>
+                                                </View>
+                                                <Text style={[styles.inspirationText, { color: colors.text }]} numberOfLines={3}>
+                                                    {dailyInspiration.reflection}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    ) : undefined
+                                }
                             />
                         )}
 
@@ -457,10 +480,9 @@ const styles = StyleSheet.create({
         marginTop: spacing.base,
     },
     errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: spacing.xl,
+        paddingTop: 200,
     },
     errorTitle: {
         ...typography.h3,
@@ -518,6 +540,32 @@ const styles = StyleSheet.create({
         width: 1,
         height: 24,
         backgroundColor: colors.border,
+    },
+    inspirationCard: {
+        marginBottom: spacing.lg,
+    },
+    inspirationInner: {
+        borderRadius: 16,
+        padding: spacing.base,
+        borderWidth: 1,
+    },
+    inspirationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: spacing.xs,
+    },
+    inspirationLabel: {
+        ...typography.caption,
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 1,
+        flex: 1,
+    },
+    inspirationText: {
+        ...typography.body,
+        fontSize: 14,
+        lineHeight: 20,
     },
 });
 

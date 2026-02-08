@@ -23,7 +23,6 @@ class NotificationHandlerClass implements NotificationHandler {
             this.handleNotificationResponse
         );
 
-        console.log('Notification handler initialized');
     }
 
     /**
@@ -34,7 +33,6 @@ class NotificationHandlerClass implements NotificationHandler {
             const { actionIdentifier, notification } = response;
             const data = notification.request.content.data;
 
-            console.log('Notification received with action:', actionIdentifier, data);
 
             // Handle Interactive Actions
             if (actionIdentifier === 'SAVE_ACTION') {
@@ -64,7 +62,6 @@ class NotificationHandlerClass implements NotificationHandler {
      */
     private async handleSaveAction(id: string, type: 'verse' | 'hadith' | 'name'): Promise<void> {
         try {
-            console.log(`Handling save action for ${type}: ${id}`);
             const store = useAppStore.getState();
             
             if (type === 'verse') {
@@ -75,7 +72,6 @@ class NotificationHandlerClass implements NotificationHandler {
                 if (hadith) await store.addHadithToFavorites(hadith);
             }
             // Names of Allah don't have a save/favorite action yet
-            console.log(`Content ${id} bookmarked successfully via notification action`);
         } catch (error) {
             console.error('Error in handleSaveAction:', error);
         }
@@ -96,7 +92,6 @@ class NotificationHandlerClass implements NotificationHandler {
             this.responseListener.remove();
             this.responseListener = null;
         }
-        console.log('Notification handler cleaned up');
     }
 
     /**

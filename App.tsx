@@ -71,9 +71,12 @@ export default function App() {
 
           if (hasPermission) {
             const scheduled = await notificationService.getScheduledNotifications();
-
-            if (scheduled.length === 0) {
-              // Reschedule multi-notifications
+            // Reschedule if fewer than 7 notifications remain (proactive refresh)
+            const guidanceNotifs = scheduled.filter(n => {
+              const data = n.content.data as Record<string, any> | undefined;
+              return !data?.type?.startsWith('journey_');
+            });
+            if (guidanceNotifs.length < 7) {
               await notificationService.scheduleRandomDailyNotifications(
                 store.settings.notificationFrequency,
                 store.settings.notificationContentType,
@@ -83,7 +86,6 @@ export default function App() {
                 },
                 store.settings.weekendMode
               );
-              console.log('Rescheduled missing multi-notifications');
             }
           } else {
             // Permission was revoked, update settings to reflect this

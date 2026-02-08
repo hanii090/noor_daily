@@ -184,9 +184,9 @@ const SettingsScreen = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         try {
             await Share.share({
-                message: 'Check out Noor Daily - Daily Quran & Hadith guidance for your spiritual journey! https://noordaily.app',
+                message: t('settings.share_message'),
             });
-        } catch (e) {}
+        } catch (_e) { /* user cancelled */ }
     };
 
     const getLanguageName = () => {
@@ -197,12 +197,12 @@ const SettingsScreen = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         const total = favoriteVerses.length + favoriteHadiths.length;
         Alert.alert(
-            'Clear Saved Guidance',
-            `This will remove all ${total} items. This cannot be undone.`,
+            t('settings.clear_saved_title'),
+            t('settings.clear_saved_message', { count: total }),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('settings.cancel'), style: 'cancel' },
                 {
-                    text: 'Clear All',
+                    text: t('settings.clear_all'),
                     style: 'destructive',
                     onPress: async () => {
                         await clearAllFavorites();
@@ -215,12 +215,12 @@ const SettingsScreen = () => {
     const handleResetApp = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         Alert.alert(
-            'Reset App',
-            'This will clear all data and reset the app to initial state. This cannot be undone.',
+            t('settings.reset_app_title'),
+            t('settings.reset_app_message'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('settings.cancel'), style: 'cancel' },
                 {
-                    text: 'Reset',
+                    text: t('settings.reset_confirm'),
                     style: 'destructive',
                     onPress: async () => {
                         await AsyncStorage.clear();
@@ -236,16 +236,16 @@ const SettingsScreen = () => {
         if (supported) {
             await Linking.openURL(url);
         } else {
-            Alert.alert('Error', 'Unable to open link. Please try again later.');
+            Alert.alert('Error', t('settings.error_open_link'));
         }
     };
 
     // Get notification status text
     const getNotificationStatus = () => {
         if (settings.notificationsEnabled) {
-            return `Notifications enabled for ${settings.notificationTime}`;
+            return t('settings.notifications_enabled_for', { time: settings.notificationTime });
         }
-        return 'Notifications disabled';
+        return t('settings.notifications_disabled');
     };
 
     const getReciterName = () => {

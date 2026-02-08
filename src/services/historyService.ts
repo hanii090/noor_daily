@@ -243,7 +243,6 @@ class HistoryService {
             
             if (oldKeys.length > 0) {
                 await AsyncStorage.multiRemove(oldKeys);
-                console.log(`Pruned ${oldKeys.length} old history entries`);
             }
         } catch (error) {
             console.error('Error pruning old history:', error);

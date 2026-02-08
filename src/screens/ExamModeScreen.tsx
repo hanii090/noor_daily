@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     Dimensions,
     FlatList,
+    Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -30,27 +31,27 @@ import { useTranslation } from 'react-i18next';
 
 type Step = 'timing' | 'details' | 'result' | 'study_timer' | 'post_exam' | 'history';
 
-const TIMING_OPTIONS: { value: ExamTiming; label: string; icon: string; desc: string }[] = [
-    { value: 'today', label: 'Today', icon: '⚡', desc: 'Exam is today' },
-    { value: 'tomorrow', label: 'Tomorrow', icon: '🌅', desc: 'Exam is tomorrow' },
-    { value: 'this_week', label: 'This Week', icon: '📅', desc: 'Exam this week' },
+const TIMING_OPTIONS: { value: ExamTiming; labelKey: string; icon: string; descKey: string }[] = [
+    { value: 'today', labelKey: 'exam.today', icon: '⚡', descKey: 'exam.today_desc' },
+    { value: 'tomorrow', labelKey: 'exam.tomorrow', icon: '🌅', descKey: 'exam.tomorrow_desc' },
+    { value: 'this_week', labelKey: 'exam.this_week', icon: '📅', descKey: 'exam.this_week_desc' },
 ];
 
-const SUBJECT_OPTIONS: { value: ExamSubject; label: string; icon: string }[] = [
-    { value: 'math', label: 'Math', icon: '🔢' },
-    { value: 'science', label: 'Science', icon: '🔬' },
-    { value: 'language', label: 'Language', icon: '📝' },
-    { value: 'history', label: 'History', icon: '📜' },
-    { value: 'islamic_studies', label: 'Islamic Studies', icon: '🕌' },
-    { value: 'other', label: 'Other', icon: '📚' },
+const SUBJECT_OPTIONS: { value: ExamSubject; labelKey: string; icon: string }[] = [
+    { value: 'math', labelKey: 'exam.math', icon: '🔢' },
+    { value: 'science', labelKey: 'exam.science', icon: '🔬' },
+    { value: 'language', labelKey: 'exam.language', icon: '📝' },
+    { value: 'history', labelKey: 'exam.history', icon: '📜' },
+    { value: 'islamic_studies', labelKey: 'exam.islamic_studies', icon: '🕌' },
+    { value: 'other', labelKey: 'exam.other', icon: '📚' },
 ];
 
-const FEELING_OPTIONS: { value: ExamFeeling; label: string; icon: string; color: string }[] = [
-    { value: 'stressed', label: 'Stressed', icon: '😰', color: colors.coral },
-    { value: 'anxious', label: 'Anxious', icon: '😟', color: colors.orange },
-    { value: 'tired', label: 'Tired', icon: '😴', color: colors.purple },
-    { value: 'confident', label: 'Confident', icon: '💪', color: colors.green },
-    { value: 'hopeful', label: 'Hopeful', icon: '🤲', color: colors.teal },
+const FEELING_OPTIONS: { value: ExamFeeling; labelKey: string; icon: string; colorKey: string }[] = [
+    { value: 'stressed', labelKey: 'exam.stressed', icon: '😰', colorKey: 'coral' },
+    { value: 'anxious', labelKey: 'exam.anxious', icon: '😟', colorKey: 'orange' },
+    { value: 'tired', labelKey: 'exam.tired', icon: '😴', colorKey: 'purple' },
+    { value: 'confident', labelKey: 'exam.confident', icon: '💪', colorKey: 'green' },
+    { value: 'hopeful', labelKey: 'exam.hopeful', icon: '🤲', colorKey: 'teal' },
 ];
 
 interface ExamModeScreenProps {
@@ -136,8 +137,8 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
 
             analyticsService.logEvent('exam_verse_generated', { feeling, timing });
             animateTransition(() => setStep('result'));
-        } catch (error) {
-            console.error('Error getting exam verse:', error);
+        } catch (_e) {
+            // Verse fetch failed — user can retry
         } finally {
             setIsLoading(false);
         }
@@ -199,8 +200,8 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                 await shareService.cleanupTempFile(imageUri);
             }
             analyticsService.logEvent('exam_verse_shared', { method: isSaveMode ? 'save' : 'image' });
-        } catch (error) {
-            console.error('Error generating card:', error);
+        } catch (_e) {
+            // Card generation or share cancelled
         } finally {
             setIsGenerating(false);
             setIsSaveMode(false);
@@ -233,7 +234,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
         });
     };
 
-    const subjectLabel = SUBJECT_OPTIONS.find((s) => s.value === subject)?.label ?? 'Your';
+    const subjectLabel = subject ? t(SUBJECT_OPTIONS.find((s) => s.value === subject)?.labelKey ?? 'exam.other') : '';
     const dua = examService.getDuaForExam();
 
     return (
@@ -280,8 +281,8 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                     >
                                         <Text style={styles.timingIcon}>{opt.icon}</Text>
                                         <View style={styles.timingText}>
-                                            <Text style={[styles.timingLabel, { color: tc.text }]}>{opt.label}</Text>
-                                            <Text style={[styles.timingDesc, { color: tc.textSecondary }]}>{opt.desc}</Text>
+                                            <Text style={[styles.timingLabel, { color: tc.text }]}>{t(opt.labelKey)}</Text>
+                                            <Text style={[styles.timingDesc, { color: tc.textSecondary }]}>{t(opt.descKey)}</Text>
                                         </View>
                                         <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                     </TouchableOpacity>
@@ -290,7 +291,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
 
                             {/* Dua Section */}
                             <ClubhouseCard style={styles.duaCard} accentColor={tc.teal}>
-                                <Text style={[styles.duaSectionTitle, { color: tc.teal }]}>Pre-Exam Dua</Text>
+                                <Text style={[styles.duaSectionTitle, { color: tc.teal }]}>{t('exam.pre_exam_dua')}</Text>
                                 <Text style={[styles.duaArabic, { color: tc.text }]}>{dua.arabic}</Text>
                                 <Text style={[styles.duaTransliteration, { color: tc.textSecondary }]}>{dua.transliteration}</Text>
                                 <Text style={[styles.duaEnglish, { color: tc.textSecondary }]}>{dua.english}</Text>
@@ -359,7 +360,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                                 subject === opt.value && styles.chipLabelSelected,
                                             ]}
                                         >
-                                            {opt.label}
+                                            {t(opt.labelKey)}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
@@ -375,7 +376,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                             { backgroundColor: tc.cream, borderColor: tc.border },
                                             feeling === opt.value && [
                                                 styles.chipSelected,
-                                                { borderColor: opt.color, backgroundColor: opt.color + '15' },
+                                                { borderColor: (tc as any)[opt.colorKey] || tc.purple, backgroundColor: ((tc as any)[opt.colorKey] || tc.purple) + '15' },
                                             ],
                                         ]}
                                         onPress={() => {
@@ -388,10 +389,10 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                             style={[
                                                 styles.chipLabel,
                                                 { color: tc.text },
-                                                feeling === opt.value && { color: opt.color, fontWeight: '700' },
+                                                feeling === opt.value && { color: (tc as any)[opt.colorKey] || tc.purple, fontWeight: '700' },
                                             ]}
                                         >
-                                            {opt.label}
+                                            {t(opt.labelKey)}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
@@ -414,7 +415,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                             <View style={styles.resultHeader}>
                                 <Text style={styles.resultEmoji}>🌟</Text>
                                 <Text style={[styles.resultTitle, { color: tc.text }]}>
-                                    For Your {subjectLabel} Exam
+                                    {t('exam.for_your_exam', { subject: subjectLabel })}
                                 </Text>
                             </View>
 
@@ -427,7 +428,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                 <View style={styles.cardHeader}>
                                     <View style={[styles.typeBadge, { backgroundColor: tc.purple + '15' }]}>
                                         <Ionicons name="book" size={12} color={tc.purple} />
-                                        <Text style={[styles.typeBadgeText, { color: tc.purple }]}>QURANIC VERSE</Text>
+                                        <Text style={[styles.typeBadgeText, { color: tc.purple }]}>{t('guidance.quranic_verse')}</Text>
                                     </View>
                                     <Text style={[styles.referenceBadge, { color: tc.textTertiary, backgroundColor: tc.backgroundSecondary }]}>
                                         {resultVerse.surah} {resultVerse.verseNumber}
@@ -513,13 +514,13 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                                                 <View style={styles.historyCardHeader}>
                                                     <Text style={styles.historyEmoji}>{subjectInfo?.icon ?? '📚'}</Text>
                                                     <View style={{ flex: 1 }}>
-                                                        <Text style={[styles.historySubject, { color: tc.text }]}>{subjectInfo?.label ?? session.subject}</Text>
+                                                        <Text style={[styles.historySubject, { color: tc.text }]}>{subjectInfo ? t(subjectInfo.labelKey) : session.subject}</Text>
                                                         <Text style={[styles.historyMeta, { color: tc.textTertiary }]}>{dateStr} · {timeStr}</Text>
                                                     </View>
-                                                    <View style={[styles.historyFeelingBadge, { backgroundColor: (feelingInfo?.color ?? tc.purple) + '15' }]}>
+                                                    <View style={[styles.historyFeelingBadge, { backgroundColor: ((feelingInfo ? (tc as any)[feelingInfo.colorKey] : tc.purple) || tc.purple) + '15' }]}>
                                                         <Text style={{ fontSize: 12 }}>{feelingInfo?.icon ?? ''}</Text>
-                                                        <Text style={[styles.historyFeelingText, { color: feelingInfo?.color ?? tc.purple }]}>
-                                                            {feelingInfo?.label ?? session.feeling}
+                                                        <Text style={[styles.historyFeelingText, { color: (feelingInfo ? (tc as any)[feelingInfo.colorKey] : tc.purple) || tc.purple }]}>
+                                                            {feelingInfo ? t(feelingInfo.labelKey) : session.feeling}
                                                         </Text>
                                                     </View>
                                                 </View>
@@ -552,7 +553,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                 visible={showShareOptions}
                 onClose={() => setShowShareOptions(false)}
                 options={shareOptions}
-                title="Share"
+                title={t('actions.share')}
             />
 
             {/* Template Selector Modal */}
@@ -563,15 +564,15 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
                 moodColor={tc.purple}
             />
 
-            {/* Generating Indicator */}
-            {isGenerating && (
+            {/* Generating Indicator — Modal so it renders above the header */}
+            <Modal visible={isGenerating} transparent animationType="fade">
                 <View style={styles.generatingOverlay}>
                     <View style={[styles.generatingCard, { backgroundColor: tc.creamLight }]}>
                         <ActivityIndicator size="large" color={tc.purple} />
                         <Text style={[styles.generatingText, { color: tc.text }]}>{t('guidance.generating')}</Text>
                     </View>
                 </View>
-            )}
+            </Modal>
         </ClubhouseBackground>
     );
 };

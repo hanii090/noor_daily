@@ -9,6 +9,7 @@ import {
     ScrollView,
     Dimensions,
     PanResponder,
+    Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -222,7 +223,8 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                 }
                 await shareService.cleanupTempFile(imageUri);
             }
-        } catch (error) {
+        } catch (_e) {
+            // Card generation or share cancelled
         } finally {
             setIsGenerating(false);
             setIsSaveMode(false);
@@ -270,12 +272,12 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
             styles.container, 
             { 
                 opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }, { translateX: swipeX }],
-                paddingTop: insets.top + 140
+                transform: [{ translateY: slideAnim }],
+                paddingTop: insets.top + 90
             }
         ]}
-        {...panResponder.panHandlers}
         >
+            <Animated.View style={{ flex: 1, transform: [{ translateX: swipeX }] }} {...panResponder.panHandlers}>
             <ClubhouseCard 
                 backgroundColor={tc.white} 
                 style={styles.card}
@@ -409,15 +411,15 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                 moodColor={moodColor}
             />
 
-            {/* Generating Indicator */}
-            {isGenerating && (
+            {/* Generating Indicator — Modal so it renders above the fixed header */}
+            <Modal visible={isGenerating} transparent animationType="fade">
                 <View style={styles.generatingOverlay}>
                     <View style={[styles.generatingCard, { backgroundColor: tc.creamLight }]}>
                         <ActivityIndicator size="large" color={tc.purple} />
                         <Text style={[styles.generatingText, { color: tc.text }]}>{t('guidance.generating')}</Text>
                     </View>
                 </View>
-            )}
+            </Modal>
 
             {/* Success Toast */}
             <Toast
@@ -425,6 +427,7 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                 message={toastMessage}
                 onHide={() => setToastVisible(false)}
             />
+            </Animated.View>
         </Animated.View>
     );
 };

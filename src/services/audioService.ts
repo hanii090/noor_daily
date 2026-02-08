@@ -87,7 +87,6 @@ class AudioService {
             const ayahNumber = this.calculateAyahNumber(surah, verse);
             const audioUrl = `https://cdn.alquran.cloud/media/audio/ayah/${reciterEdition}/${ayahNumber}`;
 
-            console.log('Loading audio:', audioUrl);
 
             const { sound } = await Audio.Sound.createAsync(
                 { uri: audioUrl },

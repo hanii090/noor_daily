@@ -99,9 +99,8 @@ export { SkeletonBlock };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: 'center',
         paddingHorizontal: spacing.lg,
+        paddingTop: 180,
     },
     card: {
         borderRadius: 28,

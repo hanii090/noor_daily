@@ -2,9 +2,8 @@ class AnalyticsService {
     /**
      * Log a custom event
      */
-    logEvent(name: string, params: any = {}) {
-        console.log(`[ANALYTICS] ${name}`, params);
-        // In a real app, this would call Firebase Analytics, Mixpanel, etc.
+    logEvent(_name: string, _params: any = {}) {
+        // TODO: Wire to Firebase Analytics / Mixpanel in production
     }
 
     // Hadith specific events

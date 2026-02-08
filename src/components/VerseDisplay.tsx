@@ -35,7 +35,6 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
     onBookmark,
     onShare,
 }) => {
-    console.log('=== VERSE DISPLAY RENDERING ===', { verseId: verse.id, verse });
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const [showTemplateSelector, setShowTemplateSelector] = useState(false);
     const [showShareOptions, setShowShareOptions] = useState(false);
