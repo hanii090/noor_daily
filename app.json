@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#F3F2E3"
     },
@@ -19,7 +19,6 @@
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save and share verse cards.",
         "NSPhotoLibraryAddUsageDescription": "This app needs permission to save verse cards to your photo library.",
-        "NSCameraUsageDescription": "This app does not use the camera but may require it for future features.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },

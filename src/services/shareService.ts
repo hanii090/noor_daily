@@ -2,7 +2,7 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
-import { Alert, Platform, Share } from 'react-native';
+import { Alert, Linking, Platform, Share } from 'react-native';
 import { Verse, Hadith } from '../types';
 
 class ShareService {
@@ -82,18 +82,16 @@ class ShareService {
             if (status !== 'granted') {
                 Alert.alert(
                     'Permission Required',
-                    'We need access to your photo library to save images.',
+                    'We need access to your photo library to save images. Please enable it in Settings.',
                     [
                         { text: 'Cancel', style: 'cancel' },
                         {
                             text: 'Open Settings',
                             onPress: () => {
-                                // On iOS, user needs to manually go to settings
                                 if (Platform.OS === 'ios') {
-                                    Alert.alert(
-                                        'Open Settings',
-                                        'Please go to Settings > Noor Daily > Photos and enable access.'
-                                    );
+                                    Linking.openURL('app-settings:');
+                                } else {
+                                    Linking.openSettings();
                                 }
                             },
                         },

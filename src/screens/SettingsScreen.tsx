@@ -176,7 +176,7 @@ const SettingsScreen = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         const storeUrl = Platform.OS === 'ios'
             ? 'https://apps.apple.com/app/noor-daily/id6740000000' // TODO: Replace with actual App Store ID after submission
-            : 'https://play.google.com/store/apps/details?id=com.noordaily';
+            : 'https://play.google.com/store/apps/details?id=com.noordaily.app';
         Linking.openURL(storeUrl);
     };
 
@@ -545,6 +545,14 @@ const SettingsScreen = () => {
                                 }
                             />
                         </TouchableOpacity>
+                        <View style={styles.divider} />
+                        <SettingRow
+                            title={t('settings.acknowledgments')}
+                            subtitle={t('settings.acknowledgments_desc')}
+                            icon="heart"
+                            iconBg="#F4EDFA"
+                            iconColor="#AF52DE"
+                        />
                     </ClubhouseCard>
                 </View>
 
