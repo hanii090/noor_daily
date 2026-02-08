@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import { colors, typography, spacing } from '../../theme';
 import analyticsService from '../../services/analyticsService';

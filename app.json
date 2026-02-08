@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "Noor Daily",
+    "name": "Noor Daily - Quran & Hadith",
     "slug": "noor-daily",
     "version": "1.0.0",
+    "description": "Daily Quran verses & Hadith matched to your mood. AI-powered Tafsir, 30-Day Spiritual Journey, Student Exam Mode, 99 Names of Allah, audio recitation, and beautiful shareable cards. Your daily Islamic companion.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",

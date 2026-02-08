@@ -117,13 +117,13 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
             Animated.timing(fadeAnim, {
                 toValue: 1,
                 duration: 600,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }),
             Animated.spring(slideAnim, {
                 toValue: 0,
                 tension: 40,
                 friction: 7,
-                useNativeDriver: true,
+                useNativeDriver: false,
             })
         ]).start();
     }, [content.id]);
@@ -268,16 +268,17 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
     };
 
     return (
-        <Animated.View style={[
-            styles.container, 
-            { 
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-                paddingTop: insets.top + 90
-            }
-        ]}
+        <Animated.View
+            style={[
+                styles.container,
+                {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }, { translateX: swipeX }],
+                    paddingTop: insets.top + 90,
+                },
+            ]}
+            {...panResponder.panHandlers}
         >
-            <Animated.View style={{ flex: 1, transform: [{ translateX: swipeX }] }} {...panResponder.panHandlers}>
             <ClubhouseCard 
                 backgroundColor={tc.white} 
                 style={styles.card}
@@ -427,7 +428,6 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                 message={toastMessage}
                 onHide={() => setToastVisible(false)}
             />
-            </Animated.View>
         </Animated.View>
     );
 };

@@ -102,9 +102,9 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ onClose }) => {
         });
     };
 
-    const handleTimingSelect = (t: ExamTiming) => {
+    const handleTimingSelect = (selected: ExamTiming) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setTiming(t);
+        setTiming(selected);
         animateTransition(() => setStep('details'));
         analyticsService.logEvent('exam_mode_opened');
     };

@@ -200,6 +200,7 @@ class JourneyService {
 
         let streak = 0;
         let checkDay = todayJourneyDay;
+        let freezeApplied = false;
 
         // Count backwards from today
         while (checkDay >= 1) {
@@ -213,10 +214,12 @@ class JourneyService {
                 // Today not completed yet, check from yesterday
                 checkDay--;
             } else {
-                // Check if streak freeze applies
-                if (!progress.streakFreezeUsed && streak > 0) {
-                    // Allow one gap
-                    break;
+                // Gap found — apply streak freeze if available
+                if (progress.streakFreezeUsed && !freezeApplied && streak > 0) {
+                    // Freeze was already used, skip this one gap
+                    freezeApplied = true;
+                    checkDay--;
+                    continue;
                 }
                 break;
             }

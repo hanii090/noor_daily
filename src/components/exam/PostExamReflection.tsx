@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '../../theme';
+import { colors, useTheme, typography, spacing } from '../../theme';
 import { Verse, ExamVerse } from '../../types';
 import examService from '../../services/examService';
 
@@ -22,6 +22,7 @@ const OUTCOME_OPTIONS: { value: Outcome; label: string; icon: string; color: str
 ];
 
 export const PostExamReflection: React.FC = () => {
+    const { colors: tc } = useTheme();
     const [outcome, setOutcome] = useState<Outcome | null>(null);
     const [verse, setVerse] = useState<Verse | null>(null);
     const [examVerse, setExamVerse] = useState<ExamVerse | null>(null);
@@ -55,8 +56,8 @@ export const PostExamReflection: React.FC = () => {
             <View style={styles.container}>
                 <View style={styles.submittedSection}>
                     <Text style={styles.submittedEmoji}>🤲</Text>
-                    <Text style={styles.submittedTitle}>May Allah bless your efforts</Text>
-                    <Text style={styles.submittedDesc}>
+                    <Text style={[styles.submittedTitle, { color: tc.text }]}>May Allah bless your efforts</Text>
+                    <Text style={[styles.submittedDesc, { color: tc.textSecondary }]}>
                         Whatever the result, remember that your effort is never wasted in Allah's eyes.
                         Trust His plan for you.
                     </Text>
@@ -68,10 +69,10 @@ export const PostExamReflection: React.FC = () => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.green} />
-                <Text style={styles.title}>Post-Exam Reflection</Text>
+                <Ionicons name="chatbubble-ellipses-outline" size={24} color={tc.green} />
+                <Text style={[styles.title, { color: tc.text }]}>Post-Exam Reflection</Text>
             </View>
-            <Text style={styles.subtitle}>How did your exam go?</Text>
+            <Text style={[styles.subtitle, { color: tc.textSecondary }]}>How did your exam go?</Text>
 
             {/* Outcome Selection */}
             <View style={styles.outcomeGrid}>
@@ -80,6 +81,7 @@ export const PostExamReflection: React.FC = () => {
                         key={opt.value}
                         style={[
                             styles.outcomeCard,
+                            { backgroundColor: tc.cream, borderColor: tc.border },
                             outcome === opt.value && {
                                 borderColor: opt.color,
                                 backgroundColor: opt.color + '12',
@@ -92,6 +94,7 @@ export const PostExamReflection: React.FC = () => {
                         <Text
                             style={[
                                 styles.outcomeLabel,
+                                { color: tc.text },
                                 outcome === opt.value && { color: opt.color, fontWeight: '700' },
                             ]}
                         >
@@ -104,33 +107,33 @@ export const PostExamReflection: React.FC = () => {
             {/* Loading */}
             {isLoading && (
                 <View style={styles.loadingSection}>
-                    <ActivityIndicator color={colors.green} />
+                    <ActivityIndicator color={tc.green} />
                 </View>
             )}
 
             {/* Verse Result */}
             {verse && examVerse && !isLoading && (
                 <>
-                    <View style={styles.verseCard}>
-                        <Text style={styles.verseArabic}>{verse.arabic}</Text>
-                        <Text style={styles.verseEnglish}>"{verse.english}"</Text>
-                        <Text style={styles.verseRef}>
+                    <View style={[styles.verseCard, { backgroundColor: tc.cream, borderColor: tc.border }]}>
+                        <Text style={[styles.verseArabic, { color: tc.text }]}>{verse.arabic}</Text>
+                        <Text style={[styles.verseEnglish, { color: tc.text }]}>"{verse.english}"</Text>
+                        <Text style={[styles.verseRef, { color: tc.textTertiary }]}>
                             Surah {verse.surah} — Verse {verse.verseNumber}
                         </Text>
                     </View>
 
-                    <View style={styles.noteCard}>
-                        <Ionicons name="heart-outline" size={18} color={colors.coral} />
-                        <Text style={styles.noteText}>{examVerse.motivationalNote}</Text>
+                    <View style={[styles.noteCard, { backgroundColor: tc.coral + '10' }]}>
+                        <Ionicons name="heart-outline" size={18} color={tc.coral} />
+                        <Text style={[styles.noteText, { color: tc.text }]}>{examVerse.motivationalNote}</Text>
                     </View>
 
                     {/* Journal */}
                     <View style={styles.journalSection}>
-                        <Text style={styles.journalLabel}>Write your thoughts (optional)</Text>
+                        <Text style={[styles.journalLabel, { color: tc.textSecondary }]}>Write your thoughts (optional)</Text>
                         <TextInput
-                            style={styles.journalInput}
+                            style={[styles.journalInput, { backgroundColor: tc.cream, borderColor: tc.border, color: tc.text }]}
                             placeholder="How do you feel? What did you learn?"
-                            placeholderTextColor={colors.textTertiary}
+                            placeholderTextColor={tc.textTertiary}
                             multiline
                             numberOfLines={4}
                             textAlignVertical="top"
@@ -140,7 +143,7 @@ export const PostExamReflection: React.FC = () => {
                     </View>
 
                     <TouchableOpacity
-                        style={styles.submitButton}
+                        style={[styles.submitButton, { backgroundColor: tc.green }]}
                         onPress={handleSubmit}
                         activeOpacity={0.8}
                     >

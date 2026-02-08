@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '../../theme';
+import { colors, useTheme, typography, spacing } from '../../theme';
 import { useAppStore } from '../../store/appStore';
 import { Verse, Hadith, JourneyDay, JourneyBadge } from '../../types';
 import journeyService from '../../services/journeyService';
@@ -42,6 +42,7 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
     onClose,
     onComplete,
 }) => {
+    const { colors: tc } = useTheme();
     const insets = useSafeAreaInsets();
     const { journeyProgress, completeJourneyDay } = useAppStore();
 
@@ -147,16 +148,16 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
             onRequestClose={onClose}
         >
             <KeyboardAvoidingView
-                style={styles.container}
+                style={[styles.container, { backgroundColor: tc.creamLight }]}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 {/* Header */}
-                <View style={[styles.header, { paddingTop: insets.top || spacing.lg }]}>
+                <View style={[styles.header, { paddingTop: insets.top || spacing.lg, backgroundColor: tc.creamLight, borderBottomColor: tc.border }]}>
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                        <Ionicons name="close" size={24} color={colors.text} />
+                        <Ionicons name="close" size={24} color={tc.text} />
                     </TouchableOpacity>
                     <View style={styles.headerCenter}>
-                        <Text style={styles.headerDay}>Day {day}</Text>
+                        <Text style={[styles.headerDay, { color: tc.text }]}>Day {day}</Text>
                         {journeyDay && (
                             <View style={[styles.themePill, { backgroundColor: themeColor + '20' }]}>
                                 <Text style={[styles.themePillText, { color: themeColor }]}>
@@ -182,20 +183,20 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                         keyboardShouldPersistTaps="handled"
                     >
                         {/* Theme Title */}
-                        <Text style={styles.themeTitle}>{journeyDay?.themeTitle}</Text>
+                        <Text style={[styles.themeTitle, { color: tc.text }]}>{journeyDay?.themeTitle}</Text>
 
                         {/* Verse Section */}
                         {verse && (
-                            <View style={[styles.contentCard, { borderLeftColor: themeColor }]}>
+                            <View style={[styles.contentCard, { borderLeftColor: themeColor, backgroundColor: tc.cream }]}>
                                 <View style={styles.contentLabel}>
                                     <Ionicons name="book-outline" size={16} color={themeColor} />
                                     <Text style={[styles.contentLabelText, { color: themeColor }]}>
                                         QURAN
                                     </Text>
                                 </View>
-                                <Text style={styles.arabicText}>{verse.arabic}</Text>
-                                <Text style={styles.englishText}>{verse.english}</Text>
-                                <Text style={styles.reference}>
+                                <Text style={[styles.arabicText, { color: tc.text }]}>{verse.arabic}</Text>
+                                <Text style={[styles.englishText, { color: tc.text }]}>{verse.english}</Text>
+                                <Text style={[styles.reference, { color: tc.textTertiary }]}>
                                     Surah {verse.surah} — Verse {verse.verseNumber}
                                 </Text>
                             </View>
@@ -203,16 +204,16 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
 
                         {/* Hadith Section */}
                         {hadith && (
-                            <View style={[styles.contentCard, { borderLeftColor: themeColor }]}>
+                            <View style={[styles.contentCard, { borderLeftColor: themeColor, backgroundColor: tc.cream }]}>
                                 <View style={styles.contentLabel}>
                                     <Ionicons name="chatbubble-outline" size={16} color={themeColor} />
                                     <Text style={[styles.contentLabelText, { color: themeColor }]}>
                                         HADITH
                                     </Text>
                                 </View>
-                                <Text style={styles.arabicText}>{hadith.arabic}</Text>
-                                <Text style={styles.englishText}>{hadith.english}</Text>
-                                <Text style={styles.reference}>
+                                <Text style={[styles.arabicText, { color: tc.text }]}>{hadith.arabic}</Text>
+                                <Text style={[styles.englishText, { color: tc.text }]}>{hadith.english}</Text>
+                                <Text style={[styles.reference, { color: tc.textTertiary }]}>
                                     {hadith.reference} — Narrated by {hadith.narrator}
                                 </Text>
                             </View>
@@ -222,10 +223,10 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                         {journeyDay && (
                             <View style={styles.tafsirSection}>
                                 <View style={styles.sectionHeader}>
-                                    <Ionicons name="bulb-outline" size={18} color={colors.orange} />
-                                    <Text style={styles.sectionHeaderText}>Brief Tafsir</Text>
+                                    <Ionicons name="bulb-outline" size={18} color={tc.orange} />
+                                    <Text style={[styles.sectionHeaderText, { color: tc.text }]}>Brief Tafsir</Text>
                                 </View>
-                                <Text style={styles.tafsirText}>{journeyDay.tafsirBrief}</Text>
+                                <Text style={[styles.tafsirText, { color: tc.textSecondary }]}>{journeyDay.tafsirBrief}</Text>
                             </View>
                         )}
 
@@ -233,16 +234,16 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                         {journeyDay && (
                             <View style={styles.reflectionSection}>
                                 <View style={styles.sectionHeader}>
-                                    <Ionicons name="help-circle-outline" size={18} color={colors.purple} />
-                                    <Text style={styles.sectionHeaderText}>Reflection</Text>
+                                    <Ionicons name="help-circle-outline" size={18} color={tc.purple} />
+                                    <Text style={[styles.sectionHeaderText, { color: tc.text }]}>Reflection</Text>
                                 </View>
-                                <Text style={styles.reflectionQuestion}>
+                                <Text style={[styles.reflectionQuestion, { color: tc.text }]}>
                                     {journeyDay.reflectionQuestion}
                                 </Text>
                                 <TextInput
-                                    style={styles.journalInput}
+                                    style={[styles.journalInput, { backgroundColor: tc.cream, borderColor: tc.border, color: tc.text }]}
                                     placeholder="Write your thoughts..."
-                                    placeholderTextColor={colors.textTertiary}
+                                    placeholderTextColor={tc.textTertiary}
                                     multiline
                                     numberOfLines={4}
                                     textAlignVertical="top"
@@ -261,7 +262,7 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                                         Today's Challenge
                                     </Text>
                                 </View>
-                                <Text style={styles.challengeText}>
+                                <Text style={[styles.challengeText, { color: tc.text }]}>
                                     {journeyDay.dailyChallenge}
                                 </Text>
                             </View>
@@ -270,12 +271,12 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                         {/* Badge Preview */}
                         {journeyDay?.badge && !isAlreadyCompleted && (
                             <View style={styles.badgePreview}>
-                                <Text style={styles.badgePreviewText}>
+                                <Text style={[styles.badgePreviewText, { color: tc.textSecondary }]}>
                                     Complete today to earn:
                                 </Text>
                                 <View style={styles.badgePreviewRow}>
                                     <Text style={styles.badgeEmoji}>{journeyDay.badge.emoji}</Text>
-                                    <Text style={styles.badgeName}>{journeyDay.badge.name}</Text>
+                                    <Text style={[styles.badgeName, { color: tc.text }]}>{journeyDay.badge.name}</Text>
                                 </View>
                             </View>
                         )}
@@ -289,18 +290,18 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                                 activeOpacity={0.8}
                             >
                                 {isCompleting ? (
-                                    <ActivityIndicator color={colors.white} />
+                                    <ActivityIndicator color="#fff" />
                                 ) : (
                                     <>
-                                        <Ionicons name="checkmark-circle" size={22} color={colors.white} />
+                                        <Ionicons name="checkmark-circle" size={22} color="#fff" />
                                         <Text style={styles.completeButtonText}>Mark Day Complete</Text>
                                     </>
                                 )}
                             </TouchableOpacity>
                         ) : (
-                            <View style={styles.completedBanner}>
-                                <Ionicons name="checkmark-circle" size={22} color={colors.green} />
-                                <Text style={styles.completedBannerText}>Day Completed</Text>
+                            <View style={[styles.completedBanner, { backgroundColor: tc.green + '15' }]}>
+                                <Ionicons name="checkmark-circle" size={22} color={tc.green} />
+                                <Text style={[styles.completedBannerText, { color: tc.green }]}>Day Completed</Text>
                             </View>
                         )}
                     </ScrollView>
@@ -310,7 +311,7 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                 {showCelebration && (
                     <Animated.View
                         style={[
-                            styles.celebrationOverlay,
+                            styles.celebrationOverlay, 
                             {
                                 opacity: celebrationAnim,
                                 transform: [
@@ -324,22 +325,22 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
                             },
                         ]}
                     >
-                        <View style={styles.celebrationContent}>
+                        <View style={[styles.celebrationContent, { backgroundColor: tc.creamLight }]}>
                             {earnedBadge ? (
                                 <>
                                     <Text style={styles.celebrationEmoji}>{earnedBadge.emoji}</Text>
-                                    <Text style={styles.celebrationTitle}>Badge Earned!</Text>
-                                    <Text style={styles.celebrationSubtitle}>{earnedBadge.name}</Text>
+                                    <Text style={[styles.celebrationTitle, { color: tc.text }]}>Badge Earned!</Text>
+                                    <Text style={[styles.celebrationSubtitle, { color: tc.textSecondary }]}>{earnedBadge.name}</Text>
                                 </>
                             ) : (
                                 <>
                                     <Text style={styles.celebrationEmoji}>
                                         {day === 30 ? '👑' : '✨'}
                                     </Text>
-                                    <Text style={styles.celebrationTitle}>
+                                    <Text style={[styles.celebrationTitle, { color: tc.text }]}>
                                         {day === 30 ? 'Journey Complete!' : 'MashaAllah!'}
                                     </Text>
-                                    <Text style={styles.celebrationSubtitle}>
+                                    <Text style={[styles.celebrationSubtitle, { color: tc.textSecondary }]}>
                                         Day {day} completed
                                     </Text>
                                 </>

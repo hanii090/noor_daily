@@ -13,7 +13,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '../../theme';
+import { colors, useTheme, typography, spacing } from '../../theme';
 import widgetService, { WidgetData } from '../../services/widgetService';
 import analyticsService from '../../services/analyticsService';
 
@@ -39,6 +39,7 @@ const truncate = (str: string, max: number) =>
     str.length > max ? str.slice(0, max).trimEnd() + '...' : str;
 
 export const DailyWallpaperGenerator: React.FC = () => {
+    const { colors: tc } = useTheme();
     const viewShotRef = useRef<ViewShot>(null);
     const [template, setTemplate] = useState<WallpaperTemplate>('light');
     const [widgetData, setWidgetData] = useState<WidgetData | null>(null);
@@ -124,8 +125,8 @@ export const DailyWallpaperGenerator: React.FC = () => {
     if (isLoading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={colors.purple} />
-                <Text style={styles.loadingText}>Preparing wallpaper...</Text>
+                <ActivityIndicator size="large" color={tc.purple} />
+                <Text style={[styles.loadingText, { color: tc.textSecondary }]}>Preparing wallpaper...</Text>
             </View>
         );
     }
@@ -133,10 +134,10 @@ export const DailyWallpaperGenerator: React.FC = () => {
     if (!widgetData) {
         return (
             <View style={styles.loadingContainer}>
-                <Ionicons name="alert-circle-outline" size={48} color={colors.textTertiary} />
-                <Text style={styles.loadingText}>Unable to load content</Text>
-                <TouchableOpacity onPress={loadData} style={styles.retryBtn}>
-                    <Text style={styles.retryBtnText}>Try Again</Text>
+                <Ionicons name="alert-circle-outline" size={48} color={tc.textTertiary} />
+                <Text style={[styles.loadingText, { color: tc.textSecondary }]}>Unable to load content</Text>
+                <TouchableOpacity onPress={loadData} style={[styles.retryBtn, { backgroundColor: tc.purple + '15' }]}>
+                    <Text style={[styles.retryBtnText, { color: tc.purple }]}>Try Again</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -149,35 +150,37 @@ export const DailyWallpaperGenerator: React.FC = () => {
         <View style={styles.container}>
             {/* Template Selector */}
             <View style={styles.templateRow}>
-                {TEMPLATES.map((t) => (
+                {TEMPLATES.map((tmpl) => (
                     <TouchableOpacity
-                        key={t.value}
+                        key={tmpl.value}
                         style={[
                             styles.templateChip,
-                            template === t.value && styles.templateChipActive,
+                            { backgroundColor: tc.cream, borderColor: tc.border },
+                            template === tmpl.value && { borderColor: tc.purple, backgroundColor: tc.purple + '10' },
                         ]}
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                            setTemplate(t.value);
+                            setTemplate(tmpl.value);
                         }}
                     >
                         <Ionicons
-                            name={t.icon}
+                            name={tmpl.icon}
                             size={14}
-                            color={template === t.value ? colors.purple : colors.textSecondary}
+                            color={template === tmpl.value ? tc.purple : tc.textSecondary}
                         />
                         <Text style={[
                             styles.templateChipText,
-                            template === t.value && styles.templateChipTextActive,
+                            { color: tc.textSecondary },
+                            template === tmpl.value && { color: tc.purple, fontWeight: '700' },
                         ]}>
-                            {t.label}
+                            {tmpl.label}
                         </Text>
                     </TouchableOpacity>
                 ))}
             </View>
 
             {/* Wallpaper Preview */}
-            <View style={styles.previewContainer}>
+            <View style={[styles.previewContainer, { borderColor: tc.border }]}>
                 <ViewShot
                     ref={viewShotRef}
                     options={{ format: 'png', quality: 1, width: 1170, height: 2532 }}
@@ -215,25 +218,25 @@ export const DailyWallpaperGenerator: React.FC = () => {
 
             {/* Action Buttons */}
             <View style={styles.actions}>
-                <TouchableOpacity style={styles.actionBtn} onPress={handleRefresh}>
-                    <Ionicons name="refresh-outline" size={20} color={colors.purple} />
+                <TouchableOpacity style={[styles.actionBtn, { backgroundColor: tc.cream, borderColor: tc.border }]} onPress={handleRefresh}>
+                    <Ionicons name="refresh-outline" size={20} color={tc.purple} />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.actionBtn, styles.actionBtnPrimary, { flex: 2 }]}
+                    style={[styles.actionBtn, { flex: 2, backgroundColor: tc.purple, borderColor: tc.purple }]}
                     onPress={handleSaveToGallery}
                     disabled={isSaving}
                 >
                     {isSaving ? (
-                        <ActivityIndicator color={colors.white} size="small" />
+                        <ActivityIndicator color="#fff" size="small" />
                     ) : (
                         <>
-                            <Ionicons name="download-outline" size={20} color={colors.white} />
-                            <Text style={[styles.actionBtnText, { color: colors.white }]}>Save to Photos</Text>
+                            <Ionicons name="download-outline" size={20} color="#fff" />
+                            <Text style={[styles.actionBtnText, { color: '#fff' }]}>Save to Photos</Text>
                         </>
                     )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
-                    <Ionicons name="share-outline" size={20} color={colors.purple} />
+                <TouchableOpacity style={[styles.actionBtn, { backgroundColor: tc.cream, borderColor: tc.border }]} onPress={handleShare}>
+                    <Ionicons name="share-outline" size={20} color={tc.purple} />
                 </TouchableOpacity>
             </View>
         </View>

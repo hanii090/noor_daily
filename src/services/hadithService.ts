@@ -53,8 +53,6 @@ class HadithService {
    */
   private async fetchAndClassifyHadith(targetMood?: Mood): Promise<Hadith | null> {
     try {
-      // Pick a random curated book
-      const bookNum = CURATED_BOOKS[Math.floor(Math.random() * CURATED_BOOKS.length)];
       const { hadith: apiHadith, bookName } = await reminderApiService.getRandomHadith();
 
       if (!apiHadith || !apiHadith.english || apiHadith.english.length < 20) {

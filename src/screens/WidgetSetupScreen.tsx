@@ -12,7 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { ClubhouseBackground, ClubhouseCard, ClubhouseButton } from '../components/clubhouse';
 import { DailyWallpaperGenerator } from '../components/widget/DailyWallpaperGenerator';
-import { colors, typography, spacing } from '../theme';
+import { colors, useTheme, typography, spacing } from '../theme';
 import widgetService, { WidgetConfig } from '../services/widgetService';
 
 interface WidgetSetupScreenProps {
@@ -39,6 +39,7 @@ const TEMPLATE_OPTIONS: { value: WidgetConfig['template']; label: string; color:
 ];
 
 const WidgetSetupScreen: React.FC<WidgetSetupScreenProps> = ({ visible, onClose }) => {
+    const { colors: tc } = useTheme();
     const insets = useSafeAreaInsets();
     const [config, setConfig] = useState<WidgetConfig>({
         contentType: 'verse',
@@ -75,29 +76,29 @@ const WidgetSetupScreen: React.FC<WidgetSetupScreenProps> = ({ visible, onClose 
         >
             <ClubhouseBackground>
                 {/* Header */}
-                <View style={[styles.header, { paddingTop: insets.top || spacing.lg }]}>
+                <View style={[styles.header, { paddingTop: insets.top || spacing.lg, borderBottomColor: tc.border }]}>
                     <TouchableOpacity onPress={onClose} style={styles.headerBtn}>
-                        <Ionicons name="close" size={24} color={colors.text} />
+                        <Ionicons name="close" size={24} color={tc.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Daily Wallpaper</Text>
+                    <Text style={[styles.headerTitle, { color: tc.text }]}>Daily Wallpaper</Text>
                     <View style={styles.headerBtn} />
                 </View>
 
                 {/* Tab Selector */}
                 <View style={styles.tabRow}>
                     <TouchableOpacity
-                        style={[styles.tab, activeTab === 'wallpaper' && styles.tabActive]}
+                        style={[styles.tab, { backgroundColor: tc.cream, borderColor: tc.border }, activeTab === 'wallpaper' && { backgroundColor: tc.purple + '12', borderColor: tc.purple }]}
                         onPress={() => setActiveTab('wallpaper')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'wallpaper' && styles.tabTextActive]}>
+                        <Text style={[styles.tabText, { color: tc.textSecondary }, activeTab === 'wallpaper' && { color: tc.purple, fontWeight: '700' }]}>
                             Wallpaper
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={[styles.tab, activeTab === 'settings' && styles.tabActive]}
+                        style={[styles.tab, { backgroundColor: tc.cream, borderColor: tc.border }, activeTab === 'settings' && { backgroundColor: tc.purple + '12', borderColor: tc.purple }]}
                         onPress={() => setActiveTab('settings')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'settings' && styles.tabTextActive]}>
+                        <Text style={[styles.tabText, { color: tc.textSecondary }, activeTab === 'settings' && { color: tc.purple, fontWeight: '700' }]}>
                             Settings
                         </Text>
                     </TouchableOpacity>
@@ -112,14 +113,15 @@ const WidgetSetupScreen: React.FC<WidgetSetupScreenProps> = ({ visible, onClose 
                     ) : (
                         <>
                             {/* Content Type */}
-                            <Text style={styles.sectionTitle}>Content Type</Text>
+                            <Text style={[styles.sectionTitle, { color: tc.textSecondary }]}>Content Type</Text>
                             <View style={styles.optionRow}>
                                 {CONTENT_OPTIONS.map((opt) => (
                                     <TouchableOpacity
                                         key={opt.value}
                                         style={[
                                             styles.optionChip,
-                                            config.contentType === opt.value && styles.optionChipActive,
+                                            { backgroundColor: tc.cream, borderColor: tc.border },
+                                            config.contentType === opt.value && { borderColor: tc.purple, backgroundColor: tc.purple + '10' },
                                         ]}
                                         onPress={() => updateConfig({ contentType: opt.value })}
                                     >
@@ -127,7 +129,8 @@ const WidgetSetupScreen: React.FC<WidgetSetupScreenProps> = ({ visible, onClose 
                                         <Text
                                             style={[
                                                 styles.optionLabel,
-                                                config.contentType === opt.value && styles.optionLabelActive,
+                                                { color: tc.text },
+                                                config.contentType === opt.value && { color: tc.purple, fontWeight: '700' },
                                             ]}
                                         >
                                             {opt.label}
@@ -137,14 +140,15 @@ const WidgetSetupScreen: React.FC<WidgetSetupScreenProps> = ({ visible, onClose 
                             </View>
 
                             {/* Update Frequency */}
-                            <Text style={styles.sectionTitle}>Update Frequency</Text>
+                            <Text style={[styles.sectionTitle, { color: tc.textSecondary }]}>Update Frequency</Text>
                             <View style={styles.frequencyList}>
                                 {FREQUENCY_OPTIONS.map((opt) => (
                                     <TouchableOpacity
                                         key={opt.value}
                                         style={[
                                             styles.frequencyCard,
-                                            config.updateFrequency === opt.value && styles.frequencyCardActive,
+                                            { backgroundColor: tc.cream, borderColor: tc.border },
+                                            config.updateFrequency === opt.value && { borderColor: tc.purple, backgroundColor: tc.purple + '08' },
                                         ]}
                                         onPress={() => updateConfig({ updateFrequency: opt.value })}
                                     >
@@ -152,37 +156,40 @@ const WidgetSetupScreen: React.FC<WidgetSetupScreenProps> = ({ visible, onClose 
                                             <Text
                                                 style={[
                                                     styles.frequencyLabel,
-                                                    config.updateFrequency === opt.value && styles.frequencyLabelActive,
+                                                    { color: tc.text },
+                                                    config.updateFrequency === opt.value && { color: tc.purple, fontWeight: '700' },
                                                 ]}
                                             >
                                                 {opt.label}
                                             </Text>
-                                            <Text style={styles.frequencyDesc}>{opt.desc}</Text>
+                                            <Text style={[styles.frequencyDesc, { color: tc.textSecondary }]}>{opt.desc}</Text>
                                         </View>
                                         {config.updateFrequency === opt.value && (
-                                            <Ionicons name="checkmark-circle" size={22} color={colors.purple} />
+                                            <Ionicons name="checkmark-circle" size={22} color={tc.purple} />
                                         )}
                                     </TouchableOpacity>
                                 ))}
                             </View>
 
                             {/* Template Style */}
-                            <Text style={styles.sectionTitle}>Default Template</Text>
+                            <Text style={[styles.sectionTitle, { color: tc.textSecondary }]}>Default Template</Text>
                             <View style={styles.optionRow}>
                                 {TEMPLATE_OPTIONS.map((opt) => (
                                     <TouchableOpacity
                                         key={opt.value}
                                         style={[
                                             styles.templateOption,
-                                            config.template === opt.value && styles.templateOptionActive,
+                                            { backgroundColor: tc.cream, borderColor: tc.border },
+                                            config.template === opt.value && { borderColor: tc.purple, backgroundColor: tc.purple + '10' },
                                         ]}
                                         onPress={() => updateConfig({ template: opt.value })}
                                     >
-                                        <View style={[styles.templatePreview, { backgroundColor: opt.color }]} />
+                                        <View style={[styles.templatePreview, { borderColor: tc.border, backgroundColor: opt.color }]} />
                                         <Text
                                             style={[
                                                 styles.optionLabel,
-                                                config.template === opt.value && styles.optionLabelActive,
+                                                { color: tc.text },
+                                                config.template === opt.value && { color: tc.purple, fontWeight: '700' },
                                             ]}
                                         >
                                             {opt.label}
@@ -194,8 +201,8 @@ const WidgetSetupScreen: React.FC<WidgetSetupScreenProps> = ({ visible, onClose 
                             {/* Info Card */}
                             <ClubhouseCard style={styles.infoCard}>
                                 <View style={styles.infoRow}>
-                                    <Ionicons name="information-circle-outline" size={20} color={colors.teal} />
-                                    <Text style={styles.infoText}>
+                                    <Ionicons name="information-circle-outline" size={20} color={tc.teal} />
+                                    <Text style={[styles.infoText, { color: tc.textSecondary }]}>
                                         Save wallpapers to your gallery and set them as your lock screen
                                         from your device's Settings app. A new verse will be ready for you
                                         based on your update frequency.

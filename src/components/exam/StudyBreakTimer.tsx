@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '../../theme';
+import { colors, useTheme, typography, spacing } from '../../theme';
 import { Verse, ExamVerse } from '../../types';
 import examService from '../../services/examService';
 
@@ -19,6 +19,7 @@ const BREAK_DURATION = 5 * 60;  // 5 minutes in seconds
 type TimerPhase = 'idle' | 'studying' | 'break';
 
 export const StudyBreakTimer: React.FC = () => {
+    const { colors: tc } = useTheme();
     const [phase, setPhase] = useState<TimerPhase>('idle');
     const [secondsLeft, setSecondsLeft] = useState(STUDY_DURATION);
     const [totalStudyMinutes, setTotalStudyMinutes] = useState(0);
@@ -135,15 +136,15 @@ export const StudyBreakTimer: React.FC = () => {
         ? 1 - secondsLeft / BREAK_DURATION
         : 0;
 
-    const phaseColor = phase === 'studying' ? colors.purple : phase === 'break' ? colors.green : colors.textTertiary;
+    const phaseColor = phase === 'studying' ? tc.purple : phase === 'break' ? tc.green : tc.textTertiary;
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="timer-outline" size={24} color={colors.purple} />
-                <Text style={styles.title}>Study with Barakah</Text>
+                <Ionicons name="timer-outline" size={24} color={tc.purple} />
+                <Text style={[styles.title, { color: tc.text }]}>Study with Barakah</Text>
             </View>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: tc.textSecondary }]}>
                 25 min study, 5 min reflection with a verse
             </Text>
 
@@ -151,13 +152,13 @@ export const StudyBreakTimer: React.FC = () => {
             <Animated.View
                 style={[
                     styles.timerCircle,
-                    { borderColor: phaseColor, transform: [{ scale: pulseAnim }] },
+                    { borderColor: phaseColor, backgroundColor: tc.cream, transform: [{ scale: pulseAnim }] },
                 ]}
             >
                 <Text style={[styles.timerText, { color: phaseColor }]}>
                     {formatTime(secondsLeft)}
                 </Text>
-                <Text style={styles.timerPhase}>
+                <Text style={[styles.timerPhase, { color: tc.textSecondary }]}>
                     {phase === 'idle'
                         ? 'Ready'
                         : phase === 'studying'
@@ -167,7 +168,7 @@ export const StudyBreakTimer: React.FC = () => {
             </Animated.View>
 
             {/* Progress Bar */}
-            <View style={styles.progressBar}>
+            <View style={[styles.progressBar, { backgroundColor: tc.beige }]}>
                 <View
                     style={[
                         styles.progressFill,
@@ -179,20 +180,20 @@ export const StudyBreakTimer: React.FC = () => {
             {/* Controls */}
             {phase === 'idle' ? (
                 <TouchableOpacity
-                    style={[styles.controlButton, { backgroundColor: colors.purple }]}
+                    style={[styles.controlButton, { backgroundColor: tc.purple }]}
                     onPress={startStudying}
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="play" size={22} color={colors.white} />
+                    <Ionicons name="play" size={22} color="#fff" />
                     <Text style={styles.controlButtonText}>Start Studying</Text>
                 </TouchableOpacity>
             ) : (
                 <TouchableOpacity
-                    style={[styles.controlButton, { backgroundColor: colors.coral }]}
+                    style={[styles.controlButton, { backgroundColor: tc.coral }]}
                     onPress={stopTimer}
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="stop" size={22} color={colors.white} />
+                    <Ionicons name="stop" size={22} color="#fff" />
                     <Text style={styles.controlButtonText}>Stop</Text>
                 </TouchableOpacity>
             )}
@@ -200,18 +201,18 @@ export const StudyBreakTimer: React.FC = () => {
             {/* Break Verse */}
             {phase === 'break' && (
                 <View style={styles.breakVerseSection}>
-                    <Text style={styles.breakVerseTitle}>Reflect During Your Break</Text>
+                    <Text style={[styles.breakVerseTitle, { color: tc.green }]}>Reflect During Your Break</Text>
                     {isLoadingVerse ? (
-                        <ActivityIndicator color={colors.green} />
+                        <ActivityIndicator color={tc.green} />
                     ) : breakVerse ? (
-                        <View style={styles.breakVerseCard}>
-                            <Text style={styles.breakVerseArabic}>{breakVerse.arabic}</Text>
-                            <Text style={styles.breakVerseEnglish}>"{breakVerse.english}"</Text>
-                            <Text style={styles.breakVerseRef}>
+                        <View style={[styles.breakVerseCard, { backgroundColor: tc.green + '10', borderColor: tc.green + '20' }]}>
+                            <Text style={[styles.breakVerseArabic, { color: tc.text }]}>{breakVerse.arabic}</Text>
+                            <Text style={[styles.breakVerseEnglish, { color: tc.text }]}>"{breakVerse.english}"</Text>
+                            <Text style={[styles.breakVerseRef, { color: tc.textTertiary }]}>
                                 Surah {breakVerse.surah} — Verse {breakVerse.verseNumber}
                             </Text>
                             {breakExamVerse && (
-                                <Text style={styles.breakVerseNote}>
+                                <Text style={[styles.breakVerseNote, { color: tc.textSecondary, borderTopColor: tc.green + '30' }]}>
                                     {breakExamVerse.motivationalNote}
                                 </Text>
                             )}
@@ -222,15 +223,15 @@ export const StudyBreakTimer: React.FC = () => {
 
             {/* Stats */}
             {sessionsCompleted > 0 && (
-                <View style={styles.statsRow}>
+                <View style={[styles.statsRow, { backgroundColor: tc.cream, borderColor: tc.border }]}>
                     <View style={styles.statItem}>
-                        <Text style={styles.statValue}>{sessionsCompleted}</Text>
-                        <Text style={styles.statLabel}>Sessions</Text>
+                        <Text style={[styles.statValue, { color: tc.text }]}>{sessionsCompleted}</Text>
+                        <Text style={[styles.statLabel, { color: tc.textSecondary }]}>Sessions</Text>
                     </View>
-                    <View style={styles.statDivider} />
+                    <View style={[styles.statDivider, { backgroundColor: tc.border }]} />
                     <View style={styles.statItem}>
-                        <Text style={styles.statValue}>{totalStudyMinutes}</Text>
-                        <Text style={styles.statLabel}>Minutes</Text>
+                        <Text style={[styles.statValue, { color: tc.text }]}>{totalStudyMinutes}</Text>
+                        <Text style={[styles.statLabel, { color: tc.textSecondary }]}>Minutes</Text>
                     </View>
                 </View>
             )}
