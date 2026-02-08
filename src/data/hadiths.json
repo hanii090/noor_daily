@@ -103,7 +103,7 @@
     "reference": "Sahih al-Bukhari 6116",
     "collection": "Sahih al-Bukhari",
     "bookNumber": 6116,
-    "moods": ["peace", "strength"],
+    "moods": ["peace", "strength", "anxious"],
     "themes": ["anger", "character", "self-control"],
     "authenticity": "sahih"
   },
@@ -139,7 +139,7 @@
     "reference": "Sahih Muslim 2593",
     "collection": "Sahih Muslim",
     "bookNumber": 2593,
-    "moods": ["peace", "grateful"],
+    "moods": ["peace", "grateful", "sad"],
     "themes": ["kindness", "gentleness", "mercy"],
     "authenticity": "sahih"
   },
@@ -151,7 +151,7 @@
     "reference": "Sahih Muslim 2999",
     "collection": "Sahih Muslim",
     "bookNumber": 2999,
-    "moods": ["strength", "peace", "grateful"],
+    "moods": ["strength", "peace", "grateful", "sad", "hopeful"],
     "themes": ["patience", "gratitude", "faith"],
     "authenticity": "sahih"
   },
@@ -163,7 +163,7 @@
     "reference": "Sahih Muslim 2699",
     "collection": "Sahih Muslim",
     "bookNumber": 2699,
-    "moods": ["guidance", "peace", "grateful"],
+    "moods": ["guidance", "peace", "grateful", "sad"],
     "themes": ["mercy", "help", "relief"],
     "authenticity": "sahih"
   },
@@ -175,7 +175,7 @@
     "reference": "Sahih al-Bukhari 6125",
     "collection": "Sahih al-Bukhari",
     "bookNumber": 6125,
-    "moods": ["peace", "celebrating"],
+    "moods": ["peace", "celebrating", "hopeful"],
     "themes": ["ease", "glad-tidings", "character"],
     "authenticity": "sahih"
   },
@@ -235,7 +235,7 @@
     "reference": "Sahih al-Bukhari 39",
     "collection": "Sahih al-Bukhari",
     "bookNumber": 39,
-    "moods": ["peace", "grateful"],
+    "moods": ["peace", "grateful", "anxious", "hopeful"],
     "themes": ["ease", "religion", "moderation"],
     "authenticity": "sahih"
   },
@@ -297,6 +297,78 @@
     "bookNumber": 1956,
     "moods": ["grateful", "celebrating"],
     "themes": ["charity", "smile", "character"],
+    "authenticity": "sahih"
+  },
+  {
+    "id": "hadith_026",
+    "arabic": "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+    "english": "The Prophet (ﷺ) said: Know that victory comes with patience, relief comes with affliction, and with hardship comes ease.",
+    "narrator": "Abdullah ibn Abbas",
+    "reference": "Musnad Ahmad 2803",
+    "collection": "Musnad Ahmad",
+    "bookNumber": 2803,
+    "moods": ["anxious", "sad", "hopeful"],
+    "themes": ["patience", "ease", "relief"],
+    "authenticity": "sahih"
+  },
+  {
+    "id": "hadith_027",
+    "arabic": "مَا أَصَابَ عَبْدًا هَمٌّ وَلاَ حَزَنٌ فَقَالَ اللَّهُمَّ إِنِّي عَبْدُكَ",
+    "english": "No person suffers any anxiety or grief, and then says the supplication 'O Allah, I am Your servant, son of Your servant...' except that Allah will remove his grief and replace it with joy.",
+    "narrator": "Abdullah ibn Mas'ud",
+    "reference": "Musnad Ahmad 3712",
+    "collection": "Musnad Ahmad",
+    "bookNumber": 3712,
+    "moods": ["anxious", "sad"],
+    "themes": ["dua", "grief", "relief"],
+    "authenticity": "sahih"
+  },
+  {
+    "id": "hadith_028",
+    "arabic": "لاَ تَحْزَنْ إِنَّ اللَّهَ مَعَنَا",
+    "english": "The Prophet (ﷺ) said to Abu Bakr: Do not grieve; indeed Allah is with us.",
+    "narrator": "Abu Bakr as-Siddiq",
+    "reference": "Sahih al-Bukhari 3653",
+    "collection": "Sahih al-Bukhari",
+    "bookNumber": 3653,
+    "moods": ["sad", "anxious", "hopeful"],
+    "themes": ["companionship", "trust", "comfort"],
+    "authenticity": "sahih"
+  },
+  {
+    "id": "hadith_029",
+    "arabic": "أَحَبُّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+    "english": "The most beloved of deeds to Allah are those that are most consistent, even if they are small.",
+    "narrator": "Aisha",
+    "reference": "Sahih al-Bukhari 6464",
+    "collection": "Sahih al-Bukhari",
+    "bookNumber": 6464,
+    "moods": ["hopeful", "guidance"],
+    "themes": ["consistency", "deeds", "perseverance"],
+    "authenticity": "sahih"
+  },
+  {
+    "id": "hadith_030",
+    "arabic": "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ",
+    "english": "The Prophet (ﷺ) used to say: O Allah, I seek refuge in You from worry and grief, from weakness and laziness, from cowardice and miserliness.",
+    "narrator": "Anas bin Malik",
+    "reference": "Sahih al-Bukhari 6369",
+    "collection": "Sahih al-Bukhari",
+    "bookNumber": 6369,
+    "moods": ["anxious", "sad", "strength"],
+    "themes": ["dua", "refuge", "worry"],
+    "authenticity": "sahih"
+  },
+  {
+    "id": "hadith_031",
+    "arabic": "مَنْ تَوَكَّلَ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
+    "english": "Whoever puts his trust in Allah, He will be sufficient for him.",
+    "narrator": "Umar bin Al-Khattab",
+    "reference": "Jami` at-Tirmidhi 2344",
+    "collection": "At-Tirmidhi",
+    "bookNumber": 2344,
+    "moods": ["hopeful", "anxious", "peace"],
+    "themes": ["trust", "reliance", "tawakkul"],
     "authenticity": "sahih"
   }
 ]

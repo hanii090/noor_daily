@@ -1,16 +1,17 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '../theme';
+import { useTheme, spacing } from '../theme';
 
 export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
     state,
     descriptors,
     navigation,
 }) => {
+    const { colors, isDark } = useTheme();
     const scaleAnims = React.useRef(
         state.routes.map(() => new Animated.Value(1))
     ).current;
@@ -25,7 +26,6 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
         if (!isFocused && !event.defaultPrevented) {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-            // Animate scale
             Animated.sequence([
                 Animated.spring(scaleAnims[index], {
                     toValue: 0.85,
@@ -43,37 +43,47 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
         }
     };
 
-    const getIcon = (routeName: string, isFocused: boolean) => {
+    const getTabConfig = (routeName: string, isFocused: boolean) => {
         let iconName: keyof typeof Ionicons.glyphMap;
+        let label: string;
 
         switch (routeName) {
             case 'Home':
                 iconName = isFocused ? 'home' : 'home-outline';
+                label = 'Home';
+                break;
+            case 'Journey':
+                iconName = isFocused ? 'flame' : 'flame-outline';
+                label = 'Journey';
                 break;
             case 'History':
                 iconName = isFocused ? 'calendar' : 'calendar-outline';
+                label = 'History';
                 break;
             case 'Saved':
                 iconName = isFocused ? 'bookmark' : 'bookmark-outline';
+                label = 'Saved';
                 break;
             case 'Settings':
                 iconName = isFocused ? 'settings' : 'settings-outline';
+                label = 'Settings';
                 break;
             default:
                 iconName = 'help-outline';
+                label = routeName;
         }
 
-        return iconName;
+        return { iconName, label };
     };
 
     return (
         <View style={styles.outerContainer}>
-            <BlurView intensity={80} tint="light" style={styles.container}>
+            <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={[styles.container, { borderColor: colors.border }]}>
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
                     const isFocused = state.index === index;
-                    const color = isFocused ? colors.black : colors.textTertiary;
-                    const iconName = getIcon(route.name, isFocused);
+                    const color = isFocused ? colors.text : colors.textTertiary;
+                    const { iconName, label } = getTabConfig(route.name, isFocused);
 
                     return (
                         <Animated.View
@@ -83,12 +93,12 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
                             <TouchableOpacity
                                 accessibilityRole="button"
                                 accessibilityState={isFocused ? { selected: true } : {}}
-                                accessibilityLabel={options.tabBarAccessibilityLabel}
+                                accessibilityLabel={options.tabBarAccessibilityLabel || `${label} tab`}
                                 onPress={() => handlePress(route, index, isFocused)}
                                 style={styles.tabButton}
                             >
-                                <Ionicons name={iconName} size={26} color={color} />
-                                {isFocused && <View style={styles.activeDot} />}
+                                <Ionicons name={iconName} size={22} color={color} />
+                                <Text style={[styles.tabLabel, { color }]}>{label}</Text>
                             </TouchableOpacity>
                         </Animated.View>
                     );
@@ -110,9 +120,9 @@ const styles = StyleSheet.create({
     },
     container: {
         flexDirection: 'row',
-        height: 64,
-        borderRadius: 32,
-        shadowColor: colors.shadow,
+        height: 68,
+        borderRadius: 34,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
         shadowRadius: 16,
@@ -120,7 +130,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.base,
         overflow: 'hidden',
         borderWidth: 0.5,
-        borderColor: 'rgba(0,0,0,0.05)',
     },
     tab: {
         flex: 1,
@@ -130,11 +139,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    activeDot: {
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: colors.black,
-        marginTop: 4,
+    tabLabel: {
+        fontSize: 10,
+        fontWeight: '600',
+        marginTop: 2,
+        letterSpacing: 0.1,
     },
 });

@@ -87,7 +87,7 @@ const VibrantTemplate: React.FC<{
     const scale = dimensions.width / 1080;
 
     // Create gradient colors based on mood color
-    const gradientColors = [moodColor, colors.purple, colors.teal];
+    const gradientColors = [moodColor, colors.purple, colors.teal] as const;
 
     return (
         <View style={[styles.container, { width: dimensions.width, height: dimensions.height }]}>

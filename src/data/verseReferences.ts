@@ -183,7 +183,58 @@ export const verseReferences: VerseReference[] = [
     { surah: 9, verse: 72, moods: ['celebrating'], theme: 'paradise' },
     { surah: 43, verse: 70, moods: ['celebrating'], theme: 'paradise' },
     { surah: 7, verse: 43, moods: ['grateful', 'celebrating'], theme: 'paradise' },
-    { surah: 17, verse: 111, moods: ['grateful', 'celebrating'], theme: 'praise' }
+    { surah: 17, verse: 111, moods: ['grateful', 'celebrating'], theme: 'praise' },
+
+    // ANXIOUS - 15 verses (comfort for anxiety and worry)
+    { surah: 94, verse: 5, moods: ['anxious', 'peace'], theme: 'ease' },
+    { surah: 94, verse: 6, moods: ['anxious', 'peace'], theme: 'ease' },
+    { surah: 2, verse: 286, moods: ['anxious', 'strength'], theme: 'comfort' },
+    { surah: 65, verse: 3, moods: ['anxious', 'hopeful'], theme: 'trust' },
+    { surah: 3, verse: 173, moods: ['anxious', 'strength'], theme: 'reliance' },
+    { surah: 9, verse: 51, moods: ['anxious', 'peace'], theme: 'decree' },
+    { surah: 13, verse: 28, moods: ['anxious', 'peace'], theme: 'remembrance' },
+    { surah: 39, verse: 53, moods: ['anxious', 'hopeful'], theme: 'mercy' },
+    { surah: 2, verse: 155, moods: ['anxious', 'strength'], theme: 'trials' },
+    { surah: 2, verse: 156, moods: ['anxious', 'strength'], theme: 'patience' },
+    { surah: 10, verse: 62, moods: ['anxious', 'peace'], theme: 'protection' },
+    { surah: 8, verse: 2, moods: ['anxious', 'peace'], theme: 'faith' },
+    { surah: 3, verse: 139, moods: ['anxious', 'strength'], theme: 'courage' },
+    { surah: 29, verse: 2, moods: ['anxious', 'strength'], theme: 'trials' },
+    { surah: 6, verse: 17, moods: ['anxious', 'peace'], theme: 'protection' },
+
+    // SAD - 15 verses (comfort for grief and sadness)
+    { surah: 12, verse: 87, moods: ['sad', 'hopeful'], theme: 'hope' },
+    { surah: 12, verse: 86, moods: ['sad', 'peace'], theme: 'patience' },
+    { surah: 93, verse: 3, moods: ['sad', 'peace'], theme: 'comfort' },
+    { surah: 93, verse: 4, moods: ['sad', 'hopeful'], theme: 'promise' },
+    { surah: 93, verse: 5, moods: ['sad', 'hopeful'], theme: 'promise' },
+    { surah: 2, verse: 214, moods: ['sad', 'strength'], theme: 'trials' },
+    { surah: 94, verse: 5, moods: ['sad', 'hopeful'], theme: 'ease' },
+    { surah: 3, verse: 200, moods: ['sad', 'strength'], theme: 'patience' },
+    { surah: 39, verse: 10, moods: ['sad', 'hopeful'], theme: 'reward' },
+    { surah: 21, verse: 83, moods: ['sad', 'peace'], theme: 'prayer' },
+    { surah: 21, verse: 87, moods: ['sad', 'peace'], theme: 'repentance' },
+    { surah: 40, verse: 60, moods: ['sad', 'hopeful'], theme: 'prayer' },
+    { surah: 65, verse: 7, moods: ['sad', 'hopeful'], theme: 'ease' },
+    { surah: 11, verse: 115, moods: ['sad', 'strength'], theme: 'patience' },
+    { surah: 31, verse: 17, moods: ['sad', 'strength'], theme: 'patience' },
+
+    // HOPEFUL - 15 verses (optimism and looking forward)
+    { surah: 2, verse: 216, moods: ['hopeful', 'guidance'], theme: 'wisdom' },
+    { surah: 65, verse: 2, moods: ['hopeful', 'guidance'], theme: 'provision' },
+    { surah: 65, verse: 3, moods: ['hopeful', 'peace'], theme: 'trust' },
+    { surah: 12, verse: 87, moods: ['hopeful', 'sad'], theme: 'hope' },
+    { surah: 39, verse: 53, moods: ['hopeful', 'anxious'], theme: 'mercy' },
+    { surah: 93, verse: 5, moods: ['hopeful'], theme: 'promise' },
+    { surah: 94, verse: 5, moods: ['hopeful', 'peace'], theme: 'ease' },
+    { surah: 3, verse: 8, moods: ['hopeful', 'guidance'], theme: 'prayer' },
+    { surah: 2, verse: 186, moods: ['hopeful', 'peace'], theme: 'prayer' },
+    { surah: 40, verse: 60, moods: ['hopeful'], theme: 'prayer' },
+    { surah: 42, verse: 26, moods: ['hopeful', 'grateful'], theme: 'bounty' },
+    { surah: 57, verse: 22, moods: ['hopeful', 'peace'], theme: 'decree' },
+    { surah: 64, verse: 11, moods: ['hopeful', 'guidance'], theme: 'faith' },
+    { surah: 8, verse: 10, moods: ['hopeful', 'strength'], theme: 'victory' },
+    { surah: 110, verse: 1, moods: ['hopeful', 'celebrating'], theme: 'victory' }
 ];
 
 export default verseReferences;

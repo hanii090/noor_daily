@@ -9,25 +9,19 @@ class VerseService {
      * Get random verse by mood (API-powered)
      */
     async getVerseByMood(mood: Mood): Promise<Verse> {
-        console.log('verseService.getVerseByMood called with mood:', mood);
         try {
             // Filter verse references by mood
             const filtered = this.verseRefs.filter((ref) =>
                 ref.moods && ref.moods.includes(mood)
             );
 
-            console.log(`Found ${filtered.length} verses for mood: ${mood}`);
-
             if (filtered.length === 0) {
-                // Fallback to any verse if no matches
-                console.log('No verses found for mood, using random verse');
                 return await this.getRandomVerse();
             }
 
             // Pick random reference
             const random = Math.floor(Math.random() * filtered.length);
             const ref = filtered[random];
-            console.log(`Selected verse reference: ${ref.surah}:${ref.verse}`);
 
             // Fetch verse from API (cache-first)
             const verse = await quranApiService.getVerseData(
@@ -37,7 +31,6 @@ class VerseService {
                 ref.theme || ''
             );
 
-            console.log('Successfully fetched verse data');
             return verse;
         } catch (error) {
             console.error('Error in getVerseByMood:', error);
@@ -140,7 +133,7 @@ class VerseService {
     async preloadPopularVerses(): Promise<void> {
         try {
             // Preload one verse from each mood
-            const moods: Mood[] = ['grateful', 'peace', 'strength', 'guidance', 'celebrating'];
+            const moods: Mood[] = ['grateful', 'peace', 'strength', 'guidance', 'celebrating', 'anxious', 'sad', 'hopeful'];
             const preloadRefs: VerseReference[] = [];
 
             for (const mood of moods) {

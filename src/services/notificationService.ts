@@ -3,6 +3,8 @@ import { Platform, Alert, Linking } from 'react-native';
 import { Verse, Hadith, ContentType } from '../types';
 import verseService from './verseService';
 import hadithService from './hadithService';
+import namesOfAllahService from './namesOfAllahService';
+import reminderApiService from './reminderApiService';
 import notificationTracker from './notificationTracker';
 import analyticsService from './analyticsService';
 
@@ -19,6 +21,13 @@ const HADITH_TITLES = [
     "A saying to guide you 🕌",
     "Prophetic guidance 🌟",
     "The Prophet ﷺ said..."
+];
+
+const NAME_TITLES = [
+    "Know your Lord 🤲",
+    "A Beautiful Name of Allah ✨",
+    "Reflect on His Name 🌙",
+    "99 Names — Today's Reminder 💫"
 ];
 
 interface QuietHours {
@@ -145,7 +154,12 @@ class NotificationService {
                 else if (actualFrequency === 3) selectedWindows = [timeWindows[0], timeWindows[1], timeWindows[3]];
                 else selectedWindows = [...timeWindows];
 
-                for (const window of selectedWindows) {
+                // Assign a guaranteed content type to each window slot:
+                // slot 0 = verse, slot 1 = hadith, slot 2 = name, slot 3 = random
+                const slotTypes: (ContentType | undefined)[] = ['verse', 'hadith', 'name', undefined];
+
+                for (let wi = 0; wi < selectedWindows.length; wi++) {
+                    const window = selectedWindows[wi];
                     const triggerTime = this.generateRandomTimeInWindow(
                         window.start[0], window.start[1], 
                         window.end[0], window.end[1],
@@ -160,12 +174,15 @@ class NotificationService {
                         continue;
                     }
 
-                    const content = await this.getContentForNotification(contentType);
+                    const forcedType = slotTypes[wi % slotTypes.length];
+                    const content = await this.getContentForNotification(forcedType);
                     if (!content) continue;
 
-                    const title = content.type === 'verse' 
+                    const title = content.type === 'verse'
                         ? VERSE_TITLES[Math.floor(Math.random() * VERSE_TITLES.length)]
-                        : HADITH_TITLES[Math.floor(Math.random() * HADITH_TITLES.length)];
+                        : content.type === 'hadith'
+                            ? HADITH_TITLES[Math.floor(Math.random() * HADITH_TITLES.length)]
+                            : NAME_TITLES[Math.floor(Math.random() * NAME_TITLES.length)];
 
                     await Notifications.scheduleNotificationAsync({
                         content: {
@@ -194,62 +211,66 @@ class NotificationService {
     }
 
     /**
-     * Get random content ID for notification, avoiding duplicates
-     * Does not fetch full content - only selects IDs and preview text
+     * Get content for a notification with real English preview text.
+     * Supports 3 content types: verse, hadith, name (Name of Allah).
+     * The notification body shows the English translation so users see
+     * meaningful text on their lock screen. Tapping opens the full view.
      */
-    private async getContentForNotification(preferredType: 'verse' | 'hadith' | 'both'): Promise<{ id: string, type: ContentType, preview: string } | null> {
+    private async getContentForNotification(forcedType?: ContentType): Promise<{ id: string, type: ContentType, preview: string } | null> {
         const sentIds = await notificationTracker.getSentIdsToday();
-        
-        let type: ContentType;
-        if (preferredType === 'both') {
-            type = Math.random() > 0.5 ? 'verse' : 'hadith';
-        } else {
-            type = preferredType;
-        }
+
+        const type: ContentType = forcedType || (['verse', 'hadith', 'name'] as ContentType[])[Math.floor(Math.random() * 3)];
 
         try {
             let id: string;
             let preview: string;
-            
+
             if (type === 'verse') {
                 const refs = verseService.getAllVerseReferences();
-                // Filter out sent IDs
                 const available = refs.filter(r => !sentIds.includes(`${r.surah}:${r.verse}`));
-                
-                if (available.length === 0) {
-                    // All verses sent today, reset and use any
-                    const ref = refs[Math.floor(Math.random() * refs.length)];
-                    id = `${ref.surah}:${ref.verse}`;
-                } else {
-                    const ref = available[Math.floor(Math.random() * available.length)];
-                    id = `${ref.surah}:${ref.verse}`;
+                const ref = available.length > 0
+                    ? available[Math.floor(Math.random() * available.length)]
+                    : refs[Math.floor(Math.random() * refs.length)];
+                id = `${ref.surah}:${ref.verse}`;
+
+                // Fetch actual English text for the preview
+                try {
+                    const apiVerse = await reminderApiService.getVerse(ref.surah, ref.verse);
+                    const text = apiVerse.text || '';
+                    const truncated = text.length > 120 ? text.substring(0, 117) + '...' : text;
+                    preview = `"${truncated}" — Quran ${ref.surah}:${ref.verse}`;
+                } catch {
+                    preview = `A verse from Surah ${ref.surah} awaits you`;
                 }
-                
-                preview = 'Quran guidance awaits ✨';
-            } else {
+
+            } else if (type === 'hadith') {
                 const hadiths = hadithService.getAllHadiths();
-                // Filter out sent IDs
                 const available = hadiths.filter(h => !sentIds.includes(h.id));
-                
-                if (available.length === 0) {
-                    // All hadiths sent today, reset and use any
-                    const hadith = hadiths[Math.floor(Math.random() * hadiths.length)];
-                    id = hadith.id;
-                    preview = hadith.english.substring(0, 45) + (hadith.english.length > 45 ? '...' : '');
-                } else {
-                    const hadith = available[Math.floor(Math.random() * available.length)];
-                    id = hadith.id;
-                    preview = hadith.english.substring(0, 45) + (hadith.english.length > 45 ? '...' : '');
+                const hadith = available.length > 0
+                    ? available[Math.floor(Math.random() * available.length)]
+                    : hadiths[Math.floor(Math.random() * hadiths.length)];
+                id = hadith.id;
+
+                const text = hadith.english || '';
+                const truncated = text.length > 120 ? text.substring(0, 117) + '...' : text;
+                preview = `"${truncated}" — ${hadith.reference || hadith.collection}`;
+
+            } else {
+                // Name of Allah
+                try {
+                    const name = await namesOfAllahService.getRandomName();
+                    id = `name_${name.number}`;
+                    preview = `${name.arabic}  ${name.english} — ${name.meaning}`;
+                } catch {
+                    // Fallback to a well-known name
+                    id = 'name_1';
+                    preview = 'ٱلرَّحْمَـٰنُ  Ar-Rahman — The Most Merciful';
                 }
             }
 
             await notificationTracker.markAsSent(id);
 
-            return {
-                id,
-                type,
-                preview
-            };
+            return { id, type, preview };
         } catch (error) {
             console.error('Error getting content for notification:', error);
             return null;
@@ -307,6 +328,110 @@ class NotificationService {
      */
     async getScheduledNotifications(): Promise<Notifications.NotificationRequest[]> {
         return await Notifications.getAllScheduledNotificationsAsync();
+    }
+
+    // ── Journey Notifications ──
+
+    /**
+     * Schedule a daily journey reminder at the user's preferred notification time
+     */
+    async scheduleJourneyReminder(currentDay: number, notificationTime: string = '08:00'): Promise<void> {
+        try {
+            // Cancel existing journey reminders first
+            await this.cancelJourneyReminders();
+
+            const [hours, minutes] = notificationTime.split(':').map(Number);
+            if (isNaN(hours) || isNaN(minutes)) return;
+
+            const trigger = new Date();
+            trigger.setHours(hours, minutes, 0, 0);
+
+            // If the time has already passed today, schedule for tomorrow
+            if (trigger <= new Date()) {
+                trigger.setDate(trigger.getDate() + 1);
+            }
+
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: `Your Day ${currentDay} verse awaits 🌙`,
+                    body: 'Continue your 30-day spiritual journey today.',
+                    sound: true,
+                    data: { type: 'journey_reminder', day: currentDay },
+                },
+                trigger: {
+                    date: trigger,
+                    type: Notifications.SchedulableTriggerInputTypes.DATE,
+                } as Notifications.NotificationTriggerInput,
+            });
+
+            console.log(`Journey reminder scheduled for day ${currentDay}`);
+        } catch (error) {
+            console.error('Error scheduling journey reminder:', error);
+        }
+    }
+
+    /**
+     * Schedule a streak-at-risk notification for the evening
+     */
+    async scheduleStreakRiskNotification(streak: number): Promise<void> {
+        try {
+            const trigger = new Date();
+            trigger.setHours(20, 0, 0, 0); // 8 PM
+
+            // Only schedule if 8 PM hasn't passed yet
+            if (trigger <= new Date()) return;
+
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: `Don't break your ${streak}-day streak! 🔥`,
+                    body: "You haven't completed today's journey reflection yet.",
+                    sound: true,
+                    data: { type: 'journey_streak_risk', streak },
+                },
+                trigger: {
+                    date: trigger,
+                    type: Notifications.SchedulableTriggerInputTypes.DATE,
+                } as Notifications.NotificationTriggerInput,
+            });
+        } catch (error) {
+            console.error('Error scheduling streak risk notification:', error);
+        }
+    }
+
+    /**
+     * Send an immediate milestone notification
+     */
+    async sendMilestoneNotification(day: number, badgeEmoji: string, badgeName: string): Promise<void> {
+        try {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: `${badgeEmoji} ${badgeName} Earned!`,
+                    body: `You've completed ${day} days of your spiritual journey. Keep going!`,
+                    sound: true,
+                    data: { type: 'journey_milestone', day },
+                },
+                trigger: null, // Immediate
+            });
+        } catch (error) {
+            console.error('Error sending milestone notification:', error);
+        }
+    }
+
+    /**
+     * Cancel all journey-related notifications
+     */
+    private async cancelJourneyReminders(): Promise<void> {
+        try {
+            const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+            for (const notif of scheduled) {
+                const data = notif.content.data as Record<string, any> | undefined;
+                if (data?.type?.startsWith('journey_')) {
+                    await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+                }
+            }
+        } catch (error) {
+            console.error('Error cancelling journey reminders:', error);
+        }
     }
 }
 

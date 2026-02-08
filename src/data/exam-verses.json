@@ -1,0 +1,352 @@
+[
+  {
+    "verseRef": { "surah": 94, "verse": 5 },
+    "category": "stress_relief",
+    "motivationalNote": "With every hardship comes ease. Your stress is temporary — Allah's plan for you is permanent.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["stressed", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 94, "verse": 6 },
+    "category": "stress_relief",
+    "motivationalNote": "Allah repeats this promise twice — ease is already on its way to you.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["stressed", "anxious", "tired"]
+  },
+  {
+    "verseRef": { "surah": 2, "verse": 286 },
+    "category": "stress_relief",
+    "motivationalNote": "Allah does not burden a soul beyond its capacity. You CAN handle this.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["stressed", "anxious", "tired"]
+  },
+  {
+    "verseRef": { "surah": 65, "verse": 3 },
+    "category": "trust",
+    "motivationalNote": "Whoever relies upon Allah — He is sufficient. You've prepared, now trust the process.",
+    "applicablePhases": ["before", "after"],
+    "applicableFeelings": ["stressed", "anxious", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 3, "verse": 173 },
+    "category": "confidence",
+    "motivationalNote": "Allah is sufficient for us and He is the best disposer of affairs. Walk in with confidence.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["confident", "hopeful", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 20, "verse": 114 },
+    "category": "focus",
+    "motivationalNote": "Ask Allah to increase you in knowledge. Every moment of study is rewarded.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["tired", "hopeful", "confident"]
+  },
+  {
+    "verseRef": { "surah": 2, "verse": 153 },
+    "category": "focus",
+    "motivationalNote": "Seek help through patience and prayer. Take a deep breath — Allah is with the patient.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["stressed", "tired", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 39, "verse": 9 },
+    "category": "focus",
+    "motivationalNote": "Those who know and those who don't are not equal. Your pursuit of knowledge elevates you.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["tired", "hopeful", "confident"]
+  },
+  {
+    "verseRef": { "surah": 58, "verse": 11 },
+    "category": "focus",
+    "motivationalNote": "Allah raises those who are given knowledge by degrees. Every page you study counts.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["tired", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 96, "verse": 1 },
+    "category": "focus",
+    "motivationalNote": "Read! The first command from Allah was to seek knowledge. You're fulfilling a divine purpose.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["confident", "hopeful", "tired"]
+  },
+  {
+    "verseRef": { "surah": 13, "verse": 28 },
+    "category": "stress_relief",
+    "motivationalNote": "In the remembrance of Allah, hearts find rest. Calm your mind before you begin.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["stressed", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 3, "verse": 139 },
+    "category": "confidence",
+    "motivationalNote": "Do not weaken and do not grieve — you are superior if you are believers. You've got this!",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["confident", "hopeful", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 29, "verse": 69 },
+    "category": "confidence",
+    "motivationalNote": "Those who strive for Allah — He guides them to His ways. Your effort will be rewarded.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 9, "verse": 51 },
+    "category": "trust",
+    "motivationalNote": "Nothing will happen to us except what Allah has decreed. Trust His plan for your result.",
+    "applicablePhases": ["before", "after"],
+    "applicableFeelings": ["anxious", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 12, "verse": 87 },
+    "category": "trust",
+    "motivationalNote": "Do not despair of the mercy of Allah. No matter how the exam goes, Allah's mercy is vast.",
+    "applicablePhases": ["before", "after"],
+    "applicableFeelings": ["anxious", "stressed", "tired"]
+  },
+  {
+    "verseRef": { "surah": 2, "verse": 186 },
+    "category": "trust",
+    "motivationalNote": "Allah is near and responds to your call. Make dua before you start — He is listening.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["stressed", "anxious", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 67, "verse": 2 },
+    "category": "focus",
+    "motivationalNote": "Life is a test of who is best in deeds. Give this exam your best — quality over quantity.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 3, "verse": 200 },
+    "category": "focus",
+    "motivationalNote": "Persevere, endure, and remain steadfast. You're almost there — keep pushing.",
+    "applicablePhases": ["during_break"],
+    "applicableFeelings": ["tired", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 39, "verse": 53 },
+    "category": "acceptance",
+    "motivationalNote": "Do not despair of Allah's mercy. Whatever the result, Allah has a better plan for you.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["stressed", "anxious", "tired"]
+  },
+  {
+    "verseRef": { "surah": 57, "verse": 22 },
+    "category": "acceptance",
+    "motivationalNote": "Everything is already written. Don't grieve over what's passed — trust what's coming.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["stressed", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 14, "verse": 7 },
+    "category": "gratitude",
+    "motivationalNote": "If you are grateful, Allah will increase you. Thank Allah for the ability to learn and grow.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 55, "verse": 13 },
+    "category": "gratitude",
+    "motivationalNote": "Which of the favors of your Lord would you deny? You completed it — that itself is a blessing.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 41, "verse": 30 },
+    "category": "confidence",
+    "motivationalNote": "The angels descend upon the steadfast saying: Do not fear and do not grieve. You are supported.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["anxious", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 48, "verse": 4 },
+    "category": "stress_relief",
+    "motivationalNote": "Allah sent down tranquility into the hearts of the believers. Ask Him for calm right now.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["stressed", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 8, "verse": 46 },
+    "category": "focus",
+    "motivationalNote": "Be patient — Allah is with those who are patient. Stay focused, one question at a time.",
+    "applicablePhases": ["during_break"],
+    "applicableFeelings": ["tired", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 73, "verse": 8 },
+    "category": "trust",
+    "motivationalNote": "Devote yourself to Allah with complete devotion. Put your trust in Him and do your best.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["hopeful", "confident"]
+  },
+  {
+    "verseRef": { "surah": 40, "verse": 60 },
+    "category": "trust",
+    "motivationalNote": "Call upon Me, I will respond to you. Your dua before the exam is already being answered.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["stressed", "anxious", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 2, "verse": 45 },
+    "category": "focus",
+    "motivationalNote": "Seek help through patience and prayer. A quick prayer before the exam centers your mind.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["stressed", "anxious", "tired"]
+  },
+  {
+    "verseRef": { "surah": 51, "verse": 56 },
+    "category": "focus",
+    "motivationalNote": "You were created with purpose. This exam is part of your journey — give it meaning.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["tired", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 103, "verse": 3 },
+    "category": "confidence",
+    "motivationalNote": "Those who believe and do righteous deeds are not in loss. Your effort is never wasted.",
+    "applicablePhases": ["before", "after"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 16, "verse": 125 },
+    "category": "focus",
+    "motivationalNote": "Invite to the way of your Lord with wisdom. Apply what you've learned with clarity and wisdom.",
+    "applicablePhases": ["during_break"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 2, "verse": 269 },
+    "category": "focus",
+    "motivationalNote": "Allah grants wisdom to whom He wills. Ask Him for clarity and understanding right now.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["stressed", "hopeful", "tired"]
+  },
+  {
+    "verseRef": { "surah": 7, "verse": 128 },
+    "category": "trust",
+    "motivationalNote": "The earth belongs to Allah. Be patient — the best outcome belongs to the righteous.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["anxious", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 64, "verse": 13 },
+    "category": "trust",
+    "motivationalNote": "There is no deity except Allah, so upon Him let the believers rely. Trust and let go.",
+    "applicablePhases": ["before", "after"],
+    "applicableFeelings": ["anxious", "stressed", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 89, "verse": 27 },
+    "category": "stress_relief",
+    "motivationalNote": "O tranquil soul — return to your Lord, well-pleased. Find your inner peace before you begin.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["stressed", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 6, "verse": 162 },
+    "category": "focus",
+    "motivationalNote": "My prayer, my sacrifice, my living and dying are for Allah. Dedicate this exam to Him.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["hopeful", "confident"]
+  },
+  {
+    "verseRef": { "surah": 23, "verse": 118 },
+    "category": "acceptance",
+    "motivationalNote": "Say: My Lord, forgive and have mercy. Whatever happens, Allah's mercy encompasses everything.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["stressed", "anxious", "tired"]
+  },
+  {
+    "verseRef": { "surah": 46, "verse": 13 },
+    "category": "confidence",
+    "motivationalNote": "Those who say 'Our Lord is Allah' and remain steadfast — no fear or grief shall touch them.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 33, "verse": 3 },
+    "category": "trust",
+    "motivationalNote": "Put your trust in Allah. He is sufficient as a guardian over all your affairs.",
+    "applicablePhases": ["before", "after"],
+    "applicableFeelings": ["anxious", "stressed", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 10, "verse": 65 },
+    "category": "stress_relief",
+    "motivationalNote": "Let not their speech grieve you. All honor belongs to Allah. Your worth isn't defined by one exam.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["stressed", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 28, "verse": 77 },
+    "category": "focus",
+    "motivationalNote": "Seek the Hereafter through what Allah has given you. Use your talents well in this exam.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["hopeful", "confident"]
+  },
+  {
+    "verseRef": { "surah": 31, "verse": 17 },
+    "category": "focus",
+    "motivationalNote": "Establish prayer, enjoin good, and be patient. Patience during the exam is half the battle.",
+    "applicablePhases": ["during_break"],
+    "applicableFeelings": ["tired", "stressed"]
+  },
+  {
+    "verseRef": { "surah": 70, "verse": 5 },
+    "category": "stress_relief",
+    "motivationalNote": "So be patient with gracious patience. This too shall pass — breathe and trust.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["stressed", "anxious", "tired"]
+  },
+  {
+    "verseRef": { "surah": 1, "verse": 6 },
+    "category": "trust",
+    "motivationalNote": "Guide us to the straight path. Begin with Bismillah and ask Allah to guide your pen.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["hopeful", "stressed", "anxious"]
+  },
+  {
+    "verseRef": { "surah": 2, "verse": 2 },
+    "category": "focus",
+    "motivationalNote": "This is the Book in which there is no doubt — a guidance for the mindful. Be mindful in your exam.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 11, "verse": 112 },
+    "category": "confidence",
+    "motivationalNote": "So remain on the right course as you have been commanded. Stay steady and focused.",
+    "applicablePhases": ["before", "during_break"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 59, "verse": 18 },
+    "category": "focus",
+    "motivationalNote": "Let every soul look to what it has put forth for tomorrow. Your preparation matters — trust it.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["anxious", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 76, "verse": 3 },
+    "category": "trust",
+    "motivationalNote": "We guided him to the way — whether grateful or ungrateful. Allah has already shown you the path.",
+    "applicablePhases": ["before", "after"],
+    "applicableFeelings": ["hopeful", "confident"]
+  },
+  {
+    "verseRef": { "surah": 5, "verse": 35 },
+    "category": "confidence",
+    "motivationalNote": "Strive in His cause that you may succeed. Your striving in knowledge is striving for Allah.",
+    "applicablePhases": ["before"],
+    "applicableFeelings": ["confident", "hopeful"]
+  },
+  {
+    "verseRef": { "surah": 16, "verse": 18 },
+    "category": "gratitude",
+    "motivationalNote": "If you tried to count Allah's blessings, you could never enumerate them. Be grateful for the chance to learn.",
+    "applicablePhases": ["after"],
+    "applicableFeelings": ["confident", "hopeful"]
+  }
+]

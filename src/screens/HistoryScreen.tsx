@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     View,
     Text,
@@ -11,15 +11,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { ClubhouseBackground, ClubhouseCard, ClubhouseHeader } from '../components/clubhouse';
-import { colors, typography, spacing } from '../theme';
+import { colors, useTheme, typography, spacing, TAB_BAR_SAFE_PADDING } from '../theme';
 import { useAppStore } from '../store/appStore';
 import { Verse, Hadith, Mood, ContentType, GuidanceContent } from '../types';
 import historyService, { HistoryDay, HistoryEntry } from '../services/historyService';
 import { GuidanceDetailModal } from '../components/VerseDetailModal';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
 const HistoryScreen = () => {
+    const { colors: tc, isDark } = useTheme();
+    const { t } = useTranslation();
     const { verseHistory, loadHistory, historyStats } = useAppStore();
     const insets = useSafeAreaInsets();
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -43,109 +46,118 @@ const HistoryScreen = () => {
             const hasVerse = day.entries.some(e => e.type === 'verse');
             const hasHadith = day.entries.some(e => e.type === 'hadith');
             
-            let dotColor: string = colors.purple; // Default/Both
-            if (hasVerse && !hasHadith) dotColor = colors.moods.peace; // Verse: green
-            if (!hasVerse && hasHadith) dotColor = colors.moods.grateful; // Hadith: orange
+            let dotColor: string = tc.purple; // Default/Both
+            if (hasVerse && !hasHadith) dotColor = tc.moods.peace; // Verse: green
+            if (!hasVerse && hasHadith) dotColor = tc.moods.grateful; // Hadith: orange
 
             marked[day.date] = {
                 marked: true,
                 dotColor: dotColor,
                 selected: day.date === selectedDate,
-                selectedColor: day.date === selectedDate ? colors.purple + '20' : undefined,
-                selectedTextColor: colors.black,
+                selectedColor: day.date === selectedDate ? tc.purple + '20' : undefined,
+                selectedTextColor: tc.text,
             };
         });
 
         if (!marked[selectedDate]) {
             marked[selectedDate] = {
                 selected: true,
-                selectedColor: colors.purple + '20',
-                selectedTextColor: colors.black,
+                selectedColor: tc.purple + '20',
+                selectedTextColor: tc.text,
             };
         }
 
         return marked;
-    }, [verseHistory, selectedDate]);
+    }, [verseHistory, selectedDate, tc]);
 
-    const handleDayPress = (day: any) => {
+    const handleDayPress = useCallback((day: any) => {
         setSelectedDate(day.dateString);
-    };
+    }, []);
 
-    const handleEntryPress = (entry: HistoryEntry) => {
+    const handleEntryPress = useCallback((entry: HistoryEntry) => {
         setSelectedEntry(entry);
         setShowDetail(true);
-    };
+    }, []);
 
-    const getMoodLabel = (mood: Mood) => {
-        return mood.charAt(0).toUpperCase() + mood.slice(1);
-    };
+    const getMoodLabel = useCallback((mood: Mood) => {
+        return t(`mood.${mood}`, { defaultValue: mood.charAt(0).toUpperCase() + mood.slice(1) });
+    }, [t]);
 
-    const getMoodIcon = (mood: Mood): keyof typeof Ionicons.glyphMap => {
+    const getMoodIcon = useCallback((mood: Mood): keyof typeof Ionicons.glyphMap => {
         const icons: Record<Mood, keyof typeof Ionicons.glyphMap> = {
             grateful: 'heart',
             peace: 'leaf',
             strength: 'shield',
             guidance: 'navigate-circle',
             celebrating: 'sparkles',
+            anxious: 'pulse',
+            sad: 'rainy',
+            hopeful: 'sunny',
         };
         return icons[mood] || 'help-circle';
-    };
+    }, []);
 
     return (
         <ClubhouseBackground color="creamLight">
-            <ScrollView 
-                style={styles.container}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={[
-                    styles.contentContainer,
-                    { paddingTop: insets.top }
-                ]}
-            >
-                {/* Header */}
-                <ClubhouseHeader 
-                    title="Your Journey" 
-                    subtitle="REFLECT ON YOUR PROGRESS" 
-                />
+            <View style={styles.container}>
+                {/* Fixed Glass Header */}
+                <View style={styles.headerFixedContainer}>
+                    <ClubhouseHeader 
+                        title={t('history.stats_title')} 
+                        subtitle={t('history.subtitle')} 
+                    />
+                </View>
+
+                <ScrollView 
+                    style={styles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    keyboardDismissMode="on-drag"
+                    contentContainerStyle={[
+                        styles.contentContainer,
+                        { paddingTop: insets.top + 80 }
+                    ]}
+                >
 
                 {/* Stats Cards */}
                 <View style={styles.statsRow}>
                     <ClubhouseCard style={styles.statCard}>
                         <View style={styles.statHeader}>
-                            <Text style={styles.statValue}>{historyStats?.currentStreak || 0}</Text>
-                            <View style={[styles.statIconBadge, { backgroundColor: colors.moods.grateful + '15' }]}>
-                                <Ionicons name="flame" size={14} color={colors.moods.grateful} />
+                            <Text style={[styles.statValue, { color: tc.text }]}>{historyStats?.currentStreak || 0}</Text>
+                            <View style={[styles.statIconBadge, { backgroundColor: tc.moods.grateful + '15' }]}>
+                                <Ionicons name="flame" size={14} color={tc.moods.grateful} />
                             </View>
                         </View>
-                        <Text style={styles.statLabel}>DAY STREAK</Text>
+                        <Text style={[styles.statLabel, { color: tc.textSecondary }]}>{t('history.current_streak').toUpperCase()}</Text>
                     </ClubhouseCard>
                     <ClubhouseCard style={styles.statCard}>
                         <View style={styles.statHeader}>
-                            <Text style={styles.statValue}>{historyStats?.totalDays || 0}</Text>
-                            <View style={[styles.statIconBadge, { backgroundColor: colors.moods.peace + '15' }]}>
-                                <Ionicons name="calendar" size={14} color={colors.moods.peace} />
+                            <Text style={[styles.statValue, { color: tc.text }]}>{historyStats?.totalDays || 0}</Text>
+                            <View style={[styles.statIconBadge, { backgroundColor: tc.moods.peace + '15' }]}>
+                                <Ionicons name="calendar" size={14} color={tc.moods.peace} />
                             </View>
                         </View>
-                        <Text style={styles.statLabel}>TOTAL DAYS</Text>
+                        <Text style={[styles.statLabel, { color: tc.textSecondary }]}>{t('history.total_days').toUpperCase()}</Text>
                     </ClubhouseCard>
                 </View>
 
                 {/* Calendar */}
                 <ClubhouseCard style={styles.calendarCard}>
                     <Calendar
+                        key={isDark ? 'dark' : 'light'}
                         theme={{
                             backgroundColor: 'transparent',
                             calendarBackground: 'transparent',
-                            textSectionTitleColor: colors.textSecondary,
-                            selectedDayBackgroundColor: colors.purple,
-                            selectedDayTextColor: colors.white,
-                            todayTextColor: colors.purple,
-                            dayTextColor: colors.text,
-                            textDisabledColor: colors.textTertiary,
-                            dotColor: colors.purple,
-                            selectedDotColor: colors.white,
-                            arrowColor: colors.purple,
-                            monthTextColor: colors.black,
-                            indicatorColor: colors.purple,
+                            textSectionTitleColor: tc.textSecondary,
+                            selectedDayBackgroundColor: tc.purple,
+                            selectedDayTextColor: tc.white,
+                            todayTextColor: tc.purple,
+                            dayTextColor: tc.text,
+                            textDisabledColor: tc.textTertiary,
+                            dotColor: tc.purple,
+                            selectedDotColor: tc.white,
+                            arrowColor: tc.purple,
+                            monthTextColor: tc.text,
+                            indicatorColor: tc.purple,
                             textDayFontFamily: 'Inter_400Regular',
                             textMonthFontFamily: 'Inter_600SemiBold',
                             textDayHeaderFontFamily: 'Inter_500Medium',
@@ -161,17 +173,17 @@ const HistoryScreen = () => {
 
                 {/* Selected Date Entries */}
                 <View style={styles.selectedVerseContainer}>
-                    <Text style={styles.sectionTitle}>
+                    <Text style={[styles.sectionTitle, { color: tc.text }]}>
                         {selectedDate === new Date().toISOString().split('T')[0] 
-                            ? "Today's Guidance" 
-                            : `Guidance for ${new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                            ? t('history.todays_activity', { defaultValue: "Today's Guidance" })
+                            : `${t('history.guidance_for', { defaultValue: 'Guidance for' })} ${new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
                     </Text>
 
                     {selectedDay && selectedDay.entries.length > 0 ? (
                         selectedDay.entries.map((entry, index) => {
                             const isVerse = entry.type === 'verse';
                             const content = entry.content;
-                            const moodColor = entry.mood ? colors.moods[entry.mood] : colors.purple;
+                            const moodColor = entry.mood ? tc.moods[entry.mood] : tc.purple;
 
                             return (
                                 <TouchableOpacity 
@@ -196,27 +208,27 @@ const HistoryScreen = () => {
                                                     </Text>
                                                 </View>
                                             </View>
-                                            <Text style={styles.verseReference}>
+                                            <Text style={[styles.verseReference, { color: tc.textSecondary }]}>
                                                 {isVerse 
                                                     ? `${(content as Verse).surah} ${(content as Verse).verseNumber}` 
                                                     : (content as Hadith).reference}
                                             </Text>
                                         </View>
-                                        <Text style={styles.verseText} numberOfLines={3}>
+                                        <Text style={[styles.verseText, { color: tc.text }]} numberOfLines={3}>
                                             {content.english}
                                         </Text>
-                                        <View style={styles.verseFooter}>
-                                            <Text style={styles.readMore}>Tap to read full content</Text>
-                                            <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+                                        <View style={[styles.verseFooter, { borderTopColor: tc.border + '50' }]}>
+                                            <Text style={[styles.readMore, { color: tc.textTertiary }]}>{t('history.tap_to_read', { defaultValue: 'Tap to read full content' })}</Text>
+                                            <Ionicons name="chevron-forward" size={14} color={tc.textTertiary} />
                                         </View>
                                     </ClubhouseCard>
                                 </TouchableOpacity>
                             );
                         })
                     ) : (
-                        <View style={styles.emptyVerseContainer}>
-                            <Ionicons name="journal-outline" size={40} color={colors.textTertiary} />
-                            <Text style={styles.emptyVerseText}>No activity recorded for this day</Text>
+                        <View style={[styles.emptyVerseContainer, { backgroundColor: tc.white + '50', borderColor: tc.border + '50' }]}>
+                            <Ionicons name="journal-outline" size={40} color={tc.textTertiary} />
+                            <Text style={[styles.emptyVerseText, { color: tc.textTertiary }]}>{t('history.no_activity')}</Text>
                         </View>
                     )}
                 </View>
@@ -224,7 +236,7 @@ const HistoryScreen = () => {
                 {/* Mood Insights */}
                 {historyStats && Object.keys(historyStats.moodCounts).length > 0 && (
                     <View style={styles.insightsContainer}>
-                        <Text style={styles.sectionTitle}>Mood Insights</Text>
+                        <Text style={[styles.sectionTitle, { color: tc.text }]}>{t('history.mood_insights')}</Text>
                         <ClubhouseCard style={styles.insightsCard}>
                             {Object.entries(historyStats.moodCounts)
                                 .sort(([, a], [, b]) => (b as number) - (a as number))
@@ -233,42 +245,43 @@ const HistoryScreen = () => {
                                         <View style={styles.moodInsightLeft}>
                                             <View style={[
                                                 styles.moodIconSmall, 
-                                                { backgroundColor: colors.moods[mood as Mood] + '15' }
+                                                { backgroundColor: tc.moods[mood as Mood] + '15' }
                                             ]}>
                                                 <Ionicons 
                                                     name={getMoodIcon(mood as Mood)} 
                                                     size={14} 
-                                                    color={colors.moods[mood as Mood]} 
+                                                    color={tc.moods[mood as Mood]} 
                                                 />
                                             </View>
-                                            <Text style={styles.moodInsightLabel}>{getMoodLabel(mood as Mood)}</Text>
+                                            <Text style={[styles.moodInsightLabel, { color: tc.text }]}>{getMoodLabel(mood as Mood)}</Text>
                                         </View>
                                         <View style={styles.moodInsightRight}>
-                                            <View style={styles.moodBarContainer}>
+                                            <View style={[styles.moodBarContainer, { backgroundColor: tc.border + '30' }]}>
                                                 <View style={[
                                                     styles.moodBar, 
                                                     { 
                                                         width: `${(count / historyStats.totalDays) * 100}%`,
-                                                        backgroundColor: colors.moods[mood as Mood]
+                                                        backgroundColor: tc.moods[mood as Mood]
                                                     }
                                                 ]} />
                                             </View>
-                                            <Text style={styles.moodInsightCount}>{count}</Text>
+                                            <Text style={[styles.moodInsightCount, { color: tc.textSecondary }]}>{count}</Text>
                                         </View>
                                     </View>
                                 ))}
                         </ClubhouseCard>
                     </View>
                 )}
-            </ScrollView>
+                </ScrollView>
 
-            {/* Detail Modal */}
-            <GuidanceDetailModal
-                visible={showDetail}
-                content={selectedEntry?.content || null}
-                type={selectedEntry?.type || 'verse'}
-                onClose={() => setShowDetail(false)}
-            />
+                {/* Detail Modal */}
+                <GuidanceDetailModal
+                    visible={showDetail}
+                    content={selectedEntry?.content || null}
+                    type={selectedEntry?.type || 'verse'}
+                    onClose={() => setShowDetail(false)}
+                />
+            </View>
         </ClubhouseBackground>
     );
 };
@@ -277,8 +290,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    headerFixedContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+    },
+    scrollView: {
+        flex: 1,
+    },
     contentContainer: {
-        paddingBottom: 160,
+        paddingBottom: TAB_BAR_SAFE_PADDING,
     },
     statsRow: {
         flexDirection: 'row',

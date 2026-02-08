@@ -11,23 +11,38 @@ import {
     Linking,
     Modal,
     FlatList,
+    Share,
+    TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { ClubhouseBackground, ClubhouseCard, ClubhouseHeader, ClubhouseButton } from '../components/clubhouse';
-import { colors, typography, spacing } from '../theme';
+import { colors, useTheme, typography, spacing, TAB_BAR_SAFE_PADDING } from '../theme';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store/appStore';
 import notificationService from '../services/notificationService';
 import audioService, { Reciter } from '../services/audioService';
+import WidgetSetupScreen from './WidgetSetupScreen';
+
+const LANGUAGES = [
+    { code: 'en', label: 'English', native: 'English' },
+    { code: 'ar', label: 'Arabic', native: 'العربية' },
+    { code: 'ur', label: 'Urdu', native: 'اردو' },
+    { code: 'tr', label: 'Turkish', native: 'Türkçe' },
+];
 
 const SettingsScreen = () => {
+    const { colors: tc } = useTheme();
+    const { t, i18n } = useTranslation();
     const { settings, updateSettings, favoriteVerses, favoriteHadiths, setOnboardingCompleted, clearAllFavorites } = useAppStore();
     const insets = useSafeAreaInsets();
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showReciterModal, setShowReciterModal] = useState(false);
+    const [showWidgetSetup, setShowWidgetSetup] = useState(false);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
 
     const handleNotificationToggle = async (value: boolean) => {
@@ -144,21 +159,38 @@ const SettingsScreen = () => {
         }
     };
 
-    const handleDarkModeToggle = async (value: boolean) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        await updateSettings({ darkMode: value });
-    };
-
-    const handleLanguageSelect = async (lang: string) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        await updateSettings({ language: lang });
-        setShowLanguageModal(false);
-    };
-
     const handleReciterSelect = async (reciter: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         await updateSettings({ reciter });
         setShowReciterModal(false);
+    };
+
+    const handleLanguageSelect = async (langCode: string) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        await updateSettings({ language: langCode });
+        i18n.changeLanguage(langCode);
+        setShowLanguageModal(false);
+    };
+
+    const handleRateApp = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        const storeUrl = Platform.OS === 'ios'
+            ? 'https://apps.apple.com/app/noor-daily/id6740000000' // TODO: Replace with actual App Store ID after submission
+            : 'https://play.google.com/store/apps/details?id=com.noordaily';
+        Linking.openURL(storeUrl);
+    };
+
+    const handleShareApp = async () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        try {
+            await Share.share({
+                message: 'Check out Noor Daily - Daily Quran & Hadith guidance for your spiritual journey! https://noordaily.app',
+            });
+        } catch (e) {}
+    };
+
+    const getLanguageName = () => {
+        return LANGUAGES.find(l => l.code === settings.language)?.label || 'English';
     };
 
     const handleClearSaved = () => {
@@ -222,38 +254,34 @@ const SettingsScreen = () => {
         return reciter?.name || 'Mishary Alafasy';
     };
 
-    const getLanguageName = () => {
-        const languages: Record<string, string> = {
-            en: 'English',
-            ar: 'Arabic',
-            ur: 'Urdu',
-            tr: 'Turkish',
-        };
-        return languages[settings.language] || 'English';
-    };
-
     return (
         <ClubhouseBackground color="creamLight">
-            <ScrollView 
-                style={styles.container} 
-                contentContainerStyle={[
-                    styles.contentContainer,
-                    { paddingTop: insets.top }
-                ]}
-                showsVerticalScrollIndicator={false}
-            >
-                <ClubhouseHeader 
-                    title="Settings" 
-                    subtitle="PERSONALIZE YOUR EXPERIENCE"
-                />
+            <View style={styles.outerContainer}>
+                {/* Fixed Glass Header */}
+                <View style={styles.headerFixedContainer}>
+                    <ClubhouseHeader 
+                        title={t('settings.title')} 
+                        subtitle={t('settings.personalize')}
+                    />
+                </View>
+
+                <ScrollView 
+                    style={styles.scrollView} 
+                    contentContainerStyle={[
+                        styles.contentContainer,
+                        { paddingTop: insets.top + 80 }
+                    ]}
+                    showsVerticalScrollIndicator={false}
+                    keyboardDismissMode="on-drag"
+                >
 
                 {/* Notifications Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>DAILY NOTIFICATIONS</Text>
-                    <ClubhouseCard backgroundColor={colors.backgroundSecondary}>
+                    <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>{t('settings.daily_notifications')}</Text>
+                    <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
                         <SettingRow
-                            title="Enable Notifications"
-                            subtitle="Get daily spiritual reminders"
+                            title={t('settings.enable_notifications')}
+                            subtitle={t('settings.enable_notifications_desc')}
                             icon="notifications"
                             iconBg="#E3F2FF"
                             iconColor="#007AFF"
@@ -261,8 +289,8 @@ const SettingsScreen = () => {
                                 <Switch
                                     value={settings.notificationsEnabled}
                                     onValueChange={handleNotificationToggle}
-                                    trackColor={{ false: colors.border, true: colors.purple }}
-                                    thumbColor={colors.white}
+                                    trackColor={{ false: tc.border, true: tc.purple }}
+                                    thumbColor={tc.white}
                                 />
                             }
                         />
@@ -271,15 +299,15 @@ const SettingsScreen = () => {
                             <>
                                 <View style={styles.divider} />
                                 <View style={styles.subSection}>
-                                    <Text style={styles.subSectionTitle}>FREQUENCY</Text>
+                                    <Text style={[styles.subSectionTitle, { color: tc.textTertiary }]}>{t('settings.frequency_label')}</Text>
                                     <View style={styles.optionGroup}>
                                         {[2, 3, 4].map((f) => (
                                             <TouchableOpacity 
                                                 key={f}
-                                                style={[styles.optionButton, settings.notificationFrequency === f && styles.optionButtonActive]}
+                                                style={[styles.optionButton, { backgroundColor: tc.cream, borderColor: tc.border }, settings.notificationFrequency === f && styles.optionButtonActive]}
                                                 onPress={() => handleFrequencyChange(f as any)}
                                             >
-                                                <Text style={[styles.optionText, settings.notificationFrequency === f && styles.optionTextActive]}>
+                                                <Text style={[styles.optionText, { color: tc.textSecondary }, settings.notificationFrequency === f && styles.optionTextActive]}>
                                                     {f} times
                                                 </Text>
                                             </TouchableOpacity>
@@ -289,43 +317,43 @@ const SettingsScreen = () => {
 
                                 <View style={styles.divider} />
                                 <View style={styles.subSection}>
-                                    <Text style={styles.subSectionTitle}>CONTENT TYPE</Text>
+                                    <Text style={[styles.subSectionTitle, { color: tc.textTertiary }]}>{t('settings.content_type_label')}</Text>
                                     <View style={styles.optionGroup}>
-                                        {['verse', 'hadith', 'both'].map((t) => (
+                                        {['verse', 'hadith', 'both'].map((ct) => (
                                             <TouchableOpacity 
-                                                key={t}
-                                                style={[styles.optionButton, settings.notificationContentType === t && styles.optionButtonActive]}
-                                                onPress={() => handleContentTypeChange(t as any)}
+                                                key={ct}
+                                                style={[styles.optionButton, { backgroundColor: tc.cream, borderColor: tc.border }, settings.notificationContentType === ct && styles.optionButtonActive]}
+                                                onPress={() => handleContentTypeChange(ct as any)}
                                             >
-                                                <Text style={[styles.optionText, settings.notificationContentType === t && styles.optionTextActive]}>
-                                                    {t === 'both' ? 'Both' : t.charAt(0).toUpperCase() + t.slice(1) + 's'}
+                                                <Text style={[styles.optionText, { color: tc.textSecondary }, settings.notificationContentType === ct && styles.optionTextActive]}>
+                                                    {ct === 'both' ? t('settings.both') : ct === 'verse' ? t('settings.verses') : t('settings.hadiths')}
                                                 </Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
                                 </View>
 
-                                <View style={styles.divider} />
+                                <View style={[styles.divider, { backgroundColor: tc.border }]} />
                                 <View style={styles.row}>
                                     <View style={styles.rowLeft}>
-                                        <Text style={styles.rowTitle}>Quiet Hours</Text>
-                                        <Text style={styles.rowSubtitle}>No notifications during this time</Text>
+                                        <Text style={[styles.rowTitle, { color: tc.text }]}>{t('settings.quiet_hours_label')}</Text>
+                                        <Text style={[styles.rowSubtitle, { color: tc.textSecondary }]}>{t('settings.quiet_hours_no')}</Text>
                                     </View>
                                     <View style={styles.quietHoursContainer}>
                                         <TouchableOpacity onPress={() => handleQuietHoursPress('start')}>
-                                            <Text style={styles.timeText}>{settings.quietHoursStart}</Text>
+                                            <Text style={[styles.timeText, { color: tc.purple, backgroundColor: tc.cream }]}>{settings.quietHoursStart}</Text>
                                         </TouchableOpacity>
-                                        <Text style={styles.timeSeparator}>to</Text>
+                                        <Text style={[styles.timeSeparator, { color: tc.textTertiary }]}>to</Text>
                                         <TouchableOpacity onPress={() => handleQuietHoursPress('end')}>
-                                            <Text style={styles.timeText}>{settings.quietHoursEnd}</Text>
+                                            <Text style={[styles.timeText, { color: tc.purple, backgroundColor: tc.cream }]}>{settings.quietHoursEnd}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
 
                                 <View style={styles.divider} />
                                 <SettingRow
-                                    title="Weekend Mode"
-                                    subtitle="Fewer notifications on Sat/Sun"
+                                    title={t('settings.weekend_mode')}
+                                    subtitle={t('settings.weekend_mode_desc')}
                                     icon="calendar"
                                     iconBg="#F4EDFA"
                                     iconColor="#AF52DE"
@@ -333,8 +361,8 @@ const SettingsScreen = () => {
                                         <Switch
                                             value={settings.weekendMode}
                                             onValueChange={handleWeekendModeToggle}
-                                            trackColor={{ false: colors.border, true: colors.purple }}
-                                            thumbColor={colors.white}
+                                            trackColor={{ false: tc.border, true: tc.purple }}
+                                            thumbColor={tc.white}
                                         />
                                     }
                                 />
@@ -345,46 +373,121 @@ const SettingsScreen = () => {
 
                 {/* Preferences Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>PREFERENCES</Text>
-                    <ClubhouseCard backgroundColor={colors.backgroundSecondary}>
+                    <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>{t('settings.preferences')}</Text>
+                    <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
                         <SettingRow
-                            title="Dark Mode"
-                            subtitle="Adaptive theme for night time"
+                            title={t('settings.your_name')}
+                            subtitle={t('settings.your_name_desc')}
+                            icon="person"
+                            iconBg="#E8F5E9"
+                            iconColor="#4CAF50"
+                            rightComponent={
+                                <TextInput
+                                    style={[styles.nameEditInput, { color: tc.text, borderColor: tc.border, backgroundColor: tc.cream }]}
+                                    value={settings.userName}
+                                    onChangeText={(text) => updateSettings({ userName: text })}
+                                    placeholder={t('settings.name_placeholder')}
+                                    placeholderTextColor={tc.textTertiary}
+                                    maxLength={30}
+                                    autoCapitalize="words"
+                                />
+                            }
+                        />
+                        <View style={styles.divider} />
+                        <SettingRow
+                            title={t('settings.dark_mode')}
+                            subtitle={settings.darkMode ? 'On' : 'Off'}
                             icon="moon"
-                            iconBg="#FFF4E5"
-                            iconColor="#FF9500"
+                            iconBg="#1C1C1E"
+                            iconColor="#FFD60A"
                             rightComponent={
                                 <Switch
                                     value={settings.darkMode}
-                                    onValueChange={handleDarkModeToggle}
-                                    trackColor={{ false: colors.border, true: colors.purple }}
-                                    thumbColor={colors.white}
+                                    onValueChange={async (value) => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        await updateSettings({ darkMode: value });
+                                    }}
+                                    trackColor={{ false: tc.border, true: tc.purple }}
+                                    thumbColor={tc.white}
                                 />
                             }
                         />
                         <View style={styles.divider} />
                         <TouchableOpacity onPress={() => setShowLanguageModal(true)}>
                             <SettingRow
-                                title="Language"
+                                title={t('settings.language')}
                                 subtitle={getLanguageName()}
                                 icon="language"
-                                iconBg="#E8F8EC"
-                                iconColor="#34C759"
+                                iconBg="#E3F2FF"
+                                iconColor="#007AFF"
                                 rightComponent={
-                                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                 }
                             />
                         </TouchableOpacity>
                         <View style={styles.divider} />
                         <TouchableOpacity onPress={() => setShowReciterModal(true)}>
                             <SettingRow
-                                title="Quran Reciter"
+                                title={t('settings.reciter')}
                                 subtitle={getReciterName()}
                                 icon="musical-notes"
-                                iconBg="#F4EDFA"
-                                iconColor={colors.purple}
+                                iconBg={tc.cream}
+                                iconColor={tc.purple}
                                 rightComponent={
-                                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
+                                }
+                            />
+                        </TouchableOpacity>
+                    </ClubhouseCard>
+                </View>
+
+                {/* Wallpaper & Widget Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>{t('settings.daily_wallpaper')}</Text>
+                    <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
+                        <TouchableOpacity onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            setShowWidgetSetup(true);
+                        }}>
+                            <SettingRow
+                                title={t('settings.create_wallpaper')}
+                                icon="image"
+                                iconBg="#F0E6FF"
+                                iconColor={tc.purple}
+                                rightComponent={
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
+                                }
+                            />
+                        </TouchableOpacity>
+                    </ClubhouseCard>
+                </View>
+
+                {/* Rate & Share Section — Task 19 */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>{t('settings.spread_noor')}</Text>
+                    <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
+                        <TouchableOpacity onPress={handleRateApp}>
+                            <SettingRow
+                                title={t('settings.rate_app')}
+                                subtitle={t('settings.rate_app_desc')}
+                                icon="star"
+                                iconBg="#FFF4E5"
+                                iconColor="#FF9500"
+                                rightComponent={
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
+                                }
+                            />
+                        </TouchableOpacity>
+                        <View style={styles.divider} />
+                        <TouchableOpacity onPress={handleShareApp}>
+                            <SettingRow
+                                title={t('settings.share_friends')}
+                                subtitle={t('settings.share_friends_desc')}
+                                icon="share-social"
+                                iconBg="#E3F2FF"
+                                iconColor="#007AFF"
+                                rightComponent={
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                 }
                             />
                         </TouchableOpacity>
@@ -393,52 +496,52 @@ const SettingsScreen = () => {
 
                 {/* About Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>ABOUT</Text>
-                    <ClubhouseCard backgroundColor={colors.backgroundSecondary}>
+                    <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>{t('settings.about')}</Text>
+                    <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
                         <TouchableOpacity onPress={() => handleOpenURL('https://noordaily.app')}>
                             <SettingRow
-                                title="About Noor Daily"
+                                title={t('settings.about_app')}
                                 icon="information-circle"
                                 iconBg="#E3F2FF"
                                 iconColor="#007AFF"
                                 rightComponent={
-                                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                 }
                             />
                         </TouchableOpacity>
                         <View style={styles.divider} />
                         <TouchableOpacity onPress={() => handleOpenURL('https://noordaily.app/privacy')}>
                             <SettingRow
-                                title="Privacy Policy"
+                                title={t('settings.privacy')}
                                 icon="shield-checkmark"
                                 iconBg="#E8F8EC"
                                 iconColor="#34C759"
                                 rightComponent={
-                                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                 }
                             />
                         </TouchableOpacity>
                         <View style={styles.divider} />
                         <TouchableOpacity onPress={() => handleOpenURL('https://noordaily.app/terms')}>
                             <SettingRow
-                                title="Terms of Service"
+                                title={t('settings.terms')}
                                 icon="document-text"
                                 iconBg="#FFF4E5"
                                 iconColor="#FF9500"
                                 rightComponent={
-                                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                 }
                             />
                         </TouchableOpacity>
                         <View style={styles.divider} />
                         <TouchableOpacity onPress={() => handleOpenURL('mailto:support@noordaily.app')}>
                             <SettingRow
-                                title="Contact Support"
+                                title={t('settings.contact_support')}
                                 icon="mail"
                                 iconBg="#FFE9E7"
                                 iconColor="#FF3B30"
                                 rightComponent={
-                                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                 }
                             />
                         </TouchableOpacity>
@@ -447,35 +550,71 @@ const SettingsScreen = () => {
 
                 {/* Data Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>DATA</Text>
-                    <ClubhouseCard backgroundColor={colors.backgroundSecondary}>
+                    <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>{t('settings.data')}</Text>
+                    <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
                         <TouchableOpacity onPress={handleClearSaved}>
                             <SettingRow
-                                title="Clear Saved Guidance"
-                                titleColor={colors.coral}
+                                title={t('settings.clear_saved')}
+                                titleColor={tc.coral}
                                 icon="trash"
                                 iconBg="#FFE9E7"
-                                iconColor={colors.coral}
+                                iconColor={tc.coral}
                             />
                         </TouchableOpacity>
                         <View style={styles.divider} />
                         <TouchableOpacity onPress={handleResetApp}>
                             <SettingRow
-                                title="Reset App"
-                                titleColor={colors.coral}
+                                title={t('settings.reset_app')}
+                                titleColor={tc.coral}
                                 icon="refresh"
                                 iconBg="#FFE9E7"
-                                iconColor={colors.coral}
+                                iconColor={tc.coral}
                             />
                         </TouchableOpacity>
                     </ClubhouseCard>
                 </View>
 
                 {/* Version */}
-                <Text style={styles.version}>Version 1.0.0</Text>
+                <Text style={[styles.version, { color: tc.textTertiary }]}>Version {Constants.expoConfig?.version || '1.0.0'}</Text>
 
-                {/* Date Picker */}
-                {showTimePicker && (
+                {/* Date Picker - wrapped in Modal on iOS */}
+                {showTimePicker && Platform.OS === 'ios' && (
+                    <Modal
+                        visible={showTimePicker}
+                        transparent={true}
+                        animationType="slide"
+                        onRequestClose={() => setShowTimePicker(false)}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <View style={[styles.modalContent, { backgroundColor: tc.white }]}>
+                                <View style={styles.modalHeader}>
+                                    <Text style={[styles.modalTitle, { color: tc.text }]}>Set Time</Text>
+                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                        <Ionicons name="close" size={24} color={tc.text} />
+                                    </TouchableOpacity>
+                                </View>
+                                <DateTimePicker
+                                    value={(() => {
+                                        const timeStr = quietHoursType === 'start' 
+                                            ? settings.quietHoursStart 
+                                            : quietHoursType === 'end' 
+                                                ? settings.quietHoursEnd 
+                                                : settings.notificationTime;
+                                        const [h, m] = timeStr.split(':').map(Number);
+                                        const d = new Date();
+                                        d.setHours(h, m, 0, 0);
+                                        return d;
+                                    })()}
+                                    mode="time"
+                                    is24Hour={false}
+                                    display="spinner"
+                                    onChange={handleTimeChange}
+                                />
+                            </View>
+                        </View>
+                    </Modal>
+                )}
+                {showTimePicker && Platform.OS === 'android' && (
                     <DateTimePicker
                         value={(() => {
                             const timeStr = quietHoursType === 'start' 
@@ -490,7 +629,7 @@ const SettingsScreen = () => {
                         })()}
                         mode="time"
                         is24Hour={false}
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        display="default"
                         onChange={handleTimeChange}
                     />
                 )}
@@ -503,11 +642,11 @@ const SettingsScreen = () => {
                     onRequestClose={() => setShowReciterModal(false)}
                 >
                     <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
+                        <View style={[styles.modalContent, { backgroundColor: tc.white }]}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Select Reciter</Text>
+                                <Text style={[styles.modalTitle, { color: tc.text }]}>Select Reciter</Text>
                                 <TouchableOpacity onPress={() => setShowReciterModal(false)}>
-                                    <Ionicons name="close" size={24} color={colors.text} />
+                                    <Ionicons name="close" size={24} color={tc.text} />
                                 </TouchableOpacity>
                             </View>
                             <FlatList
@@ -515,17 +654,17 @@ const SettingsScreen = () => {
                                 keyExtractor={(item) => item.edition}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity 
-                                        style={[styles.modalItem, settings.reciter === item.edition && styles.modalItemActive]}
+                                        style={[styles.modalItem, { borderBottomColor: tc.border }, settings.reciter === item.edition && { backgroundColor: tc.purple + '08' }]}
                                         onPress={() => handleReciterSelect(item.edition)}
                                     >
                                         <View>
-                                            <Text style={[styles.modalItemTitle, settings.reciter === item.edition && styles.modalItemTextActive]}>
+                                            <Text style={[styles.modalItemTitle, { color: tc.text }, settings.reciter === item.edition && { color: tc.purple, fontWeight: '700' }]}>
                                                 {item.name}
                                             </Text>
-                                            <Text style={styles.modalItemSubtitle}>{item.description}</Text>
+                                            <Text style={[styles.modalItemSubtitle, { color: tc.textTertiary }]}>{item.description}</Text>
                                         </View>
                                         {settings.reciter === item.edition && (
-                                            <Ionicons name="checkmark-circle" size={24} color={colors.purple} />
+                                            <Ionicons name="checkmark-circle" size={24} color={tc.purple} />
                                         )}
                                     </TouchableOpacity>
                                 )}
@@ -534,7 +673,13 @@ const SettingsScreen = () => {
                     </View>
                 </Modal>
 
-                {/* Language Modal */}
+                {/* Widget Setup Modal */}
+                <WidgetSetupScreen
+                    visible={showWidgetSetup}
+                    onClose={() => setShowWidgetSetup(false)}
+                />
+
+                {/* Language Selector Modal — Task 16 */}
                 <Modal
                     visible={showLanguageModal}
                     animationType="slide"
@@ -542,36 +687,38 @@ const SettingsScreen = () => {
                     onRequestClose={() => setShowLanguageModal(false)}
                 >
                     <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
+                        <View style={[styles.modalContent, { backgroundColor: tc.white }]}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Select Language</Text>
+                                <Text style={[styles.modalTitle, { color: tc.text }]}>Select Language</Text>
                                 <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
-                                    <Ionicons name="close" size={24} color={colors.text} />
+                                    <Ionicons name="close" size={24} color={tc.text} />
                                 </TouchableOpacity>
                             </View>
-                            {[
-                                { id: 'en', name: 'English' },
-                                { id: 'ar', name: 'Arabic' },
-                                { id: 'ur', name: 'Urdu' },
-                                { id: 'tr', name: 'Turkish' },
-                            ].map((lang) => (
-                                <TouchableOpacity 
-                                    key={lang.id}
-                                    style={[styles.modalItem, settings.language === lang.id && styles.modalItemActive]}
-                                    onPress={() => handleLanguageSelect(lang.id)}
-                                >
-                                    <Text style={[styles.modalItemTitle, settings.language === lang.id && styles.modalItemTextActive]}>
-                                        {lang.name}
-                                    </Text>
-                                    {settings.language === lang.id && (
-                                        <Ionicons name="checkmark-circle" size={24} color={colors.purple} />
-                                    )}
-                                </TouchableOpacity>
-                            ))}
+                            <FlatList
+                                data={LANGUAGES}
+                                keyExtractor={(item) => item.code}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={[styles.modalItem, { borderBottomColor: tc.border }, settings.language === item.code && { backgroundColor: tc.purple + '08' }]}
+                                        onPress={() => handleLanguageSelect(item.code)}
+                                    >
+                                        <View>
+                                            <Text style={[styles.modalItemTitle, { color: tc.text }, settings.language === item.code && { color: tc.purple, fontWeight: '700' }]}>
+                                                {item.label}
+                                            </Text>
+                                            <Text style={[styles.modalItemSubtitle, { color: tc.textTertiary }]}>{item.native}</Text>
+                                        </View>
+                                        {settings.language === item.code && (
+                                            <Ionicons name="checkmark-circle" size={24} color={tc.purple} />
+                                        )}
+                                    </TouchableOpacity>
+                                )}
+                            />
                         </View>
                     </View>
                 </Modal>
-            </ScrollView>
+                </ScrollView>
+            </View>
         </ClubhouseBackground>
     );
 };
@@ -584,25 +731,38 @@ const SettingRow: React.FC<{
     iconBg: string;
     iconColor: string;
     rightComponent?: React.ReactNode;
-}> = ({ title, subtitle, titleColor = colors.text, icon, iconBg, iconColor, rightComponent }) => (
-    <View style={styles.row}>
-        <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-            <Ionicons name={icon} size={18} color={iconColor} />
+}> = ({ title, subtitle, titleColor, icon, iconBg, iconColor, rightComponent }) => {
+    const { colors: tc } = useTheme();
+    return (
+        <View style={styles.row}>
+            <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+                <Ionicons name={icon} size={18} color={iconColor} />
+            </View>
+            <View style={styles.rowLeft}>
+                <Text style={[styles.rowTitle, { color: titleColor || tc.text }]}>{title}</Text>
+                {subtitle && <Text style={[styles.rowSubtitle, { color: tc.textSecondary }]}>{subtitle}</Text>}
+            </View>
+            {rightComponent && <View style={styles.rowRight}>{rightComponent}</View>}
         </View>
-        <View style={styles.rowLeft}>
-            <Text style={[styles.rowTitle, { color: titleColor }]}>{title}</Text>
-            {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
-        </View>
-        {rightComponent && <View style={styles.rowRight}>{rightComponent}</View>}
-    </View>
-);
+    );
+};
 
 const styles = StyleSheet.create({
-    container: {
+    outerContainer: {
+        flex: 1,
+    },
+    headerFixedContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+    },
+    scrollView: {
         flex: 1,
     },
     contentContainer: {
-        paddingBottom: 160,
+        paddingBottom: TAB_BAR_SAFE_PADDING,
     },
     section: {
         marginBottom: spacing.lg,
@@ -770,6 +930,16 @@ const styles = StyleSheet.create({
         ...typography.caption,
         color: colors.textTertiary,
         marginTop: 2,
+    },
+    nameEditInput: {
+        ...typography.body,
+        fontSize: 14,
+        paddingVertical: 6,
+        paddingHorizontal: spacing.sm,
+        borderRadius: 10,
+        borderWidth: 1,
+        minWidth: 120,
+        textAlign: 'right',
     },
 });
 

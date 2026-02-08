@@ -1,29 +1,11 @@
 import axios, { AxiosError } from 'axios';
-import { QuranApiVerseResponse, QuranApiSurahResponse, ApiError, Verse } from '../types';
+import { QuranApiVerseResponse, QuranApiSurahResponse, ApiError, Verse, ReminderApiVerse } from '../types';
 import cacheService from './cacheService';
-import { useAppStore } from '../store/appStore';
+import reminderApiService from './reminderApiService';
 
-const API_BASE_URL = 'https://api.alquran.cloud/v1';
 const REQUEST_TIMEOUT = 10000; // 10 seconds
-const MAX_RETRY_ATTEMPTS = 3;
-const RETRY_DELAY_MS = 1000; // Start with 1 second
-
-// Translation edition mapping
-const TRANSLATION_EDITIONS: Record<string, string> = {
-    en: 'en.sahih',       // English - Sahih International
-    ar: 'ar.alafasy',     // Arabic (with translation)
-    ur: 'ur.ahmedali',    // Urdu - Ahmed Ali
-    tr: 'tr.diyanet',     // Turkish - Diyanet
-};
 
 class QuranApiService {
-    /**
-     * Sleep utility for retry logic
-     */
-    private sleep(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     /**
      * Create API error from exception
      */
@@ -64,131 +46,61 @@ class QuranApiService {
     }
 
     /**
-     * Fetch data with retry logic
+     * Get surah information (now powered by reminder.dev chapters list)
      */
-    private async fetchWithRetry<T>(
-        url: string,
-        attempt: number = 1
-    ): Promise<T> {
+    async getSurahInfo(surahNumber: number): Promise<QuranApiSurahResponse> {
+        const cacheKey = cacheService.getSurahKey(surahNumber);
+        const cached = await cacheService.get<QuranApiSurahResponse>(cacheKey);
+        if (cached) return cached;
+
         try {
-            const response = await axios.get<T>(url, {
-                timeout: REQUEST_TIMEOUT,
-            });
+            const chapters = await reminderApiService.getChapterList();
+            const ch = chapters.find(c => c.number === surahNumber);
+            if (!ch) throw new Error(`Surah ${surahNumber} not found`);
 
-            // Validate response
-            if (response.status !== 200) {
-                throw new Error(`Invalid response status: ${response.status}`);
-            }
+            const response: QuranApiSurahResponse = {
+                code: 200,
+                status: 'OK',
+                data: {
+                    number: ch.number,
+                    name: ch.name,
+                    englishName: ch.english || ch.name,
+                    englishNameTranslation: ch.english || ch.name,
+                    revelationType: '',
+                    numberOfAyahs: ch.verse_count,
+                },
+            };
 
-            return response.data;
+            await cacheService.set(cacheKey, response);
+            return response;
         } catch (error) {
-            if (attempt < MAX_RETRY_ATTEMPTS) {
-                // Exponential backoff: 1s, 2s, 4s
-                const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
-                console.info(`Retry attempt ${attempt} after ${delay}ms...`);
-                await this.sleep(delay);
-                return this.fetchWithRetry<T>(url, attempt + 1);
-            }
-
             throw this.createApiError(error);
         }
     }
 
     /**
-     * Get single verse with specific edition
+     * Convert reminder.dev verse to our Verse object
      */
-    async getVerse(
-        surahNumber: number,
-        verseNumber: number,
-        edition: string = 'ar.alafasy'
-    ): Promise<QuranApiVerseResponse> {
-        const url = `${API_BASE_URL}/ayah/${surahNumber}:${verseNumber}/${edition}`;
-        return this.fetchWithRetry<QuranApiVerseResponse>(url);
-    }
-
-    /**
-     * Get verse with both Arabic and translation in user's language
-     */
-    async getVerseWithTranslation(
-        surahNumber: number,
-        verseNumber: number
-    ): Promise<{ arabic: QuranApiVerseResponse; english: QuranApiVerseResponse }> {
-        // Check cache first
-        const cacheKey = cacheService.getVerseKey(surahNumber, verseNumber);
-        const cached = await cacheService.get<Verse>(cacheKey);
-
-        if (cached) {
-            // Return from cache - we'll construct a minimal response structure
-            // This is mainly for consistency, the caller will use the cached Verse directly
-            console.log(`Cache hit for ${surahNumber}:${verseNumber}`);
-        }
-
-        // Get user's language setting
-        const { settings } = useAppStore.getState();
-        const translationEdition = TRANSLATION_EDITIONS[settings.language] || TRANSLATION_EDITIONS.en;
-
-        // Fetch both editions in parallel
-        const [arabic, translation] = await Promise.all([
-            this.getVerse(surahNumber, verseNumber, 'ar.alafasy'),
-            this.getVerse(surahNumber, verseNumber, translationEdition),
-        ]);
-
-        return { arabic, english: translation };
-    }
-
-    /**
-     * Get surah information
-     */
-    async getSurahInfo(surahNumber: number): Promise<QuranApiSurahResponse> {
-        // Check cache first
-        const cacheKey = cacheService.getSurahKey(surahNumber);
-        const cached = await cacheService.get<QuranApiSurahResponse>(cacheKey);
-
-        if (cached) {
-            return cached;
-        }
-
-        const url = `${API_BASE_URL}/surah/${surahNumber}`;
-        const response = await this.fetchWithRetry<QuranApiSurahResponse>(url);
-
-        // Cache surah info (it never changes)
-        await cacheService.set(cacheKey, response);
-
-        return response;
-    }
-
-    /**
-     * Convert API responses to Verse object
-     */
-    async convertToVerse(
-        arabic: QuranApiVerseResponse,
-        english: QuranApiVerseResponse,
+    private reminderVerseToVerse(
+        apiVerse: ReminderApiVerse,
+        surahName: string,
         moods: string[] = [],
         theme: string = ''
-    ): Promise<Verse> {
-        const surahNumber = arabic.data.surah.number;
-        const verseNumber = arabic.data.numberInSurah;
-
-        const verse: Verse = {
-            id: `${surahNumber}:${verseNumber}`,
-            surah: arabic.data.surah.englishName,
-            surahNumber,
-            verseNumber,
-            arabic: arabic.data.text,
-            english: english.data.text,
+    ): Verse {
+        return {
+            id: `${apiVerse.chapter}:${apiVerse.number}`,
+            surah: surahName,
+            surahNumber: apiVerse.chapter,
+            verseNumber: apiVerse.number,
+            arabic: apiVerse.arabic,
+            english: apiVerse.text,
             moods: moods as any,
             theme,
         };
-
-        // Cache the verse
-        const cacheKey = cacheService.getVerseKey(surahNumber, verseNumber);
-        await cacheService.set(cacheKey, verse);
-
-        return verse;
     }
 
     /**
-     * Get verse by surah and verse number (cache-first)
+     * Get verse by surah and verse number (cache-first, powered by reminder.dev)
      */
     async getVerseData(
         surahNumber: number,
@@ -201,7 +113,6 @@ class QuranApiService {
         const cached = await cacheService.get<Verse>(cacheKey);
 
         if (cached) {
-            // Update moods and theme if provided
             if (moods.length > 0) {
                 cached.moods = moods as any;
             }
@@ -211,13 +122,27 @@ class QuranApiService {
             return cached;
         }
 
-        // Fetch from API
-        const { arabic, english } = await this.getVerseWithTranslation(
-            surahNumber,
-            verseNumber
-        );
+        try {
+            // Fetch chapter data (cached) to get both verse and surah name
+            const chapterData = await reminderApiService.getChapter(surahNumber);
+            const apiVerse = chapterData.verses?.find(v => v.number === verseNumber);
 
-        return this.convertToVerse(arabic, english, moods, theme);
+            if (!apiVerse) {
+                throw new Error(`Verse ${surahNumber}:${verseNumber} not found`);
+            }
+
+            const surahName = chapterData.english || chapterData.name || `Surah ${surahNumber}`;
+            const verseWithChapter = { ...apiVerse, chapter: surahNumber };
+
+            const verse = this.reminderVerseToVerse(verseWithChapter, surahName, moods, theme);
+
+            // Cache the verse
+            await cacheService.set(cacheKey, verse);
+
+            return verse;
+        } catch (error) {
+            throw this.createApiError(error);
+        }
     }
 }
 

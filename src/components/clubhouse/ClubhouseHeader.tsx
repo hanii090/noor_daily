@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '../../theme';
+import { useTheme, typography, spacing } from '../../theme';
 
 interface ClubhouseHeaderProps {
     title: string;
@@ -24,33 +24,39 @@ export const ClubhouseHeader: React.FC<ClubhouseHeaderProps> = ({
     transparent = false,
 }) => {
     const insets = useSafeAreaInsets();
+    const { colors, isDark } = useTheme();
     const Container = transparent ? View : BlurView;
-    const containerProps = transparent ? {} : { intensity: 80, tint: 'light' as const };
+    const blurTint: 'light' | 'dark' = isDark ? 'dark' : 'light';
+    const containerProps = transparent ? {} : { intensity: 80, tint: blurTint };
+
+    const hasTopRow = onBack || (rightIcons && rightIcons.length > 0);
 
     return (
-        <Container {...containerProps} style={[styles.header, { paddingTop: Math.max(insets.top, spacing.sm) }]}>
-            <View style={styles.headerTop}>
-                {onBack ? (
-                    <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={24} color={colors.text} />
-                    </TouchableOpacity>
-                ) : (
-                    <View style={styles.placeholder} />
-                )}
-                
-                <View style={styles.headerActions}>
-                    {rightIcons?.map((icon, index) => (
-                        <TouchableOpacity key={index} onPress={icon.onPress} style={styles.iconButton}>
-                            <Ionicons name={icon.name} size={22} color={colors.text} />
+        <Container {...containerProps} style={[styles.header, { paddingTop: insets.top + 4, borderBottomColor: colors.border }]}>
+            {hasTopRow && (
+                <View style={styles.headerTop}>
+                    {onBack ? (
+                        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+                            <Ionicons name="chevron-back" size={24} color={colors.text} />
                         </TouchableOpacity>
-                    ))}
+                    ) : (
+                        <View style={styles.placeholder} />
+                    )}
+                    
+                    <View style={styles.headerActions}>
+                        {rightIcons?.map((icon, index) => (
+                            <TouchableOpacity key={index} onPress={icon.onPress} style={styles.iconButton}>
+                                <Ionicons name={icon.name} size={22} color={colors.text} />
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
-            </View>
+            )}
             
             <View style={styles.headerContent}>
-                <Text style={styles.headerTitle}>{title}</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>{title}</Text>
                 {subtitle && (
-                    <Text style={styles.headerSubtitle}>
+                    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
                         {subtitle.toUpperCase()}
                     </Text>
                 )}
@@ -62,16 +68,15 @@ export const ClubhouseHeader: React.FC<ClubhouseHeaderProps> = ({
 const styles = StyleSheet.create({
     header: {
         paddingHorizontal: spacing.lg,
-        paddingBottom: spacing.md,
+        paddingBottom: spacing.sm,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: 'rgba(0,0,0,0.05)',
     },
     headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        height: 32,
-        marginBottom: spacing.xs,
+        height: 28,
+        marginBottom: 2,
     },
     backButton: {
         marginLeft: -spacing.xs,
@@ -92,16 +97,14 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         ...typography.h2,
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: '700',
-        color: colors.black,
-        marginBottom: 4,
+        marginBottom: 2,
     },
     headerSubtitle: {
         ...typography.caption,
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: '600',
-        color: colors.textSecondary,
-        letterSpacing: 1,
+        letterSpacing: 0.8,
     },
 });

@@ -1,4 +1,4 @@
-export type Mood = 'grateful' | 'peace' | 'strength' | 'guidance' | 'celebrating';
+export type Mood = 'grateful' | 'peace' | 'strength' | 'guidance' | 'celebrating' | 'anxious' | 'sad' | 'hopeful';
 
 export interface Verse {
     id: string;
@@ -26,7 +26,7 @@ export interface Hadith {
   savedAt?: number;
 }
 
-export type ContentType = 'verse' | 'hadith';
+export type ContentType = 'verse' | 'hadith' | 'name';
 
 export type GuidanceContent = Verse | Hadith;
 
@@ -41,6 +41,7 @@ export interface AppSettings {
     quietHoursStart: string; // "HH:mm" format
     quietHoursEnd: string; // "HH:mm" format
     weekendMode: boolean;
+    userName: string;
 }
 
 export type VerseCardTemplate = 'minimal' | 'vibrant' | 'classic';
@@ -114,4 +115,154 @@ export interface CacheEntry<T> {
     data: T;
     timestamp: number;
     ttl: number;
+}
+
+// ── 30-Day Journey Types ──
+
+export type JourneyTheme = 'gratitude' | 'patience' | 'wisdom' | 'peace' | 'purpose';
+
+export interface JourneyBadge {
+    id: string;
+    name: string;
+    emoji: string;
+    dayRequired: number;
+}
+
+export interface JourneyDay {
+    day: number;
+    theme: JourneyTheme;
+    themeTitle: string;
+    verseRef: { surah: number; verse: number };
+    hadithId: string;
+    tafsirBrief: string;
+    reflectionQuestion: string;
+    dailyChallenge: string;
+    badge?: JourneyBadge;
+}
+
+export interface JourneyProgress {
+    startedAt: string;
+    completedDays: number[];
+    completionDates: Record<number, string>; // day → ISO date string of when it was completed
+    journalEntries: Record<number, string>;
+    currentStreak: number;
+    longestStreak: number;
+    streakFreezeUsed: boolean;
+    completedAt?: string;
+}
+
+export type JourneyStatus = 'not_started' | 'in_progress' | 'completed';
+
+// ── Exam Mode Types ──
+
+export type ExamTiming = 'today' | 'tomorrow' | 'this_week';
+export type ExamSubject = 'math' | 'science' | 'language' | 'history' | 'islamic_studies' | 'other';
+export type ExamFeeling = 'stressed' | 'confident' | 'tired' | 'anxious' | 'hopeful';
+export type ExamPhase = 'before' | 'during_break' | 'after';
+
+export interface ExamVerse {
+    verseRef: { surah: number; verse: number };
+    category: 'stress_relief' | 'focus' | 'confidence' | 'trust' | 'gratitude' | 'acceptance';
+    motivationalNote: string;
+    applicablePhases: ExamPhase[];
+    applicableFeelings: ExamFeeling[];
+}
+
+export interface ExamSession {
+    id: string;
+    subject: ExamSubject;
+    timing: ExamTiming;
+    feeling: ExamFeeling;
+    verseId: string;
+    createdAt: string;
+    postExamReflection?: string;
+}
+
+// ── Reminder.dev API Types ──
+
+export interface ReminderApiVerse {
+    chapter: number;
+    number: number;
+    text: string;
+    arabic: string;
+    words?: { english: string; arabic: string; transliteration: string }[];
+    comments?: string;
+    audio_arabic?: string;
+    audio_english?: string;
+}
+
+export interface ReminderApiChapter {
+    name: string;
+    number: number;
+    verses: ReminderApiVerse[];
+    english: string;
+    verse_count: number;
+}
+
+export interface ReminderApiHadith {
+    number: number;
+    narrator: string;
+    english: string;
+    arabic: string;
+    chain: string;
+    info: string;
+    by: string;
+    text: string;
+}
+
+export interface ReminderApiHadithBook {
+    name: string;
+    number: number;
+    hadiths: ReminderApiHadith[];
+}
+
+export interface ReminderApiHadithCollection {
+    name: string;
+    arabic: string;
+    books: ReminderApiHadithBook[];
+}
+
+export interface NameOfAllah {
+    number: number;
+    english: string;
+    arabic: string;
+    meaning: string;
+    description: string;
+    summary: string;
+    location: string[];
+}
+
+export interface ReminderApiDaily {
+    date: string;
+    hadith: string;
+    hijri: string;
+    links: {
+        hadith: string;
+        name: string;
+        verse: string;
+    };
+    message: string;
+    name: string;
+    updated: string;
+    verse: string;
+}
+
+export interface DailyReminder {
+    date: string;
+    hijri: string;
+    verse: {
+        surahName: string;
+        reference: string;
+        text: string;
+    };
+    hadith: {
+        bookName: string;
+        narrator: string;
+        text: string;
+    };
+    nameOfAllah: {
+        name: string;
+        arabic: string;
+        meaning: string;
+    };
 }

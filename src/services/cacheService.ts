@@ -105,6 +105,34 @@ class CacheService {
     getSurahKey(surah: number): string {
         return `surah_info_${surah}`;
     }
+
+    /**
+     * Generate cache key for AI insight
+     */
+    getAiInsightKey(contentId: string, type: string): string {
+        return `ai_insight_${type}_${contentId}`;
+    }
+
+    /**
+     * Generate cache key for hadith mood classification
+     */
+    getHadithMoodKey(hadithId: string): string {
+        return `ai_mood_hadith_${hadithId}`;
+    }
+
+    /**
+     * Generate cache key for Names of Allah
+     */
+    getNamesKey(): string {
+        return 'reminder_names_of_allah';
+    }
+
+    /**
+     * Generate cache key for daily reminder
+     */
+    getDailyReminderKey(): string {
+        return 'reminder_daily';
+    }
 }
 
 export default new CacheService();

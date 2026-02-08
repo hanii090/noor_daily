@@ -17,14 +17,17 @@ import {
 import { useAppStore } from './src/store/appStore';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ClubhouseBackground } from './src/components/clubhouse';
-import { colors } from './src/theme';
+import { useTheme } from './src/theme';
+import { ErrorBoundary, OfflineBanner } from './src/components/common';
 import notificationHandler from './src/services/notificationHandler';
 import notificationService from './src/services/notificationService';
 import verseService from './src/services/verseService';
+import { runStorageMigration } from './src/utils/storageMigration';
 import './src/i18n/config'; // Initialize i18n
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
+  const { colors } = useTheme();
   const { loadOnboardingStatus, loadFavorites, loadSettings, loadHistory, loadDailyInspiration, settings } = useAppStore();
   
   // Load custom fonts
@@ -42,6 +45,9 @@ export default function App() {
   useEffect(() => {
     async function init() {
       try {
+        // Run storage key migration (v0 → v1)
+        await runStorageMigration();
+
         // Initialize notification handler
         notificationHandler.initialize();
 
@@ -110,11 +116,14 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <AppNavigator />
-        <StatusBar style={settings.darkMode ? "light" : "dark"} translucent />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <ErrorBoundary fallbackTitle="Noor Daily encountered an error">
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <OfflineBanner />
+          <AppNavigator />
+          <StatusBar style={settings.darkMode ? "light" : "dark"} translucent />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }

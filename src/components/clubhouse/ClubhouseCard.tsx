@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewStyle, StyleSheet, StyleProp } from 'react-native';
-import { colors, shadows, spacing } from '../../theme';
+import { useTheme, shadows, spacing } from '../../theme';
 
 interface ClubhouseCardProps {
     children: React.ReactNode;
@@ -11,13 +11,16 @@ interface ClubhouseCardProps {
 
 export const ClubhouseCard: React.FC<ClubhouseCardProps> = ({
     children,
-    backgroundColor = colors.cream,
+    backgroundColor,
     accentColor,
     style,
 }) => {
+    const { colors, isDark } = useTheme();
+    const bg = backgroundColor || colors.cream;
+
     return (
-        <View style={[styles.container, { backgroundColor }, shadows.medium, style]}>
-            <View style={styles.innerHighlight} />
+        <View style={[styles.container, { backgroundColor: bg, borderColor: colors.border }, shadows.medium, style]}>
+            {!isDark && <View style={styles.innerHighlight} />}
             {accentColor && <View style={[styles.accentStripe, { backgroundColor: accentColor }]} />}
             <View style={styles.content}>{children}</View>
         </View>
@@ -29,7 +32,6 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         padding: spacing.lg,
         borderWidth: 0.5,
-        borderColor: colors.border,
         overflow: 'hidden',
         position: 'relative',
     },

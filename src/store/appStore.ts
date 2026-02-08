@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Verse, Hadith, Mood, AppSettings, ContentType, GuidanceContent } from '../types';
+import { STORAGE_KEYS } from '../utils/storageMigration';
+import { Verse, Hadith, Mood, AppSettings, ContentType, GuidanceContent, JourneyProgress, JourneyStatus } from '../types';
 import historyService, { HistoryDay, HistoryEntry } from '../services/historyService';
 import verseService from '../services/verseService';
 import hadithService from '../services/hadithService';
 import aiService from '../services/aiService';
+import journeyService from '../services/journeyService';
 import i18n from '../i18n/config';
 
 interface AppStore {
@@ -29,6 +31,10 @@ interface AppStore {
         date: string;
     } | null;
 
+    // Journey State
+    journeyProgress: JourneyProgress | null;
+    journeyStatus: JourneyStatus;
+
     // Actions
     setOnboardingCompleted: (value: boolean) => Promise<void>;
     setCurrentVerse: (verse: Verse | null) => void;
@@ -47,6 +53,12 @@ interface AppStore {
     loadOnboardingStatus: () => Promise<void>;
     clearAllFavorites: () => Promise<void>;
     loadDailyInspiration: () => Promise<void>;
+
+    // Journey Actions
+    loadJourneyProgress: () => Promise<void>;
+    startJourney: () => Promise<void>;
+    completeJourneyDay: (day: number, journal?: string) => Promise<void>;
+    resetJourney: () => Promise<void>;
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -70,14 +82,17 @@ export const useAppStore = create<AppStore>((set, get) => ({
         quietHoursStart: '23:00',
         quietHoursEnd: '07:00',
         weekendMode: false,
+        userName: '',
     },
     dailyInspiration: null,
+    journeyProgress: null,
+    journeyStatus: 'not_started' as JourneyStatus,
 
     // Actions
     setOnboardingCompleted: async (value: boolean) => {
         set({ onboardingCompleted: value });
         try {
-            await AsyncStorage.setItem('@onboarding_completed', JSON.stringify(value));
+            await AsyncStorage.setItem(STORAGE_KEYS.ONBOARDING, JSON.stringify(value));
         } catch (error) {
             console.error('Error saving onboarding status:', error);
         }
@@ -85,7 +100,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
     loadOnboardingStatus: async () => {
         try {
-            const stored = await AsyncStorage.getItem('@onboarding_completed');
+            const stored = await AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING);
             if (stored !== null) {
                 set({ onboardingCompleted: JSON.parse(stored) });
             }
@@ -152,8 +167,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
     loadFavorites: async () => {
         try {
-            const storedVerses = await AsyncStorage.getItem('favorites');
-            const storedHadiths = await AsyncStorage.getItem('favorite_hadiths');
+            const storedVerses = await AsyncStorage.getItem(STORAGE_KEYS.FAVORITES);
+            const storedHadiths = await AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_HADITHS);
             
             if (storedVerses) {
                 set({ favoriteVerses: JSON.parse(storedVerses) });
@@ -170,8 +185,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
         const { favoriteVerses, favoriteHadiths } = get();
         try {
             await Promise.all([
-                AsyncStorage.setItem('favorites', JSON.stringify(favoriteVerses)),
-                AsyncStorage.setItem('favorite_hadiths', JSON.stringify(favoriteHadiths)),
+                AsyncStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favoriteVerses)),
+                AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_HADITHS, JSON.stringify(favoriteHadiths)),
             ]);
         } catch (error) {
             console.error('Error saving favorites:', error);
@@ -209,7 +224,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         }
         
         try {
-            await AsyncStorage.setItem('settings', JSON.stringify(updated));
+            await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
         } catch (error) {
             console.error('Error updating settings:', error);
         }
@@ -217,7 +232,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
     loadSettings: async () => {
         try {
-            const stored = await AsyncStorage.getItem('settings');
+            const stored = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
             if (stored) {
                 const parsed = JSON.parse(stored);
                 // Merge with current default settings to handle new fields
@@ -239,8 +254,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
         set({ favoriteVerses: [], favoriteHadiths: [] });
         try {
             await Promise.all([
-                AsyncStorage.removeItem('favorites'),
-                AsyncStorage.removeItem('favorite_hadiths'),
+                AsyncStorage.removeItem(STORAGE_KEYS.FAVORITES),
+                AsyncStorage.removeItem(STORAGE_KEYS.FAVORITE_HADITHS),
             ]);
         } catch (error) {
             console.error('Error clearing favorites:', error);
@@ -258,7 +273,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
         try {
             // Check storage first
-            const stored = await AsyncStorage.getItem('daily_inspiration');
+            const stored = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_INSPIRATION);
             if (stored) {
                 const parsed = JSON.parse(stored);
                 if (parsed.date === today) {
@@ -282,9 +297,48 @@ export const useAppStore = create<AppStore>((set, get) => ({
             const newInspiration = { content, type, reflection, date: today };
 
             set({ dailyInspiration: newInspiration });
-            await AsyncStorage.setItem('daily_inspiration', JSON.stringify(newInspiration));
+            await AsyncStorage.setItem(STORAGE_KEYS.DAILY_INSPIRATION, JSON.stringify(newInspiration));
         } catch (error) {
             console.error('Error loading daily inspiration:', error);
+        }
+    },
+    // ── Journey Actions ──
+
+    loadJourneyProgress: async () => {
+        try {
+            const progress = await journeyService.getProgress();
+            const status = await journeyService.getStatus();
+            set({ journeyProgress: progress, journeyStatus: status });
+        } catch (error) {
+            console.error('Error loading journey progress:', error);
+        }
+    },
+
+    startJourney: async () => {
+        try {
+            const progress = await journeyService.startJourney();
+            set({ journeyProgress: progress, journeyStatus: 'in_progress' });
+        } catch (error) {
+            console.error('Error starting journey:', error);
+        }
+    },
+
+    completeJourneyDay: async (day: number, journal?: string) => {
+        try {
+            const progress = await journeyService.completeDay(day, journal);
+            const status = progress.completedAt ? 'completed' : 'in_progress';
+            set({ journeyProgress: progress, journeyStatus: status as JourneyStatus });
+        } catch (error) {
+            console.error('Error completing journey day:', error);
+        }
+    },
+
+    resetJourney: async () => {
+        try {
+            await journeyService.resetJourney();
+            set({ journeyProgress: null, journeyStatus: 'not_started' });
+        } catch (error) {
+            console.error('Error resetting journey:', error);
         }
     },
 }));

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { colors } from '../../theme';
+import { useTheme } from '../../theme';
 
 interface ClubhouseBackgroundProps {
     children: React.ReactNode;
@@ -11,6 +11,7 @@ export const ClubhouseBackground: React.FC<ClubhouseBackgroundProps> = ({
     children,
     color = 'creamLight',
 }) => {
+    const { colors } = useTheme();
     const backgroundColor = color === 'cream' ? colors.cream : colors.creamLight;
 
     return (

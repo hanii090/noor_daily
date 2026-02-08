@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { TAB_BAR_SAFE_PADDING } from '../theme';
 import * as Haptics from 'expo-haptics';
 import { ClubhouseCard } from './clubhouse';
 import { colors, typography, spacing } from '../theme';
@@ -176,7 +177,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: spacing.lg,
-        paddingBottom: 160, // Account for tab bar and change mood button
+        paddingBottom: TAB_BAR_SAFE_PADDING,
     },
     card: {
         padding: spacing.base,

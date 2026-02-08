@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STORAGE_KEYS } from '../utils/storageMigration';
 import { Verse, Hadith, Mood, ContentType, GuidanceContent } from '../types';
 
 export interface HistoryDay {
@@ -13,7 +14,7 @@ export interface HistoryEntry {
     timestamp: number;
 }
 
-const HISTORY_PREFIX = 'history_';
+const HISTORY_PREFIX = STORAGE_KEYS.HISTORY_PREFIX;
 const MAX_HISTORY_DAYS = 90;
 
 class HistoryService {

@@ -9,6 +9,8 @@ import {
     ScrollView,
     Platform,
     Dimensions,
+    PanResponder,
+    Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -18,12 +20,13 @@ import { ClubhouseCard } from './clubhouse';
 import { TemplateSelectorModal } from './TemplateSelectorModal';
 import { VerseCardTemplateComponent } from './VerseCardTemplate';
 import { HadithCardTemplate } from './HadithCardTemplate';
-import { colors, typography, spacing, shadows } from '../theme';
+import { colors, useTheme, typography, spacing, shadows } from '../theme';
 import { Verse, Hadith, ContentType, Mood, VerseCardTemplate, VerseCardSize } from '../types';
 import shareService from '../services/shareService';
 import analyticsService from '../services/analyticsService';
 import aiService from '../services/aiService';
 import { AudioPlayer } from './AudioPlayer';
+import { useTranslation } from 'react-i18next';
 
 interface UnifiedGuidanceDisplayProps {
     content: Verse | Hadith;
@@ -44,8 +47,11 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
     onShare,
     onChangeMood,
 }) => {
+    const { colors: tc, isDark } = useTheme();
+    const { t } = useTranslation();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(20)).current;
+    const swipeX = useRef(new Animated.Value(0)).current;
     const insets = useSafeAreaInsets();
     const [showTemplateSelector, setShowTemplateSelector] = useState(false);
     const [showShareOptions, setShowShareOptions] = useState(false);
@@ -56,6 +62,32 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
     const [selectedTemplate, setSelectedTemplate] = useState<VerseCardTemplate>('minimal');
     const [selectedSize, setSelectedSize] = useState<VerseCardSize>('post');
     const cardRef = useRef<ViewShot>(null);
+
+    // Task 7: Swipe gesture to get next content
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: (_, gs) => Math.abs(gs.dx) > 20 && Math.abs(gs.dy) < 40,
+            onPanResponderGrant: () => {
+                // Reset to 0 at start of gesture to avoid __startX error
+                swipeX.setValue(0);
+            },
+            onPanResponderMove: Animated.event(
+                [null, { dx: swipeX }],
+                { useNativeDriver: false }
+            ),
+            onPanResponderRelease: (_, gs) => {
+                if (Math.abs(gs.dx) > 100) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    Animated.timing(swipeX, { toValue: gs.dx > 0 ? 400 : -400, duration: 200, useNativeDriver: false }).start(() => {
+                        swipeX.setValue(0);
+                        onChangeMood();
+                    });
+                } else {
+                    Animated.spring(swipeX, { toValue: 0, useNativeDriver: false }).start();
+                }
+            },
+        })
+    ).current;
 
     useEffect(() => {
         fadeAnim.setValue(0);
@@ -90,7 +122,6 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
             setAiInsight(insight);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } catch (error) {
-            console.error('AI Error:', error);
             setAiInsight('Unable to load AI insight at this time.');
         } finally {
             setIsFetchingAI(false);
@@ -165,7 +196,6 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                 await shareService.cleanupTempFile(imageUri);
             }
         } catch (error) {
-            console.error('Error generating card:', error);
         } finally {
             setIsGenerating(false);
             setIsSaveMode(false);
@@ -185,10 +215,10 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                         color={moodColor} 
                     />
                     <Text style={[styles.typeBadgeText, { color: moodColor }]}>
-                        {isV ? 'QURANIC VERSE' : 'PROPHETIC HADITH'}
+                        {isV ? t('guidance.quranic_verse') : t('guidance.prophetic_hadith')}
                     </Text>
                 </View>
-                <Text style={styles.referenceBadge}>
+                <Text style={[styles.referenceBadge, { color: tc.textTertiary, backgroundColor: tc.backgroundSecondary }]}>
                     {isV ? `${content.surah} ${content.verseNumber}` : content.reference}
                 </Text>
             </View>
@@ -197,12 +227,12 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
 
     const renderFooter = () => {
         if (isVerse(content)) {
-            return <Text style={styles.footerText}>VERSE {content.verseNumber}</Text>;
+            return <Text style={[styles.footerText, { color: tc.textTertiary }]}>VERSE {content.verseNumber}</Text>;
         } else {
             return (
                 <View style={styles.hadithFooter}>
-                    <Text style={styles.narratorText}>{content.narrator}</Text>
-                    <Text style={styles.referenceText}>{content.reference}</Text>
+                    <Text style={[styles.narratorText, { color: tc.text }]}>{content.narrator}</Text>
+                    <Text style={[styles.referenceText, { color: tc.textTertiary }]}>{content.reference}</Text>
                 </View>
             );
         }
@@ -213,12 +243,14 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
             styles.container, 
             { 
                 opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-                paddingTop: insets.top + 100
+                transform: [{ translateY: slideAnim }, { translateX: swipeX }],
+                paddingTop: insets.top + 140
             }
-        ]}>
+        ]}
+        {...panResponder.panHandlers}
+        >
             <ClubhouseCard 
-                backgroundColor={colors.white} 
+                backgroundColor={tc.white} 
                 style={styles.card}
             >
                 <ScrollView
@@ -229,11 +261,18 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                     {renderHeader()}
 
                     <View style={styles.arabicContainer}>
-                        <Text style={styles.arabic}>{content.arabic}</Text>
+                        <Text style={[styles.arabic, { color: tc.text }]}>{content.arabic}</Text>
                         <View style={[styles.arabicDecoration, { backgroundColor: moodColor + '10' }]} />
                     </View>
 
-                    <Text style={styles.english}>"{content.english}"</Text>
+                    {/* Task 9: Swipe hint */}
+                    {isVerse(content) && content.english && (
+                        <Text style={[styles.transliteration, { color: tc.textTertiary }]}>
+                            {t('guidance.swipe_hint')}
+                        </Text>
+                    )}
+
+                    <Text style={[styles.english, { color: tc.text }]}>"{content.english}"</Text>
 
                     {aiInsight && (
                         <Animated.View style={[
@@ -245,9 +284,9 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                         ]}>
                             <View style={styles.aiHeader}>
                                 <Ionicons name="sparkles" size={14} color={moodColor} />
-                                <Text style={[styles.aiHeaderText, { color: moodColor }]}>AI SPIRITUAL INSIGHT</Text>
+                                <Text style={[styles.aiHeaderText, { color: moodColor }]}>{t('guidance.ai_insight')}</Text>
                             </View>
-                            <Text style={styles.aiText}>{aiInsight}</Text>
+                            <Text style={[styles.aiText, { color: tc.text }]}>{aiInsight}</Text>
                         </Animated.View>
                     )}
 
@@ -263,6 +302,8 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                             onPress={fetchAIInsight} 
                             style={[styles.circleAction, aiInsight && { backgroundColor: moodColor + '15' }]}
                             disabled={isFetchingAI}
+                            accessibilityRole="button"
+                            accessibilityLabel={aiInsight ? 'Hide AI insight' : 'Get AI spiritual insight'}
                         >
                             {isFetchingAI ? (
                                 <ActivityIndicator size="small" color={moodColor} />
@@ -270,33 +311,33 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                                 <Ionicons 
                                     name={aiInsight ? "sparkles" : "sparkles-outline"} 
                                     size={22} 
-                                    color={aiInsight ? moodColor : colors.textSecondary} 
+                                    color={aiInsight ? moodColor : tc.textSecondary} 
                                 />
                             )}
                         </TouchableOpacity>
                     </View>
 
                     <View style={styles.actionsRight}>
-                        <TouchableOpacity onPress={handleBookmark} style={styles.circleAction}>
+                        <TouchableOpacity onPress={handleBookmark} style={[styles.circleAction, { backgroundColor: tc.backgroundSecondary }]} accessibilityRole="button" accessibilityLabel={isBookmarked ? 'Remove from saved' : 'Save to favorites'}>
                             <Ionicons
                                 name={isBookmarked ? 'heart' : 'heart-outline'}
                                 size={22}
-                                color={isBookmarked ? colors.coral : colors.textSecondary}
+                                color={isBookmarked ? tc.coral : tc.textSecondary}
                             />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={handleSharePress} style={styles.circleAction}>
-                            <Ionicons name="share-social-outline" size={22} color={colors.textSecondary} />
+                        <TouchableOpacity onPress={handleSharePress} style={[styles.circleAction, { backgroundColor: tc.backgroundSecondary }]} accessibilityRole="button" accessibilityLabel="Share this guidance">
+                            <Ionicons name="share-social-outline" size={22} color={tc.textSecondary} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 <TouchableOpacity 
-                    style={styles.changeMoodPill} 
+                    style={[styles.changeMoodPill, { backgroundColor: tc.backgroundSecondary, borderColor: tc.border }]} 
                     onPress={onChangeMood}
                     activeOpacity={0.8}
                 >
                     <Ionicons name="sync-outline" size={16} color={moodColor} />
-                    <Text style={[styles.changeMoodText, { color: moodColor }]}>CHANGE MOOD</Text>
+                    <Text style={[styles.changeMoodText, { color: moodColor }]}>{t('guidance.change_mood')}</Text>
                 </TouchableOpacity>
             </ClubhouseCard>
 
@@ -321,44 +362,74 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                 </ViewShot>
             </View>
 
-            {/* Share Options Modal */}
-            {showShareOptions && (
+            {/* Share Options Bottom Sheet */}
+            <Modal
+                visible={showShareOptions}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowShareOptions(false)}
+            >
                 <TouchableOpacity
                     style={styles.shareOptionsOverlay}
                     activeOpacity={1}
                     onPress={() => setShowShareOptions(false)}
                 >
-                    <View style={styles.shareOptionsMenu}>
+                    <View style={[styles.shareOptionsMenu, { backgroundColor: tc.creamLight }]}>
+                        <View style={[styles.sheetHandle, { backgroundColor: tc.border }]} />
                         <TouchableOpacity
                             style={styles.shareOption}
                             onPress={handleShareAsImage}
+                            accessibilityRole="button"
+                            accessibilityLabel="Share as image"
                         >
-                            <Ionicons name="image-outline" size={24} color={colors.purple} />
-                            <Text style={styles.shareOptionText}>Share as Image</Text>
+                            <View style={[styles.shareIconCircle, { backgroundColor: tc.purple + '12' }]}>
+                                <Ionicons name="image-outline" size={22} color={tc.purple} />
+                            </View>
+                            <View style={styles.shareOptionContent}>
+                                <Text style={[styles.shareOptionText, { color: tc.text }]}>{t('guidance.share_as_image')}</Text>
+                                <Text style={[styles.shareOptionDesc, { color: tc.textTertiary }]}>{t('guidance.share_as_image_desc')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={tc.textTertiary} />
                         </TouchableOpacity>
 
-                        <View style={styles.divider} />
+                        <View style={[styles.divider, { backgroundColor: tc.border }]} />
 
                         <TouchableOpacity
                             style={styles.shareOption}
                             onPress={handleShareAsText}
+                            accessibilityRole="button"
+                            accessibilityLabel="Share as text"
                         >
-                            <Ionicons name="text-outline" size={24} color={colors.purple} />
-                            <Text style={styles.shareOptionText}>Share as Text</Text>
+                            <View style={[styles.shareIconCircle, { backgroundColor: tc.purple + '12' }]}>
+                                <Ionicons name="text-outline" size={22} color={tc.purple} />
+                            </View>
+                            <View style={styles.shareOptionContent}>
+                                <Text style={[styles.shareOptionText, { color: tc.text }]}>{t('guidance.share_as_text')}</Text>
+                                <Text style={[styles.shareOptionDesc, { color: tc.textTertiary }]}>{t('guidance.share_as_text_desc')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={tc.textTertiary} />
                         </TouchableOpacity>
 
-                        <View style={styles.divider} />
+                        <View style={[styles.divider, { backgroundColor: tc.border }]} />
 
                         <TouchableOpacity
                             style={styles.shareOption}
                             onPress={handleSaveToPhotos}
+                            accessibilityRole="button"
+                            accessibilityLabel="Save to photos"
                         >
-                            <Ionicons name="download-outline" size={24} color={colors.purple} />
-                            <Text style={styles.shareOptionText}>Save to Photos</Text>
+                            <View style={[styles.shareIconCircle, { backgroundColor: tc.green + '12' }]}>
+                                <Ionicons name="download-outline" size={22} color={tc.green} />
+                            </View>
+                            <View style={styles.shareOptionContent}>
+                                <Text style={[styles.shareOptionText, { color: tc.text }]}>{t('guidance.save_to_photos')}</Text>
+                                <Text style={[styles.shareOptionDesc, { color: tc.textTertiary }]}>{t('guidance.save_to_photos_desc')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={tc.textTertiary} />
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
-            )}
+            </Modal>
 
             {/* Template Selector Modal */}
             <TemplateSelectorModal
@@ -371,9 +442,9 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
             {/* Generating Indicator */}
             {isGenerating && (
                 <View style={styles.generatingOverlay}>
-                    <View style={styles.generatingCard}>
-                        <ActivityIndicator size="large" color={colors.purple} />
-                        <Text style={styles.generatingText}>Generating card...</Text>
+                    <View style={[styles.generatingCard, { backgroundColor: tc.creamLight }]}>
+                        <ActivityIndicator size="large" color={tc.purple} />
+                        <Text style={[styles.generatingText, { color: tc.text }]}>{t('guidance.generating')}</Text>
                     </View>
                 </View>
             )}
@@ -452,6 +523,13 @@ const styles = StyleSheet.create({
         right: '5%',
         borderRadius: 40,
         zIndex: 1,
+    },
+    transliteration: {
+        ...typography.caption,
+        fontSize: 12,
+        fontStyle: 'italic',
+        textAlign: 'center',
+        marginBottom: spacing.sm,
     },
     english: {
         ...typography.bodyLarge,
@@ -545,35 +623,49 @@ const styles = StyleSheet.create({
         top: -10000,
     },
     shareOptionsOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
+        justifyContent: 'flex-end',
     },
     shareOptionsMenu: {
-        backgroundColor: colors.creamLight,
-        borderRadius: 24,
-        marginHorizontal: spacing.xl,
-        width: '80%',
-        overflow: 'hidden',
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        paddingTop: spacing.sm,
+        paddingBottom: Platform.OS === 'ios' ? spacing.xxxl : spacing.xl,
         ...shadows.large,
+    },
+    sheetHandle: {
+        width: 36,
+        height: 4,
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginBottom: spacing.lg,
     },
     shareOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: spacing.lg,
+        paddingVertical: spacing.base,
         paddingHorizontal: spacing.xl,
         gap: spacing.md,
+    },
+    shareIconCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    shareOptionContent: {
+        flex: 1,
     },
     shareOptionText: {
         ...typography.body,
         fontWeight: '600',
-        color: colors.text,
+    },
+    shareOptionDesc: {
+        ...typography.caption,
+        fontSize: 12,
+        marginTop: 1,
     },
     divider: {
         height: 1,

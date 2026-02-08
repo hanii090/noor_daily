@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -12,15 +12,15 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { ClubhouseCard } from './clubhouse';
-import { colors, typography, spacing } from '../theme';
-import { Mood } from '../types';
-import { useAppStore } from '../store/appStore';
+import { colors, useTheme, typography, spacing } from '../theme';
+import { Mood, NameOfAllah } from '../types';
+import { useTranslation } from 'react-i18next';
+import namesOfAllahService from '../services/namesOfAllahService';
 
 interface MoodSelectorProps {
     onMoodSelect: (mood: Mood) => void;
     onSkip: () => void;
-    onAskAI: () => void;
+    onAskAI?: () => void;
 }
 
 interface MoodConfig {
@@ -68,17 +68,43 @@ const moods: MoodConfig[] = [
     {
         mood: 'celebrating',
         label: 'Celebrating',
-        arabic: 'Sabr',
+        arabic: 'Farḥ',
         icon: 'sparkles',
         iconColor: colors.moods.celebrating,
         bgColor: colors.moods.celebrating + '15',
+    },
+    {
+        mood: 'anxious',
+        label: 'Anxious',
+        arabic: 'Qalaq',
+        icon: 'pulse',
+        iconColor: colors.moods.anxious,
+        bgColor: colors.moods.anxious + '15',
+    },
+    {
+        mood: 'sad',
+        label: 'Sad',
+        arabic: 'Ḥuzn',
+        icon: 'rainy',
+        iconColor: colors.moods.sad,
+        bgColor: colors.moods.sad + '15',
+    },
+    {
+        mood: 'hopeful',
+        label: 'Hopeful',
+        arabic: 'Rajā\'',
+        icon: 'sunny',
+        iconColor: colors.moods.hopeful,
+        bgColor: colors.moods.hopeful + '15',
     },
 ];
 
 const MoodCard: React.FC<{
     config: MoodConfig;
     onPress: () => void;
-}> = ({ config, onPress }) => {
+    translatedLabel?: string;
+}> = React.memo(({ config, onPress, translatedLabel }) => {
+    const { colors: tc } = useTheme();
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
@@ -105,22 +131,45 @@ const MoodCard: React.FC<{
                 onPressOut={handlePressOut}
                 onPress={onPress}
                 activeOpacity={0.9}
+                accessibilityRole="button"
+                accessibilityLabel={`${translatedLabel || config.label} mood`}
             >
-                <View style={styles.moodCard}>
+                <View style={[styles.moodCard, { backgroundColor: tc.backgroundSecondary, borderColor: tc.border }]}>
                     <View style={[styles.iconCircle, { backgroundColor: config.bgColor }]}>
-                        <Ionicons name={config.icon} size={28} color={config.iconColor} />
+                        <Ionicons name={config.icon} size={22} color={config.iconColor} />
                     </View>
-                    <Text style={styles.moodLabel}>{config.label}</Text>
-                    <Text style={styles.moodArabic}>{config.arabic}</Text>
+                    <Text style={[styles.moodLabel, { color: tc.text }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{translatedLabel || config.label}</Text>
+                    <Text style={[styles.moodArabic, { color: tc.textSecondary }]} numberOfLines={1}>{config.arabic}</Text>
                 </View>
             </TouchableOpacity>
         </Animated.View>
     );
-};
+});
 
-export const MoodSelector: React.FC<MoodSelectorProps> = ({ onMoodSelect, onSkip, onAskAI }) => {
-    const { dailyInspiration } = useAppStore();
+export const MoodSelector: React.FC<MoodSelectorProps> = ({ onMoodSelect }) => {
+    const { colors: themeColors } = useTheme();
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    const [dailyName, setDailyName] = useState<NameOfAllah | null>(null);
+    const [nameExpanded, setNameExpanded] = useState(false);
+
+    // Stagger animations
+    const nameCardAnim = useRef(new Animated.Value(0)).current;
+    const cardAnims = useRef(moods.map(() => new Animated.Value(0))).current;
+
+    useEffect(() => {
+        // Fetch daily Name of Allah
+        namesOfAllahService.getDailyName().then(setDailyName).catch(() => {});
+
+        // Stagger: name card, then mood cards
+        const animations = [
+            Animated.timing(nameCardAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+            ...cardAnims.map((anim) =>
+                Animated.timing(anim, { toValue: 1, duration: 300, useNativeDriver: true })
+            ),
+        ];
+        Animated.stagger(80, animations).start();
+    }, []);
     
     const handleMoodPress = (mood: Mood) => {
         onMoodSelect(mood);
@@ -131,72 +180,87 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({ onMoodSelect, onSkip
             style={styles.container}
             contentContainerStyle={[
                 styles.contentContainer,
-                { paddingTop: insets.top + 100 } // Dynamic padding based on notch + header
+                { paddingTop: insets.top + 90 } // Clear compact header
             ]}
             showsVerticalScrollIndicator={false}
+            keyboardDismissMode="on-drag"
         >
-            <Text style={styles.title}>How are you feeling today?</Text>
-            <Text style={styles.subtitle}>
-                Select a mood to find relevant verses for your heart.
+            <Text style={[styles.title, { color: themeColors.text }]}>{t('mood.how_feeling')}</Text>
+            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
+                {t('mood.select_desc', { defaultValue: 'Select a mood to find relevant verses for your heart.' })}
             </Text>
 
-            {dailyInspiration && (
-                <View style={styles.dailyCardContainer}>
-                    <ClubhouseCard style={styles.dailyCard} backgroundColor={colors.white}>
-                        <View style={styles.dailyHeader}>
-                            <Ionicons name="sparkles" size={16} color={colors.purple} />
-                            <Text style={styles.dailyHeaderText}>DAILY AI REFLECTION</Text>
+            {/* Daily Name of Allah */}
+            {dailyName && (
+                <Animated.View style={[
+                    styles.nameCardContainer,
+                    { opacity: nameCardAnim, transform: [{ translateY: nameCardAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }
+                ]}>
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            setNameExpanded(!nameExpanded);
+                        }}
+                    >
+                        <View style={[styles.nameCard, { backgroundColor: themeColors.white, borderColor: themeColors.teal + '25' }]}>
+                            <View style={styles.nameCardHeader}>
+                                <View style={[styles.nameIconCircle, { backgroundColor: themeColors.teal + '12' }]}>
+                                    <Ionicons name="star" size={14} color={themeColors.teal} />
+                                </View>
+                                <Text style={[styles.nameHeaderLabel, { color: themeColors.teal }]}>NAME OF THE DAY</Text>
+                                <Ionicons name={nameExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={themeColors.textTertiary} />
+                            </View>
+                            <Text style={[styles.nameArabic, { color: themeColors.text }]}>{dailyName.arabic}</Text>
+                            <Text style={[styles.nameEnglish, { color: themeColors.text }]}>{dailyName.english}</Text>
+                            <Text style={[styles.nameMeaning, { color: themeColors.teal }]}>{dailyName.meaning}</Text>
+                            {nameExpanded && (
+                                <View style={styles.nameExpandedContent}>
+                                    <View style={[styles.nameDivider, { backgroundColor: themeColors.teal + '15' }]} />
+                                    <Text style={[styles.nameDescription, { color: themeColors.textSecondary }]}>
+                                        {dailyName.summary || dailyName.description}
+                                    </Text>
+                                    {dailyName.location && dailyName.location.length > 0 && (
+                                        <View style={styles.nameLocationRow}>
+                                            <Ionicons name="book-outline" size={12} color={themeColors.textTertiary} />
+                                            <Text style={[styles.nameLocation, { color: themeColors.textTertiary }]}>
+                                                {dailyName.location.slice(0, 3).join(' · ')}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                            )}
                         </View>
-                        <Text style={styles.dailyContent} numberOfLines={2}>
-                            "{dailyInspiration.content.english}"
-                        </Text>
-                        <View style={styles.dailyDivider} />
-                        <Text style={styles.dailyReflection}>
-                            {dailyInspiration.reflection}
-                        </Text>
-                        <View style={styles.dailyFooter}>
-                            <Text style={styles.dailyReference}>
-                                {dailyInspiration.type === 'verse' 
-                                    ? (dailyInspiration.content as any).surah + ' ' + (dailyInspiration.content as any).verseNumber
-                                    : (dailyInspiration.content as any).reference}
-                            </Text>
-                        </View>
-                    </ClubhouseCard>
-                </View>
+                    </TouchableOpacity>
+                </Animated.View>
             )}
 
             <View style={styles.grid}>
                 {moods.map((config, index) => (
-                    <MoodCard
+                    <Animated.View
                         key={`${config.mood}-${index}`}
-                        config={config}
-                        onPress={() => handleMoodPress(config.mood)}
-                    />
+                        style={{
+                            opacity: cardAnims[index],
+                            transform: [{ translateY: cardAnims[index].interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
+                            width: cardWidth,
+                        }}
+                    >
+                        <MoodCard
+                            config={config}
+                            onPress={() => handleMoodPress(config.mood)}
+                            translatedLabel={t(`mood.${config.mood}`)}
+                        />
+                    </Animated.View>
                 ))}
             </View>
 
-            <TouchableOpacity 
-                style={styles.aiMentorButton} 
-                onPress={onAskAI}
-                activeOpacity={0.8}
-            >
-                <View style={styles.aiMentorContent}>
-                    <View style={styles.aiIconBadge}>
-                        <Ionicons name="sparkles" size={20} color={colors.purple} />
-                    </View>
-                    <View style={styles.aiTextContainer}>
-                        <Text style={styles.aiTitle}>Talk to AI Mentor</Text>
-                        <Text style={styles.aiSubtitle}>Describe your situation for personalized guidance</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-                </View>
-            </TouchableOpacity>
         </ScrollView>
     );
 };
 
 const { width } = Dimensions.get('window');
-const cardWidth = (width - spacing.lg * 3) / 2;
+const GRID_GAP = spacing.sm;
+const cardWidth = (width - spacing.lg * 2 - GRID_GAP * 2) / 3;
 
 const styles = StyleSheet.create({
     container: {
@@ -204,7 +268,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: spacing.lg,
-        paddingBottom: 160, // Clear floating tab bar
+        paddingBottom: 220, // Clear floating bar + tab bar
     },
     title: {
         ...typography.h1,
@@ -224,126 +288,115 @@ const styles = StyleSheet.create({
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        gap: GRID_GAP,
     },
     moodCardWrapper: {
         width: cardWidth,
-        marginBottom: spacing.base,
     },
     moodCard: {
         backgroundColor: colors.backgroundSecondary,
-        borderRadius: 24,
-        padding: spacing.lg,
-        aspectRatio: 1,
-        justifyContent: 'center',
-        alignItems: 'flex-start',
+        borderRadius: 20,
+        paddingVertical: spacing.base,
+        paddingHorizontal: spacing.sm,
+        alignItems: 'center',
         borderWidth: 0.5,
         borderColor: colors.border,
     },
     iconCircle: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: spacing.md,
-    },
-    moodLabel: {
-        ...typography.body,
-        fontSize: 18,
-        color: colors.black,
-        fontWeight: '700',
-        marginBottom: 2,
-    },
-    moodArabic: {
-        ...typography.caption,
-        fontSize: 13,
-        color: colors.textSecondary,
-    },
-    dailyCardContainer: {
-        marginBottom: spacing.xl,
-    },
-    dailyCard: {
-        padding: spacing.lg,
-        borderWidth: 1,
-        borderColor: colors.purple + '20',
-    },
-    dailyHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.xs,
-        marginBottom: spacing.sm,
-    },
-    dailyHeaderText: {
-        ...typography.caption,
-        fontSize: 10,
-        fontWeight: '800',
-        color: colors.purple,
-        letterSpacing: 1,
-    },
-    dailyContent: {
-        ...typography.body,
-        fontSize: 14,
-        color: colors.textSecondary,
-        fontStyle: 'italic',
-        marginBottom: spacing.sm,
-    },
-    dailyDivider: {
-        height: 1,
-        backgroundColor: colors.border,
-        marginVertical: spacing.sm,
-        opacity: 0.5,
-    },
-    dailyReflection: {
-        ...typography.body,
-        fontSize: 15,
-        lineHeight: 22,
-        color: colors.text,
-        fontWeight: '500',
-    },
-    dailyFooter: {
-        marginTop: spacing.sm,
-        alignItems: 'flex-end',
-    },
-    dailyReference: {
-        ...typography.caption,
-        fontSize: 11,
-        color: colors.textTertiary,
-        fontWeight: '700',
-    },
-    aiMentorButton: {
-        marginTop: spacing.md,
-        backgroundColor: colors.white,
-        borderRadius: 24,
-        padding: spacing.lg,
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderStyle: 'dashed',
-    },
-    aiMentorContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-    },
-    aiIconBadge: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: colors.purple + '10',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: spacing.sm,
+    },
+    moodLabel: {
+        ...typography.body,
+        fontSize: 13,
+        color: colors.black,
+        fontWeight: '700',
+        textAlign: 'center',
+        marginBottom: 1,
+    },
+    moodArabic: {
+        ...typography.caption,
+        fontSize: 11,
+        color: colors.textSecondary,
+        textAlign: 'center',
+    },
+    nameCardContainer: {
+        marginBottom: spacing.lg,
+    },
+    nameCard: {
+        borderRadius: 20,
+        padding: spacing.lg,
+        borderWidth: 1,
+    },
+    nameCardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
+        marginBottom: spacing.md,
+    },
+    nameIconCircle: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    aiTextContainer: {
+    nameHeaderLabel: {
+        ...typography.caption,
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 1.2,
         flex: 1,
     },
-    aiTitle: {
-        ...typography.body,
-        fontWeight: '700',
-        color: colors.black,
+    nameArabic: {
+        fontSize: 28,
+        textAlign: 'center',
+        lineHeight: 44,
+        marginBottom: spacing.xs,
+        color: colors.text,
     },
-    aiSubtitle: {
-        ...typography.caption,
-        fontSize: 12,
-        color: colors.textSecondary,
+    nameEnglish: {
+        ...typography.h3,
+        fontSize: 18,
+        textAlign: 'center',
+        fontWeight: '700',
+        marginBottom: 2,
+    },
+    nameMeaning: {
+        ...typography.body,
+        fontSize: 14,
+        textAlign: 'center',
+        fontWeight: '600',
+        fontStyle: 'italic',
+    },
+    nameExpandedContent: {
+        marginTop: spacing.sm,
+    },
+    nameDivider: {
+        height: 1,
+        marginVertical: spacing.sm,
+        borderRadius: 0.5,
+    },
+    nameDescription: {
+        ...typography.body,
+        fontSize: 14,
+        lineHeight: 22,
+        textAlign: 'center',
+    },
+    nameLocationRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        marginTop: spacing.sm,
+    },
+    nameLocation: {
+        ...typography.small,
+        fontSize: 11,
+        fontWeight: '600',
     },
 });

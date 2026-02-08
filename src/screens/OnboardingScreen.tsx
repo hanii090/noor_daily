@@ -1,27 +1,46 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Animated, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ClubhouseBackground, ClubhouseButton, ClubhouseCard } from '../components/clubhouse';
-import { colors, typography, spacing, shadows } from '../theme';
+import { colors, useTheme, typography, spacing, shadows } from '../theme';
 import { useAppStore } from '../store/appStore';
 import notificationService from '../services/notificationService';
+import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const OnboardingScreen = () => {
+    const { colors: tc } = useTheme();
     const [currentStep, setCurrentStep] = useState(0);
     const insets = useSafeAreaInsets();
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const slideAnim = useRef(new Animated.Value(0)).current;
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [reminderTime, setReminderTime] = useState(new Date(2024, 0, 1, 8, 0)); // 8:00 AM
+    const [userName, setUserName] = useState('');
 
     const setOnboardingCompleted = useAppStore((state) => state.setOnboardingCompleted);
     const updateSettings = useAppStore((state) => state.updateSettings);
 
+    const animateTransition = (nextStep: number) => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
+            Animated.timing(slideAnim, { toValue: -30, duration: 150, useNativeDriver: true }),
+        ]).start(() => {
+            setCurrentStep(nextStep);
+            slideAnim.setValue(30);
+            Animated.parallel([
+                Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+                Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20 }),
+            ]).start();
+        });
+    };
+
     const handleNext = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (currentStep < 2) {
-            setCurrentStep(currentStep + 1);
+            animateTransition(currentStep + 1);
         } else {
             handleGetStarted();
         }
@@ -35,7 +54,7 @@ const OnboardingScreen = () => {
     const handleBack = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (currentStep > 0) {
-            setCurrentStep(currentStep - 1);
+            animateTransition(currentStep - 1);
         }
     };
 
@@ -50,6 +69,7 @@ const OnboardingScreen = () => {
             notificationsEnabled: notificationsEnabled,
             darkMode: false,
             language: 'en',
+            userName: userName.trim(),
         });
 
         // If enabled, schedule the notifications
@@ -89,120 +109,141 @@ const OnboardingScreen = () => {
     return (
         <ClubhouseBackground color="creamLight">
             <View style={[styles.container, { paddingTop: insets.top + spacing.xl }]}>
-                {currentStep === 0 && <WelcomeScreen onNext={handleNext} onSkip={handleSkip} />}
-                {currentStep === 1 && <HowItWorksScreen onNext={handleNext} onSkip={handleSkip} />}
-                {currentStep === 2 && (
-                    <DailyReminderScreen
-                        onBack={handleBack}
-                        onGetStarted={handleGetStarted}
-                        notificationsEnabled={notificationsEnabled}
-                        toggleNotifications={toggleNotifications}
-                        reminderTime={reminderTime}
-                        onTimeChange={handleTimeChange}
-                    />
-                )}
+                <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateX: slideAnim }] }}>
+                    {currentStep === 0 && <WelcomeScreen onNext={handleNext} onSkip={handleSkip} userName={userName} setUserName={setUserName} />}
+                    {currentStep === 1 && <HowItWorksScreen onNext={handleNext} onSkip={handleSkip} />}
+                    {currentStep === 2 && (
+                        <DailyReminderScreen
+                            onBack={handleBack}
+                            onGetStarted={handleGetStarted}
+                            notificationsEnabled={notificationsEnabled}
+                            toggleNotifications={toggleNotifications}
+                            reminderTime={reminderTime}
+                            onTimeChange={handleTimeChange}
+                        />
+                    )}
+                </Animated.View>
             </View>
         </ClubhouseBackground>
     );
 };
 
 // Screen 1: Welcome
-const WelcomeScreen: React.FC<{ onNext: () => void; onSkip: () => void }> = ({ onNext, onSkip }) => (
+const WelcomeScreen: React.FC<{ onNext: () => void; onSkip: () => void; userName: string; setUserName: (name: string) => void }> = ({ onNext, onSkip, userName, setUserName }) => {
+    const { colors: tc } = useTheme();
+    const { t } = useTranslation();
+    return (
     <View style={styles.screenWrapper}>
         <View style={styles.topSection}>
             {/* App Icon */}
             <View style={styles.iconContainer}>
-                <View style={styles.iconBackground}>
-                    <Ionicons name="book" size={56} color={colors.black} />
+                <View style={[styles.iconBackground, { backgroundColor: tc.white, borderColor: tc.border }]}>
+                    <Ionicons name="book" size={56} color={tc.text} />
                 </View>
             </View>
 
             {/* App Name */}
-            <Text style={styles.appName}>Noor Daily</Text>
+            <Text style={[styles.appName, { color: tc.text }]}>Noor Daily</Text>
 
             {/* Subtitle */}
-            <Text style={styles.subtitle}>YOUR DAILY GUIDANCE</Text>
+            <Text style={[styles.subtitle, { color: tc.textSecondary }]}>{t('onboarding.daily_guidance')}</Text>
         </View>
 
         <View style={styles.middleSection}>
             {/* Main Heading */}
-            <Text style={styles.heading}>Let's get you started</Text>
+            <Text style={[styles.heading, { color: tc.text }]}>{t('onboarding.whats_your_name')}</Text>
+
+            {/* Name Input */}
+            <TextInput
+                style={[styles.nameInput, { backgroundColor: tc.white, borderColor: tc.border, color: tc.text }]}
+                placeholder={t('onboarding.name_placeholder')}
+                placeholderTextColor={tc.textTertiary}
+                value={userName}
+                onChangeText={setUserName}
+                maxLength={30}
+                autoCapitalize="words"
+                returnKeyType="done"
+            />
 
             {/* Description */}
-            <Text style={styles.description}>
-                Join a community dedicated to daily reflection and spiritual growth.
+            <Text style={[styles.description, { color: tc.textSecondary }]}>
+                {t('onboarding.name_desc')}
             </Text>
         </View>
 
         <View style={styles.bottomSection}>
             {/* Pagination Dots */}
             <View style={styles.pagination}>
-                <View style={[styles.dot, styles.dotActive]} />
-                <View style={styles.dot} />
-                <View style={styles.dot} />
+                <View style={[styles.dot, { backgroundColor: tc.border }, styles.dotActive]} />
+                <View style={[styles.dot, { backgroundColor: tc.border }]} />
+                <View style={[styles.dot, { backgroundColor: tc.border }]} />
             </View>
 
             {/* Get Started Button */}
             <View style={styles.buttonContainer}>
                 <ClubhouseButton
-                    title="Continue"
+                    title={t('onboarding.continue')}
                     onPress={onNext}
                     variant="primary"
                     style={styles.actionButton}
                 />
                 <TouchableOpacity onPress={onSkip} style={styles.skipButton}>
-                    <Text style={styles.skipText}>SKIP INTRO</Text>
+                    <Text style={[styles.skipText, { color: tc.textTertiary }]}>{t('onboarding.skip_intro')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
     </View>
-);
+    );
+};
 
 // Screen 2: How It Works
-const HowItWorksScreen: React.FC<{ onNext: () => void; onSkip: () => void }> = ({ onNext, onSkip }) => (
+const HowItWorksScreen: React.FC<{ onNext: () => void; onSkip: () => void }> = ({ onNext, onSkip }) => {
+    const { colors: tc } = useTheme();
+    const { t } = useTranslation();
+    return (
     <View style={styles.screenWrapper}>
         <View style={styles.topSection}>
-            <Text style={styles.howItWorksTitle}>How It Works</Text>
-            <Text style={styles.howItWorksSubtitle}>
-                Your daily spiritual journey in three simple steps
+            <Text style={[styles.howItWorksTitle, { color: tc.text }]}>{t('onboarding.how_it_works')}</Text>
+            <Text style={[styles.howItWorksSubtitle, { color: tc.textSecondary }]}>
+                {t('onboarding.how_it_works_desc')}
             </Text>
         </View>
 
         <View style={styles.middleSection}>
             {/* Feature Cards */}
             <View style={styles.featureCards}>
-                <View style={styles.featureCard}>
-                    <View style={[styles.featureIconContainer, { backgroundColor: colors.purple + '10' }]}>
-                        <Ionicons name="heart" size={24} color={colors.purple} />
+                <View style={[styles.featureCard, { backgroundColor: tc.white, borderColor: tc.border }]}>
+                    <View style={[styles.featureIconContainer, { backgroundColor: tc.purple + '10' }]}>
+                        <Ionicons name="heart" size={24} color={tc.purple} />
                     </View>
                     <View style={styles.featureContent}>
-                        <Text style={styles.featureTitle}>Choose Your Mood</Text>
-                        <Text style={styles.featureDescription}>
-                            Tell us how you feel, and we'll find the perfect verse for your soul.
+                        <Text style={[styles.featureTitle, { color: tc.text }]}>{t('onboarding.step_mood')}</Text>
+                        <Text style={[styles.featureDescription, { color: tc.textSecondary }]}>
+                            {t('onboarding.step_mood_desc')}
                         </Text>
                     </View>
                 </View>
 
-                <View style={styles.featureCard}>
-                    <View style={[styles.featureIconContainer, { backgroundColor: colors.green + '10' }]}>
-                        <Ionicons name="book" size={24} color={colors.green} />
+                <View style={[styles.featureCard, { backgroundColor: tc.white, borderColor: tc.border }]}>
+                    <View style={[styles.featureIconContainer, { backgroundColor: tc.green + '10' }]}>
+                        <Ionicons name="book" size={24} color={tc.green} />
                     </View>
                     <View style={styles.featureContent}>
-                        <Text style={styles.featureTitle}>Read Your Verse</Text>
-                        <Text style={styles.featureDescription}>
-                            Deep dive into the wisdom of the Quran with clear, curated translations.
+                        <Text style={[styles.featureTitle, { color: tc.text }]}>{t('onboarding.step_read')}</Text>
+                        <Text style={[styles.featureDescription, { color: tc.textSecondary }]}>
+                            {t('onboarding.step_read_desc')}
                         </Text>
                     </View>
                 </View>
 
-                <View style={styles.featureCard}>
-                    <View style={[styles.featureIconContainer, { backgroundColor: colors.teal + '10' }]}>
-                        <Ionicons name="share-social" size={24} color={colors.teal} />
+                <View style={[styles.featureCard, { backgroundColor: tc.white, borderColor: tc.border }]}>
+                    <View style={[styles.featureIconContainer, { backgroundColor: tc.teal + '10' }]}>
+                        <Ionicons name="share-social" size={24} color={tc.teal} />
                     </View>
                     <View style={styles.featureContent}>
-                        <Text style={styles.featureTitle}>Share the Beauty</Text>
-                        <Text style={styles.featureDescription}>
-                            Inspire others by sharing beautifully designed verses with your community.
+                        <Text style={[styles.featureTitle, { color: tc.text }]}>{t('onboarding.step_share')}</Text>
+                        <Text style={[styles.featureDescription, { color: tc.textSecondary }]}>
+                            {t('onboarding.step_share_desc')}
                         </Text>
                     </View>
                 </View>
@@ -212,26 +253,27 @@ const HowItWorksScreen: React.FC<{ onNext: () => void; onSkip: () => void }> = (
         <View style={styles.bottomSection}>
             {/* Pagination Dots */}
             <View style={styles.pagination}>
-                <View style={styles.dot} />
-                <View style={[styles.dot, styles.dotActive]} />
-                <View style={styles.dot} />
+                <View style={[styles.dot, { backgroundColor: tc.border }]} />
+                <View style={[styles.dot, { backgroundColor: tc.border }, styles.dotActive]} />
+                <View style={[styles.dot, { backgroundColor: tc.border }]} />
             </View>
 
             {/* Button */}
             <View style={styles.buttonContainer}>
                 <ClubhouseButton
-                    title="Continue"
+                    title={t('onboarding.continue')}
                     onPress={onNext}
                     variant="primary"
                     style={styles.actionButton}
                 />
                 <TouchableOpacity onPress={onSkip} style={styles.skipButton}>
-                    <Text style={styles.skipText}>SKIP INTRO</Text>
+                    <Text style={[styles.skipText, { color: tc.textTertiary }]}>{t('onboarding.skip_intro')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
     </View>
-);
+    );
+};
 
 // Screen 3: Daily Reminder
 const DailyReminderScreen: React.FC<{
@@ -241,50 +283,53 @@ const DailyReminderScreen: React.FC<{
     toggleNotifications: () => void;
     reminderTime: Date;
     onTimeChange: (event: any, date?: Date) => void;
-}> = ({ onBack, onGetStarted, notificationsEnabled, toggleNotifications, reminderTime, onTimeChange }) => (
+}> = ({ onBack, onGetStarted, notificationsEnabled, toggleNotifications, reminderTime, onTimeChange }) => {
+    const { colors: tc } = useTheme();
+    const { t } = useTranslation();
+    return (
     <View style={styles.screenWrapper}>
         <View style={styles.headerRow}>
             <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                <Ionicons name="chevron-back" size={28} color={colors.text} />
+                <Ionicons name="chevron-back" size={28} color={tc.text} />
             </TouchableOpacity>
-            <Text style={styles.stepIndicator}>3 OF 3</Text>
+            <Text style={[styles.stepIndicator, { color: tc.textTertiary }]}>{t('onboarding.step_of', { current: 3, total: 3 })}</Text>
         </View>
 
         <View style={styles.topSection}>
-            <Text style={styles.reminderTitle}>Daily Reminder</Text>
-            <Text style={styles.reminderSubtitle}>
-                When would you like your daily verse?
+            <Text style={[styles.reminderTitle, { color: tc.text }]}>{t('onboarding.daily_reminder')}</Text>
+            <Text style={[styles.reminderSubtitle, { color: tc.textSecondary }]}>
+                {t('onboarding.when_verse')}
             </Text>
         </View>
 
         <View style={styles.middleSection}>
             {/* Time Picker Card */}
-            <View style={styles.timePickerCard}>
+            <View style={[styles.timePickerCard, { backgroundColor: tc.white, borderColor: tc.border }]}>
                 <DateTimePicker
                     value={reminderTime}
                     mode="time"
                     display="spinner"
                     onChange={onTimeChange}
-                    textColor={colors.black}
+                    textColor={tc.text}
                     style={styles.timePicker}
                 />
 
                 {/* Notifications Toggle */}
-                <View style={styles.notificationRow}>
+                <View style={[styles.notificationRow, { borderTopColor: tc.border + '10' }]}>
                     <View style={styles.notificationLeft}>
-                        <View style={[styles.iconBadge, { backgroundColor: colors.purple + '10' }]}>
-                            <Ionicons name="notifications" size={20} color={colors.purple} />
+                        <View style={[styles.iconBadge, { backgroundColor: tc.purple + '10' }]}>
+                            <Ionicons name="notifications" size={20} color={tc.purple} />
                         </View>
                         <View style={styles.notificationText}>
-                            <Text style={styles.notificationTitle}>Notifications</Text>
-                            <Text style={styles.notificationSubtitle}>Enable push alerts</Text>
+                            <Text style={[styles.notificationTitle, { color: tc.text }]}>{t('onboarding.notifications')}</Text>
+                            <Text style={[styles.notificationSubtitle, { color: tc.textSecondary }]}>{t('onboarding.enable_push')}</Text>
                         </View>
                     </View>
                     <Switch
                         value={notificationsEnabled}
                         onValueChange={toggleNotifications}
-                        trackColor={{ false: colors.border, true: colors.purple }}
-                        thumbColor={colors.white}
+                        trackColor={{ false: tc.border, true: tc.purple }}
+                        thumbColor={tc.white}
                     />
                 </View>
             </View>
@@ -293,24 +338,25 @@ const DailyReminderScreen: React.FC<{
         <View style={styles.bottomSection}>
             {/* Pagination Dots */}
             <View style={styles.pagination}>
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-                <View style={[styles.dot, styles.dotActive]} />
+                <View style={[styles.dot, { backgroundColor: tc.border }]} />
+                <View style={[styles.dot, { backgroundColor: tc.border }]} />
+                <View style={[styles.dot, { backgroundColor: tc.border }, styles.dotActive]} />
             </View>
 
             {/* Get Started Button */}
             <View style={styles.buttonContainer}>
                 <ClubhouseButton
-                    title="Get Started"
+                    title={t('onboarding.get_started')}
                     onPress={onGetStarted}
                     variant="primary"
                     style={styles.actionButton}
                 />
-                <Text style={styles.changeText}>You can change this anytime</Text>
+                <Text style={[styles.changeText, { color: tc.textTertiary }]}>{t('onboarding.change_anytime')}</Text>
             </View>
         </View>
     </View>
-);
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -379,6 +425,17 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
         paddingHorizontal: spacing.xl,
+    },
+    nameInput: {
+        ...typography.body,
+        fontSize: 18,
+        textAlign: 'center',
+        paddingVertical: spacing.base,
+        paddingHorizontal: spacing.lg,
+        borderRadius: 16,
+        borderWidth: 1,
+        marginHorizontal: spacing.xl,
+        marginBottom: spacing.lg,
     },
 
     // How It Works Screen

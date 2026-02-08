@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STORAGE_KEYS } from '../utils/storageMigration';
 
 interface TrackingData {
     date: string;
     sentIds: string[];
 }
 
-const TRACKING_KEY = 'notifications_sent_today';
+const TRACKING_KEY = STORAGE_KEYS.NOTIFICATIONS_TRACKING;
 
 class NotificationTracker {
     /**

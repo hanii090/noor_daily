@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { GuidanceContent, ContentType } from '../types';
+import { GuidanceContent, ContentType, Mood } from '../types';
+import cacheService from './cacheService';
 
 // Get proxy URL from environment
 const getProxyUrl = () => {
@@ -16,6 +17,11 @@ class AIService {
      * Get AI-generated insight or explanation for a verse or hadith
      */
     async getGuidanceInsight(content: GuidanceContent, type: ContentType): Promise<string> {
+        // Check cache first
+        const cacheKey = cacheService.getAiInsightKey(content.id, type);
+        const cached = await cacheService.get<string>(cacheKey);
+        if (cached) return cached;
+
         const proxyUrl = getProxyUrl();
         if (!proxyUrl) throw new Error('AI service not configured');
 
@@ -49,13 +55,15 @@ class AIService {
                 }
             );
 
-            return response.data.choices[0].message.content.trim();
+            const result = response.data.choices[0].message.content.trim();
+            // Cache for 7 days
+            await cacheService.set(cacheKey, result, 7 * 24 * 60 * 60 * 1000);
+            return result;
         } catch (error) {
-            console.error('Error fetching AI insight:', error);
             if (axios.isAxiosError(error)) {
-                console.error('API Response:', error.response?.data);
+                console.warn('AI insight request failed:', error.response?.status);
             }
-            throw new Error('Could not connect to AI service. Please try again later.');
+            throw new Error('AI insights are temporarily unavailable. The verse speaks for itself — reflect on its meaning.');
         }
     }
 
@@ -64,7 +72,7 @@ class AIService {
      */
     async getPersonalizedGuidance(situation: string, relevantContent?: GuidanceContent): Promise<string> {
         const proxyUrl = getProxyUrl();
-        if (!proxyUrl) throw new Error('AI service not configured');
+        if (!proxyUrl) throw new Error('AI mentor is not configured yet. Please check your setup.');
 
         try {
             let userPrompt = `I am feeling: "${situation}". `;
@@ -101,11 +109,10 @@ class AIService {
 
             return response.data.choices[0].message.content.trim();
         } catch (error) {
-            console.error('Error fetching personalized guidance:', error);
             if (axios.isAxiosError(error)) {
-                console.error('API Response:', error.response?.data);
+                console.warn('AI guidance request failed:', error.response?.status);
             }
-            throw new Error('The AI mentor is currently unavailable.');
+            throw new Error('The AI mentor is temporarily resting. Please try again in a moment.');
         }
     }
 
@@ -146,8 +153,77 @@ class AIService {
 
             return response.data.choices[0].message.content.trim().replace(/^"|"$/g, '');
         } catch (error) {
-            console.error('Error fetching daily reflection:', error);
+            console.warn('Daily reflection unavailable, using fallback');
             return "May this divine wisdom bring light and peace to your heart today.";
+        }
+    }
+
+    /**
+     * Classify a hadith text into mood categories using AI.
+     * Returns an array of matching Mood values.
+     * Results are cached for 30 days to avoid repeated API calls.
+     */
+    async classifyHadithMood(hadithText: string, hadithId: string): Promise<Mood[]> {
+        const VALID_MOODS: Mood[] = ['grateful', 'peace', 'strength', 'guidance', 'celebrating', 'anxious', 'sad', 'hopeful'];
+
+        // Check cache first
+        const cacheKey = `ai_mood_hadith_${hadithId}`;
+        const cached = await cacheService.get<Mood[]>(cacheKey);
+        if (cached) return cached;
+
+        const proxyUrl = getProxyUrl();
+        if (!proxyUrl) {
+            // Fallback: return generic moods if AI is unavailable
+            return ['guidance', 'peace'];
+        }
+
+        try {
+            const prompt = `Classify this hadith into 2-3 mood categories from this list ONLY: grateful, peace, strength, guidance, celebrating, anxious, sad, hopeful.
+
+Hadith: "${hadithText.substring(0, 500)}"
+
+Reply with ONLY a JSON array of mood strings, nothing else. Example: ["peace","guidance"]`;
+
+            const response = await axios.post(
+                proxyUrl,
+                {
+                    model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You classify Islamic hadiths into emotional/spiritual mood categories. Reply ONLY with a valid JSON array of strings. No explanation."
+                        },
+                        {
+                            role: "user",
+                            content: prompt
+                        }
+                    ],
+                    max_tokens: 50,
+                    temperature: 0.2,
+                },
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 15000,
+                }
+            );
+
+            const raw = response.data.choices[0].message.content.trim();
+            // Extract JSON array from response
+            const match = raw.match(/\[.*\]/s);
+            if (match) {
+                const parsed: string[] = JSON.parse(match[0]);
+                const moods = parsed.filter(m => VALID_MOODS.includes(m as Mood)) as Mood[];
+                if (moods.length > 0) {
+                    // Cache for 30 days
+                    await cacheService.set(cacheKey, moods, 30 * 24 * 60 * 60 * 1000);
+                    return moods;
+                }
+            }
+
+            return ['guidance', 'peace'];
+        } catch (error) {
+            console.warn('AI mood classification failed, using defaults');
+            return ['guidance', 'peace'];
         }
     }
 }

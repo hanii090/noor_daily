@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { useAppStore } from '../store/appStore';
 import verseService from './verseService';
 import hadithService from './hadithService';
+import namesOfAllahService from './namesOfAllahService';
 
 interface NotificationHandler {
     initialize: () => void;
@@ -44,8 +45,12 @@ class NotificationHandlerClass implements NotificationHandler {
             // Default behavior (tap on notification or VIEW_ACTION)
             // Store the notification data globally so it can be picked up
             // when the app finishes loading or is already running
+            const notifType = data.type === 'verse' ? 'daily_verse'
+                : data.type === 'name' ? 'daily_name'
+                : 'daily_hadith';
+
             pendingNotification = {
-                type: data.type === 'verse' ? 'daily_verse' : 'daily_hadith',
+                type: notifType,
                 id: data.id,
                 timestamp: Date.now(),
             };
@@ -57,7 +62,7 @@ class NotificationHandlerClass implements NotificationHandler {
     /**
      * Handle the 'Bookmark Heart' action from the notification
      */
-    private async handleSaveAction(id: string, type: 'verse' | 'hadith'): Promise<void> {
+    private async handleSaveAction(id: string, type: 'verse' | 'hadith' | 'name'): Promise<void> {
         try {
             console.log(`Handling save action for ${type}: ${id}`);
             const store = useAppStore.getState();
@@ -65,10 +70,11 @@ class NotificationHandlerClass implements NotificationHandler {
             if (type === 'verse') {
                 const verse = await verseService.getVerseById(id);
                 if (verse) await store.addToFavorites(verse);
-            } else {
+            } else if (type === 'hadith') {
                 const hadith = await hadithService.getHadithById(id);
                 if (hadith) await store.addHadithToFavorites(hadith);
             }
+            // Names of Allah don't have a save/favorite action yet
             console.log(`Content ${id} bookmarked successfully via notification action`);
         } catch (error) {
             console.error('Error in handleSaveAction:', error);

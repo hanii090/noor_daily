@@ -1,0 +1,338 @@
+[
+  {
+    "day": 1,
+    "theme": "gratitude",
+    "themeTitle": "Beginning with Gratitude",
+    "verseRef": { "surah": 1, "verse": 2 },
+    "hadithId": "hadith_003",
+    "tafsirBrief": "Al-Fatiha opens with praising Allah, the Lord of all worlds. Every journey begins with recognizing the source of all blessings. When we acknowledge Allah's lordship, we open our hearts to receive His guidance.",
+    "reflectionQuestion": "What are three blessings you often overlook in your daily life?",
+    "dailyChallenge": "Thank someone who helped you recently — a parent, friend, or teacher.",
+    "badge": {
+      "id": "first_step",
+      "name": "First Step",
+      "emoji": "🌱",
+      "dayRequired": 1
+    }
+  },
+  {
+    "day": 2,
+    "theme": "gratitude",
+    "themeTitle": "Counting Your Blessings",
+    "verseRef": { "surah": 14, "verse": 7 },
+    "hadithId": "hadith_020",
+    "tafsirBrief": "Allah promises that gratitude leads to increase. This is not just material increase — it includes peace of heart, clarity of mind, and closeness to Allah. Ingratitude, however, leads to a constricted life.",
+    "reflectionQuestion": "When was the last time you said 'Alhamdulillah' and truly meant it from your heart?",
+    "dailyChallenge": "Write down 5 blessings you have that money cannot buy."
+  },
+  {
+    "day": 3,
+    "theme": "gratitude",
+    "themeTitle": "The Gift of Brotherhood",
+    "verseRef": { "surah": 49, "verse": 10 },
+    "hadithId": "hadith_022",
+    "tafsirBrief": "The believers are described as brothers and sisters — a family united by faith. This bond transcends race, language, and nationality. True faith is incomplete without love for one another.",
+    "reflectionQuestion": "Who in your life has been a blessing that you haven't appreciated enough?",
+    "dailyChallenge": "Reach out to a friend or family member you haven't spoken to in a while.",
+    "badge": {
+      "id": "getting_started",
+      "name": "Getting Started",
+      "emoji": "⭐",
+      "dayRequired": 3
+    }
+  },
+  {
+    "day": 4,
+    "theme": "gratitude",
+    "themeTitle": "Gratitude in Worship",
+    "verseRef": { "surah": 22, "verse": 77 },
+    "hadithId": "hadith_017",
+    "tafsirBrief": "Worship itself is an act of gratitude. When we bow and prostrate, we physically express our thankfulness. Prayer is not a burden — it is a privilege granted to those who recognize their Creator.",
+    "reflectionQuestion": "Do you view your daily prayers as a gift or an obligation? How can you shift your perspective?",
+    "dailyChallenge": "Pray one extra voluntary prayer today with full presence and gratitude."
+  },
+  {
+    "day": 5,
+    "theme": "gratitude",
+    "themeTitle": "The Quran as a Blessing",
+    "verseRef": { "surah": 56, "verse": 80 },
+    "hadithId": "hadith_018",
+    "tafsirBrief": "The Quran is described as a revelation from the Lord of the worlds. Having access to divine guidance is one of the greatest blessings. Many people search for meaning — Muslims have been given the ultimate source.",
+    "reflectionQuestion": "How often do you engage with the Quran? What stops you from reading it more?",
+    "dailyChallenge": "Read one page of the Quran with translation and reflect on its meaning."
+  },
+  {
+    "day": 6,
+    "theme": "gratitude",
+    "themeTitle": "Gratitude Through Generosity",
+    "verseRef": { "surah": 16, "verse": 18 },
+    "hadithId": "hadith_024",
+    "tafsirBrief": "If you tried to count Allah's blessings, you could never enumerate them. The proper response to such overwhelming generosity is to share what we have with others. Every good deed, no matter how small, is charity.",
+    "reflectionQuestion": "What is one thing you have in abundance that others lack?",
+    "dailyChallenge": "Give something away today — food, money, time, or even a smile."
+  },
+  {
+    "day": 7,
+    "theme": "patience",
+    "themeTitle": "The Foundation of Patience",
+    "verseRef": { "surah": 2, "verse": 153 },
+    "hadithId": "hadith_013",
+    "tafsirBrief": "Allah commands us to seek help through patience and prayer. Patience (sabr) is not passive — it is an active, conscious choice to remain steadfast. Allah is with those who are patient, providing unseen support.",
+    "reflectionQuestion": "What is the hardest thing you are being patient about right now?",
+    "dailyChallenge": "When something frustrates you today, pause for 10 seconds before reacting.",
+    "badge": {
+      "id": "first_week",
+      "name": "First Week",
+      "emoji": "🌟",
+      "dayRequired": 7
+    }
+  },
+  {
+    "day": 8,
+    "theme": "patience",
+    "themeTitle": "Ease After Hardship",
+    "verseRef": { "surah": 94, "verse": 5 },
+    "hadithId": "hadith_015",
+    "tafsirBrief": "This verse is repeated twice in Surah Ash-Sharh for emphasis — with every hardship comes ease. Not after, but WITH. Even in your darkest moments, ease is already being prepared. This is Allah's unchangeable promise.",
+    "reflectionQuestion": "Can you recall a difficult time that eventually led to something beautiful?",
+    "dailyChallenge": "Write a letter to your future self about a current struggle, expressing hope."
+  },
+  {
+    "day": 9,
+    "theme": "patience",
+    "themeTitle": "Patience in Trials",
+    "verseRef": { "surah": 2, "verse": 155 },
+    "hadithId": "hadith_009",
+    "tafsirBrief": "Allah tells us He WILL test us — with fear, hunger, loss of wealth, lives, and fruits. But glad tidings are for the patient. Tests are not punishments; they are opportunities for spiritual elevation.",
+    "reflectionQuestion": "How do you typically respond to unexpected setbacks? With frustration or with faith?",
+    "dailyChallenge": "Practice saying 'Inna lillahi wa inna ilayhi raji'un' when something goes wrong today."
+  },
+  {
+    "day": 10,
+    "theme": "patience",
+    "themeTitle": "The Strength of Restraint",
+    "verseRef": { "surah": 3, "verse": 200 },
+    "hadithId": "hadith_006",
+    "tafsirBrief": "Perseverance (sabr), endurance (musabarah), and vigilance (ribat) — three levels of patience. The strongest person is not the one who overpowers others, but the one who controls themselves during anger.",
+    "reflectionQuestion": "What triggers your impatience most? How can you prepare for those moments?",
+    "dailyChallenge": "Fast today (if able) as an exercise in patience and self-discipline."
+  },
+  {
+    "day": 11,
+    "theme": "patience",
+    "themeTitle": "Trust in Allah's Timing",
+    "verseRef": { "surah": 65, "verse": 3 },
+    "hadithId": "hadith_002",
+    "tafsirBrief": "Whoever relies upon Allah — He is sufficient for them. Allah will accomplish His purpose. He has already set a measure for all things. Our job is not to control outcomes but to trust the One who controls everything.",
+    "reflectionQuestion": "What are you trying to control that you should surrender to Allah?",
+    "dailyChallenge": "Make dua for something you've been anxious about, then consciously let go of the worry."
+  },
+  {
+    "day": 12,
+    "theme": "patience",
+    "themeTitle": "Patience with People",
+    "verseRef": { "surah": 41, "verse": 34 },
+    "hadithId": "hadith_012",
+    "tafsirBrief": "Repel evil with what is better — and suddenly your enemy becomes a close friend. This requires immense patience and self-control, but the reward is transformative. Kindness disarms hostility.",
+    "reflectionQuestion": "Is there someone you need to forgive? What holds you back?",
+    "dailyChallenge": "Respond to someone's negativity with genuine kindness today."
+  },
+  {
+    "day": 13,
+    "theme": "wisdom",
+    "themeTitle": "The Value of Knowledge",
+    "verseRef": { "surah": 96, "verse": 1 },
+    "hadithId": "hadith_007",
+    "tafsirBrief": "The first word revealed to Prophet Muhammad (peace be upon him) was 'Read.' Islam places knowledge at the very foundation of faith. Seeking knowledge is not optional — it is a path to Paradise itself.",
+    "reflectionQuestion": "What Islamic knowledge have you been meaning to learn but keep postponing?",
+    "dailyChallenge": "Learn one new thing about Islam today — a hadith, a Quranic concept, or a historical fact."
+  },
+  {
+    "day": 14,
+    "theme": "wisdom",
+    "themeTitle": "Wisdom in Speech",
+    "verseRef": { "surah": 17, "verse": 53 },
+    "hadithId": "hadith_001",
+    "tafsirBrief": "Allah commands us to speak the best words, for Satan sows discord through careless speech. Words have immense power — they can heal or destroy, unite or divide. The wise person guards their tongue.",
+    "reflectionQuestion": "Have your words ever caused unintended harm? What did you learn from it?",
+    "dailyChallenge": "Before speaking today, ask yourself: Is it true? Is it kind? Is it necessary?",
+    "badge": {
+      "id": "halfway_hero",
+      "name": "Halfway Hero",
+      "emoji": "🏅",
+      "dayRequired": 14
+    }
+  },
+  {
+    "day": 15,
+    "theme": "wisdom",
+    "themeTitle": "The Light of Guidance",
+    "verseRef": { "surah": 24, "verse": 35 },
+    "hadithId": "hadith_008",
+    "tafsirBrief": "Allah is the Light of the heavens and the earth. This famous 'Verse of Light' describes divine guidance as light upon light. True wisdom comes from connecting to this source — not from intellect alone.",
+    "reflectionQuestion": "Where do you seek guidance when you're confused — social media, friends, or the Quran?",
+    "dailyChallenge": "Replace 15 minutes of social media scrolling with reading Quran or Islamic literature."
+  },
+  {
+    "day": 16,
+    "theme": "wisdom",
+    "themeTitle": "Justice and Fairness",
+    "verseRef": { "surah": 5, "verse": 8 },
+    "hadithId": "hadith_010",
+    "tafsirBrief": "Stand firm for justice even if it goes against your own interests. Do not let hatred of a people prevent you from being just. Justice is the closest thing to piety — it requires wisdom to see beyond personal bias.",
+    "reflectionQuestion": "Have you ever judged someone unfairly based on first impressions or hearsay?",
+    "dailyChallenge": "Give someone the benefit of the doubt today, especially someone you disagree with."
+  },
+  {
+    "day": 17,
+    "theme": "wisdom",
+    "themeTitle": "Wisdom of Luqman",
+    "verseRef": { "surah": 31, "verse": 17 },
+    "hadithId": "hadith_005",
+    "tafsirBrief": "Luqman's advice to his son: Establish prayer, enjoin good, forbid evil, and be patient. These four pillars of wisdom form the foundation of a righteous life. True wisdom is lived, not just known.",
+    "reflectionQuestion": "If you could give one piece of advice to your younger self, what would it be?",
+    "dailyChallenge": "Share a piece of beneficial knowledge with someone today."
+  },
+  {
+    "day": 18,
+    "theme": "wisdom",
+    "themeTitle": "The Wisdom of Reflection",
+    "verseRef": { "surah": 3, "verse": 191 },
+    "hadithId": "hadith_004",
+    "tafsirBrief": "Those who remember Allah standing, sitting, and lying down, and reflect on the creation of the heavens and earth. Reflection (tafakkur) is one of the highest forms of worship — it transforms observation into wisdom.",
+    "reflectionQuestion": "When was the last time you sat in silence and reflected on Allah's creation?",
+    "dailyChallenge": "Spend 10 minutes in nature (or looking at the sky) reflecting on Allah's creation."
+  },
+  {
+    "day": 19,
+    "theme": "peace",
+    "themeTitle": "Peace Through Remembrance",
+    "verseRef": { "surah": 13, "verse": 28 },
+    "hadithId": "hadith_011",
+    "tafsirBrief": "It is in the remembrance of Allah that hearts find rest. Not in wealth, status, or entertainment — but in dhikr. This is the prescription for anxiety that predates modern psychology by 1400 years.",
+    "reflectionQuestion": "What do you turn to first when you feel anxious — your phone or your Lord?",
+    "dailyChallenge": "Do dhikr for 5 minutes today: SubhanAllah, Alhamdulillah, Allahu Akbar (33 times each)."
+  },
+  {
+    "day": 20,
+    "theme": "peace",
+    "themeTitle": "The Closeness of Allah",
+    "verseRef": { "surah": 2, "verse": 186 },
+    "hadithId": "hadith_019",
+    "tafsirBrief": "When My servants ask about Me — indeed I am near. I respond to the call of the caller when he calls upon Me. This is the only verse where Allah answers directly without 'Say, O Muhammad' — emphasizing His closeness.",
+    "reflectionQuestion": "Do you truly believe Allah hears your dua? What would change if you did?",
+    "dailyChallenge": "Make a heartfelt dua in sujood today, speaking to Allah as if He is right there (because He is)."
+  },
+  {
+    "day": 21,
+    "theme": "peace",
+    "themeTitle": "Inner Tranquility",
+    "verseRef": { "surah": 48, "verse": 4 },
+    "hadithId": "hadith_014",
+    "tafsirBrief": "It is Allah who sent down tranquility (sakeenah) into the hearts of the believers. This divine peace is not something we manufacture — it is a gift from Allah to those who turn to Him sincerely.",
+    "reflectionQuestion": "What robs you of inner peace most often? How can you protect your tranquility?",
+    "dailyChallenge": "Identify one source of stress in your life and make a plan to address it with tawakkul.",
+    "badge": {
+      "id": "habit_formed",
+      "name": "Habit Formed",
+      "emoji": "💪",
+      "dayRequired": 21
+    }
+  },
+  {
+    "day": 22,
+    "theme": "peace",
+    "themeTitle": "Peace with Decree",
+    "verseRef": { "surah": 57, "verse": 22 },
+    "hadithId": "hadith_013",
+    "tafsirBrief": "No disaster strikes upon the earth or among yourselves except that it is in a register before We bring it into being. This is so you do not despair over what has eluded you or exult over what He has given you.",
+    "reflectionQuestion": "How does knowing everything is pre-decreed change how you handle disappointment?",
+    "dailyChallenge": "Accept one thing today that didn't go as planned, saying 'Qadarallahu wa ma sha'a fa'al.'"
+  },
+  {
+    "day": 23,
+    "theme": "peace",
+    "themeTitle": "Mercy of the Most Merciful",
+    "verseRef": { "surah": 39, "verse": 53 },
+    "hadithId": "hadith_025",
+    "tafsirBrief": "Say: O My servants who have transgressed against themselves, do not despair of the mercy of Allah. Indeed, Allah forgives all sins. This is one of the most hopeful verses — no sin is too great for Allah's mercy.",
+    "reflectionQuestion": "Is there a past mistake that still weighs on your heart? Can you forgive yourself as Allah forgives?",
+    "dailyChallenge": "Make sincere tawbah (repentance) for something specific, and then let go of the guilt."
+  },
+  {
+    "day": 24,
+    "theme": "peace",
+    "themeTitle": "The Peaceful Soul",
+    "verseRef": { "surah": 89, "verse": 27 },
+    "hadithId": "hadith_020",
+    "tafsirBrief": "O tranquil soul, return to your Lord, well-pleased and pleasing to Him. The ultimate peace is the nafs al-mutma'innah — the soul at rest. This is the soul that has found its home in the remembrance of Allah.",
+    "reflectionQuestion": "What would your life look like if you truly had a 'tranquil soul'?",
+    "dailyChallenge": "Before sleeping tonight, reflect on your day and thank Allah for three specific moments."
+  },
+  {
+    "day": 25,
+    "theme": "purpose",
+    "themeTitle": "Created with Purpose",
+    "verseRef": { "surah": 51, "verse": 56 },
+    "hadithId": "hadith_016",
+    "tafsirBrief": "I did not create the jinn and mankind except to worship Me. Our purpose is clear — worship. But worship in Islam encompasses everything done with the right intention: work, study, kindness, even sleep.",
+    "reflectionQuestion": "How can you turn your daily routine — work, study, chores — into acts of worship?",
+    "dailyChallenge": "Set a conscious intention (niyyah) before every activity today, dedicating it to Allah."
+  },
+  {
+    "day": 26,
+    "theme": "purpose",
+    "themeTitle": "The Test of Life",
+    "verseRef": { "surah": 67, "verse": 2 },
+    "hadithId": "hadith_002",
+    "tafsirBrief": "He who created death and life to test you as to which of you is best in deed. Life is a test — not of quantity but quality. It's not about how much you do, but how well and sincerely you do it.",
+    "reflectionQuestion": "If your life were graded on the quality of your deeds, what grade would you give yourself?",
+    "dailyChallenge": "Do one thing today with absolute excellence (itqan) — even if it's a small task."
+  },
+  {
+    "day": 27,
+    "theme": "purpose",
+    "themeTitle": "Striving in Allah's Path",
+    "verseRef": { "surah": 29, "verse": 69 },
+    "hadithId": "hadith_023",
+    "tafsirBrief": "Those who strive for Us — We will surely guide them to Our ways. The effort itself is rewarded, not just the outcome. When you sincerely strive for Allah, He opens doors you never knew existed.",
+    "reflectionQuestion": "What is one area of your deen (religion) where you need to put in more effort?",
+    "dailyChallenge": "Take one concrete step toward a spiritual goal you've been postponing."
+  },
+  {
+    "day": 28,
+    "theme": "purpose",
+    "themeTitle": "Balance in Life",
+    "verseRef": { "surah": 28, "verse": 77 },
+    "hadithId": "hadith_021",
+    "tafsirBrief": "Seek the home of the Hereafter through what Allah has given you, but do not forget your share of this world. Islam teaches balance — neither pure asceticism nor pure materialism. Use this world to build the next.",
+    "reflectionQuestion": "Is your life balanced between dunya (worldly) and akhirah (hereafter) pursuits?",
+    "dailyChallenge": "Evaluate how you spend your time — adjust one thing to better balance dunya and akhirah."
+  },
+  {
+    "day": 29,
+    "theme": "purpose",
+    "themeTitle": "Accountability",
+    "verseRef": { "surah": 59, "verse": 18 },
+    "hadithId": "hadith_016",
+    "tafsirBrief": "O you who believe, fear Allah. And let every soul look to what it has put forth for tomorrow. Self-accountability (muhasabah) is essential. Before Allah accounts for us, we should account for ourselves.",
+    "reflectionQuestion": "If you could see a record of all your deeds this month, what would stand out?",
+    "dailyChallenge": "Do a personal 'life audit' — write down what you're doing well and what needs improvement."
+  },
+  {
+    "day": 30,
+    "theme": "purpose",
+    "themeTitle": "The Journey Continues",
+    "verseRef": { "surah": 3, "verse": 103 },
+    "hadithId": "hadith_003",
+    "tafsirBrief": "Hold firmly to the rope of Allah all together and do not become divided. This journey ends, but your spiritual journey never does. Stay connected to Allah, to the Quran, and to your Muslim community.",
+    "reflectionQuestion": "How has this 30-day journey changed your relationship with Allah and His words?",
+    "dailyChallenge": "Share your journey completion with someone and encourage them to start their own.",
+    "badge": {
+      "id": "journey_complete",
+      "name": "Journey Complete",
+      "emoji": "👑",
+      "dayRequired": 30
+    }
+  }
+]

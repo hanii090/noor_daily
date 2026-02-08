@@ -7,10 +7,11 @@ import { ClubhouseTabBar } from './ClubhouseTabBar';
 // Import screens
 import OnboardingScreen from '../screens/OnboardingScreen';
 import HomeScreen from '../screens/HomeScreen';
+import JourneyScreen from '../screens/JourneyScreen';
 import SavedScreen from '../screens/SavedScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { colors } from '../theme';
+import { useTheme } from '../theme';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -24,6 +25,7 @@ const MainTabs = () => {
             }}
         >
             <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Journey" component={JourneyScreen} />
             <Tab.Screen name="History" component={HistoryScreen} />
             <Tab.Screen name="Saved" component={SavedScreen} />
             <Tab.Screen name="Settings" component={SettingsScreen} />
@@ -33,6 +35,7 @@ const MainTabs = () => {
 
 export const AppNavigator = () => {
     const onboardingCompleted = useAppStore((state) => state.onboardingCompleted);
+    const { colors } = useTheme();
 
     return (
         <Stack.Navigator

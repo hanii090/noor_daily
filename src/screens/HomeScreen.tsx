@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, ActivityIndicator, Modal, Platform, ScrollView, RefreshControl } from 'react-native';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { ClubhouseBackground, ClubhouseButton, ClubhouseHeader } from '../components/clubhouse';
 import { UnifiedGuidanceDisplay } from '../components/UnifiedGuidanceDisplay';
 import { MoodSelector } from '../components/MoodSelector';
 import { SituationGuidanceModal } from '../components/SituationGuidanceModal';
-import { colors, typography, spacing } from '../theme';
+import { GuidanceSkeleton } from '../components/common/SkeletonLoader';
+import { colors, useTheme, typography, spacing } from '../theme';
 import { useAppStore } from '../store/appStore';
 import verseService from '../services/verseService';
 import hadithService from '../services/hadithService';
@@ -13,8 +16,24 @@ import notificationHandler from '../services/notificationHandler';
 import analyticsService from '../services/analyticsService';
 import shareService from '../services/shareService';
 import { Verse, Hadith, Mood, ContentType, GuidanceContent } from '../types';
+import { useTranslation } from 'react-i18next';
+import { toHijri } from '../utils/hijriDate';
+import ExamModeScreen from './ExamModeScreen';
+
+const getGreeting = (name: string | undefined, t: (key: string, opts?: any) => string): string => {
+    const hour = new Date().getHours();
+    let greeting: string;
+    if (hour < 5) greeting = t('home.assalamu_alaikum', { defaultValue: 'Assalamu Alaikum' });
+    else if (hour < 12) greeting = t('home.good_morning', { defaultValue: 'Good Morning' });
+    else if (hour < 17) greeting = t('home.good_afternoon', { defaultValue: 'Good Afternoon' });
+    else if (hour < 21) greeting = t('home.good_evening', { defaultValue: 'Good Evening' });
+    else greeting = t('home.assalamu_alaikum', { defaultValue: 'Assalamu Alaikum' });
+    return name ? `${greeting}, ${name}` : greeting;
+};
 
 const HomeScreen = () => {
+    const { colors, isDark } = useTheme();
+    const { t } = useTranslation();
     const [showMoodSelector, setShowMoodSelector] = useState(true);
     const [showAIModal, setShowAIModal] = useState(false);
     const [selectedContent, setSelectedContent] = useState<GuidanceContent | null>(null);
@@ -22,6 +41,8 @@ const HomeScreen = () => {
     const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showExamMode, setShowExamMode] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const fadeAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -32,7 +53,8 @@ const HomeScreen = () => {
         removeFromFavorites, 
         addHadithToFavorites, 
         removeHadithFromFavorites, 
-        addToHistory 
+        addToHistory,
+        settings,
     } = useAppStore();
 
     // Auto-save to history after 5 seconds of viewing
@@ -41,7 +63,6 @@ const HomeScreen = () => {
 
         const timer = setTimeout(() => {
             addToHistory(selectedContent, contentType, selectedMood || undefined);
-            console.log(`${contentType} auto-saved to history`);
         }, 5000);
 
         return () => clearTimeout(timer);
@@ -54,7 +75,6 @@ const HomeScreen = () => {
 
             if (pendingNotification && (pendingNotification.type === 'daily_verse' || pendingNotification.type === 'daily_hadith')) {
                 // User opened app from notification
-                console.log('Opening from notification, loading content');
 
                 try {
                     setIsLoading(true);
@@ -88,16 +108,8 @@ const HomeScreen = () => {
         loadNotificationContent();
     }, []);
 
-    // Get current date
-    const getCurrentDate = () => {
-        const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-        const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
-        const now = new Date();
-        return `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
-    };
 
     const handleMoodSelect = async (mood: Mood) => {
-        console.log('=== MOOD SELECT START ===', mood);
         try {
             // Fade out
             await new Promise<void>((resolve) => {
@@ -134,14 +146,12 @@ const HomeScreen = () => {
 
             setSelectedContent(content);
             setSelectedMood(mood);
-            setIsLoading(true); // Temporary to ensure UI update? No, let's keep it consistent.
             setIsLoading(false);
 
             if (type === 'hadith') {
                 analyticsService.logHadithViewed(content.id, mood);
             }
         } catch (err) {
-            console.error('=== MOOD SELECT ERROR ===', err);
             setError('Unable to load content. Please check your connection and try again.');
             setShowMoodSelector(true);
             setIsLoading(false);
@@ -185,7 +195,6 @@ const HomeScreen = () => {
             setSelectedMood(null);
             setIsLoading(false);
         } catch (err) {
-            console.error('Error loading daily content:', err);
             setError('Unable to load content. Please check your connection and try again.');
             setShowMoodSelector(true);
             setIsLoading(false);
@@ -209,6 +218,28 @@ const HomeScreen = () => {
                 useNativeDriver: true,
             }).start();
         });
+    };
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            if (selectedContent && selectedMood) {
+                // Refresh with new content for the same mood
+                const type: ContentType = Math.random() > 0.5 ? 'verse' : 'hadith';
+                setContentType(type);
+                let content: GuidanceContent;
+                if (type === 'verse') {
+                    content = await verseService.getVerseByMood(selectedMood);
+                } else {
+                    content = await hadithService.getHadithByMood(selectedMood);
+                }
+                setSelectedContent(content);
+            }
+        } catch (err) {
+            // Silently fail on refresh
+        } finally {
+            setRefreshing(false);
+        }
     };
 
     const handleBookmark = () => {
@@ -245,7 +276,6 @@ const HomeScreen = () => {
                 analyticsService.logHadithShared(selectedContent.id, 'text');
             }
         } catch (error) {
-            console.error('Error sharing content:', error);
         }
     };
 
@@ -258,82 +288,133 @@ const HomeScreen = () => {
 
     const moodColor = selectedMood ? colors.moods[selectedMood] : colors.purple;
 
-    // Debug logging
-    console.log('=== RENDER STATE ===', {
-        isLoading,
-        error,
-        showMoodSelector,
-        hasSelectedContent: !!selectedContent,
-        contentType,
-        shouldShowDisplay: !isLoading && !error && !showMoodSelector && !!selectedContent
-    });
-
     return (
         <ClubhouseBackground color="creamLight">
             <View style={styles.container}>
                 {/* Fixed Glass Header */}
                 <View style={styles.headerFixedContainer}>
                     <ClubhouseHeader 
-                        title={selectedContent ? (contentType === 'verse' ? 'Quran' : 'Hadith') : 'Noor Daily'}
-                        subtitle={selectedContent ? (selectedMood ? `${selectedMood.toUpperCase()} GUIDANCE` : 'DAILY GUIDANCE') : getCurrentDate()}
+                        title={selectedContent ? (contentType === 'verse' ? t('home.quran') : t('home.hadith')) : getGreeting(settings.userName || undefined, t)}
+                        subtitle={selectedContent ? (selectedMood ? `${t(`mood.${selectedMood}`).toUpperCase()} GUIDANCE` : t('home.daily_guidance')) : toHijri().formatted.toUpperCase()}
                         onBack={selectedContent ? handleChangeMood : undefined}
                     />
                 </View>
 
                 {/* Content */}
-                <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-                    {isLoading && (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color={colors.purple} />
-                            <Text style={styles.loadingText}>Loading guidance...</Text>
-                        </View>
-                    )}
-
-                    {!isLoading && error && (
-                        <View style={styles.errorContainer}>
-                            <Ionicons name="alert-circle-outline" size={60} color={colors.textTertiary} />
-                            <Text style={styles.errorTitle}>Unable to Load Content</Text>
-                            <Text style={styles.errorText}>{error}</Text>
-                            <ClubhouseButton
-                                title="Try Again"
-                                onPress={() => {
-                                    setError(null);
-                                    setShowMoodSelector(true);
-                                }}
-                                variant="primary"
-                                style={styles.retryButton}
+                <ScrollView
+                    style={styles.content}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    keyboardDismissMode="on-drag"
+                    refreshControl={
+                        !showMoodSelector && selectedContent ? (
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={handleRefresh}
+                                tintColor={colors.purple}
+                                colors={[colors.purple]}
                             />
-                        </View>
-                    )}
+                        ) : undefined
+                    }
+                >
+                    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+                        {isLoading && (
+                            <GuidanceSkeleton />
+                        )}
 
-                    {!isLoading && !error && showMoodSelector && (
-                        <MoodSelector 
-                            onMoodSelect={handleMoodSelect} 
-                            onSkip={handleSkip} 
-                            onAskAI={() => setShowAIModal(true)}
-                        />
-                    )}
+                        {!isLoading && error && (
+                            <View style={styles.errorContainer}>
+                                <Ionicons name="alert-circle-outline" size={60} color={colors.textTertiary} />
+                                <Text style={[styles.errorTitle, { color: colors.text }]}>{t('home.error_title')}</Text>
+                                <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error}</Text>
+                                <ClubhouseButton
+                                    title={t('home.error_retry')}
+                                    onPress={() => {
+                                        setError(null);
+                                        setShowMoodSelector(true);
+                                    }}
+                                    variant="primary"
+                                    style={styles.retryButton}
+                                />
+                            </View>
+                        )}
 
-                    {!isLoading && !error && !showMoodSelector && selectedContent && (
-                        <>
-                            <UnifiedGuidanceDisplay
-                                content={selectedContent}
-                                type={contentType}
-                                moodColor={moodColor}
-                                isBookmarked={isBookmarked}
-                                onBookmark={handleBookmark}
-                                onShare={handleShare}
-                                onChangeMood={handleChangeMood}
+                        {!isLoading && !error && showMoodSelector && (
+                            <MoodSelector 
+                                onMoodSelect={handleMoodSelect} 
+                                onSkip={handleSkip} 
+                                onAskAI={() => setShowAIModal(true)}
                             />
-                        </>
-                    )}
-                </Animated.View>
+                        )}
+
+                        {!isLoading && !error && !showMoodSelector && selectedContent && (
+                            <>
+                                <UnifiedGuidanceDisplay
+                                    content={selectedContent}
+                                    type={contentType}
+                                    moodColor={moodColor}
+                                    isBookmarked={isBookmarked}
+                                    onBookmark={handleBookmark}
+                                    onShare={handleShare}
+                                    onChangeMood={handleChangeMood}
+                                />
+                            </>
+                        )}
+                    </Animated.View>
+                </ScrollView>
 
                 {/* AI Guidance Modal */}
                 <SituationGuidanceModal
                     visible={showAIModal}
                     onClose={() => setShowAIModal(false)}
                 />
+
+                {/* Floating dual-action bar — matches tab bar design */}
+                {showMoodSelector && !isLoading && !error && (
+                    <View style={styles.floatingBarOuter}>
+                        <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={[styles.floatingBar, { borderColor: colors.border }]}>
+                            <TouchableOpacity
+                                style={styles.floatingBarBtn}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('home.ai_mentor', { defaultValue: 'AI Mentor' })}
+                                onPress={() => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                    setShowAIModal(true);
+                                }}
+                            >
+                                <Ionicons name="sparkles" size={18} color={colors.purple} />
+                                <Text style={[styles.floatingBarLabel, { color: colors.purple }]} numberOfLines={1}>{t('home.ai_mentor', { defaultValue: 'AI Mentor' })}</Text>
+                            </TouchableOpacity>
+
+                            <View style={[styles.floatingBarDivider, { backgroundColor: colors.border }]} />
+
+                            <TouchableOpacity
+                                style={styles.floatingBarBtn}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('home.exam_mode', { defaultValue: 'Exam Mode' })}
+                                onPress={() => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                    setShowExamMode(true);
+                                }}
+                            >
+                                <Ionicons name="school-outline" size={18} color={colors.teal} />
+                                <Text style={[styles.floatingBarLabel, { color: colors.teal }]} numberOfLines={1}>{t('home.exam_mode', { defaultValue: 'Exam Mode' })}</Text>
+                            </TouchableOpacity>
+                        </BlurView>
+                    </View>
+                )}
+
+                {/* Exam Mode Modal */}
+                <Modal
+                    visible={showExamMode}
+                    animationType="slide"
+                    presentationStyle="pageSheet"
+                    onRequestClose={() => setShowExamMode(false)}
+                >
+                    <ExamModeScreen onClose={() => setShowExamMode(false)} />
+                </Modal>
             </View>
         </ClubhouseBackground>
     );
@@ -396,6 +477,48 @@ const styles = StyleSheet.create({
     retryButton: {
         paddingHorizontal: spacing.xl,
     },
+    floatingBarOuter: {
+        position: 'absolute',
+        bottom: Platform.OS === 'ios' ? spacing.xl + 76 : spacing.lg + 76,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+    },
+    floatingBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        height: 48,
+        borderRadius: 24,
+        paddingHorizontal: spacing.sm,
+        overflow: 'hidden',
+        borderWidth: 0.5,
+        borderColor: 'rgba(0,0,0,0.05)',
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
+        elevation: 8,
+    },
+    floatingBarBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: spacing.base,
+        height: '100%',
+        justifyContent: 'center',
+    },
+    floatingBarLabel: {
+        ...typography.caption,
+        fontWeight: '700',
+        fontSize: 13,
+        letterSpacing: 0.2,
+    },
+    floatingBarDivider: {
+        width: 1,
+        height: 24,
+        backgroundColor: colors.border,
+    },
 });
 
-export default HomeScreen;
+export default React.memo(HomeScreen);

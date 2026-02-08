@@ -34,6 +34,9 @@ export const lightColors = {
     strength: '#7A5BE6',
     guidance: '#00D38C',
     celebrating: '#FF6B6B',
+    anxious: '#E8845C',
+    sad: '#6B8EBF',
+    hopeful: '#52C4A0',
   },
 } as const;
 
@@ -73,6 +76,9 @@ export const darkColors = {
     strength: '#6A4BD6',
     guidance: '#00C27C',
     celebrating: '#E55B5B',
+    anxious: '#D8744C',
+    sad: '#5B7EAF',
+    hopeful: '#42B490',
   },
 } as const;
 
