@@ -1,42 +1,85 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Animated, TextInput, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Animated, TextInput, ScrollView, Dimensions, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { ClubhouseBackground, ClubhouseButton, ClubhouseCard } from '../components/clubhouse';
+import { ClubhouseButton } from '../components/clubhouse';
 import { colors, useTheme, typography, spacing, shadows } from '../theme';
 import { useAppStore } from '../store/appStore';
 import { Mood } from '../types';
-import notificationService from '../services/notificationService';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n/config';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
-const TOTAL_STEPS = 5;
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const TOTAL_STEPS = 2;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const LANGUAGES = [
-    { code: 'en', label: 'English', native: 'English' },
-    { code: 'ar', label: 'Arabic', native: 'العربية' },
-    { code: 'ur', label: 'Urdu', native: 'اردو' },
-    { code: 'tr', label: 'Turkish', native: 'Türkçe' },
+    { code: 'en', label: 'English', native: 'English', flag: '🇺🇸' },
+    { code: 'ar', label: 'Arabic', native: 'العربية', flag: '🇸🇦' },
+    { code: 'ur', label: 'Urdu', native: 'اردو', flag: '🇵🇰' },
+    { code: 'tr', label: 'Turkish', native: 'Türkçe', flag: '🇹🇷' },
 ];
 
-// ── Progress Bar Component ──
-const ProgressBar: React.FC<{ step: number; total: number; color: string; bgColor: string }> = ({ step, total, color, bgColor }) => {
-    const widthAnim = useRef(new Animated.Value(0)).current;
+const MOOD_PREVIEW: { mood: Mood; icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
+    { mood: 'grateful', icon: 'heart', label: 'Grateful' },
+    { mood: 'peace', icon: 'leaf', label: 'Peace' },
+    { mood: 'strength', icon: 'shield', label: 'Strength' },
+    { mood: 'guidance', icon: 'navigate-circle', label: 'Guidance' },
+    { mood: 'anxious', icon: 'pulse', label: 'Anxious' },
+    { mood: 'hopeful', icon: 'sunny', label: 'Hopeful' },
+];
+
+// ── Floating Preview Card ──
+const FloatingCard: React.FC<{
+    children: React.ReactNode;
+    style?: any;
+    delay?: number;
+    rotation?: number;
+}> = ({ children, style, delay = 0, rotation = 0 }) => {
+    const floatAnim = useRef(new Animated.Value(0)).current;
+    const entryAnim = useRef(new Animated.Value(0)).current;
+
     useEffect(() => {
-        Animated.spring(widthAnim, {
-            toValue: (step + 1) / total,
-            tension: 40,
+        // Entry animation
+        Animated.spring(entryAnim, {
+            toValue: 1,
+            tension: 30,
             friction: 8,
-            useNativeDriver: false,
+            delay,
+            useNativeDriver: true,
         }).start();
-    }, [step]);
+
+        // Continuous float
+        const float = () => {
+            Animated.sequence([
+                Animated.timing(floatAnim, { toValue: 1, duration: 2500 + delay, useNativeDriver: true }),
+                Animated.timing(floatAnim, { toValue: 0, duration: 2500 + delay, useNativeDriver: true }),
+            ]).start(() => float());
+        };
+        setTimeout(float, delay);
+    }, []);
+
+    const translateY = floatAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -8],
+    });
+
     return (
-        <View style={[styles.progressBarBg, { backgroundColor: bgColor }]}>
-            <Animated.View style={[styles.progressBarFill, { backgroundColor: color, width: widthAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }]} />
-        </View>
+        <Animated.View
+            style={[
+                {
+                    opacity: entryAnim,
+                    transform: [
+                        { translateY: Animated.add(translateY, entryAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] })) },
+                        { scale: entryAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+                        { rotate: `${rotation}deg` },
+                    ],
+                },
+                style,
+            ]}
+        >
+            {children}
+        </Animated.View>
     );
 };
 
@@ -47,8 +90,6 @@ const OnboardingScreen = () => {
     const insets = useSafeAreaInsets();
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
-    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-    const [reminderTime, setReminderTime] = useState(new Date(2024, 0, 1, 8, 0));
     const [userName, setUserName] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('en');
     const [darkMode, setDarkMode] = useState(false);
@@ -61,10 +102,10 @@ const OnboardingScreen = () => {
         const direction = nextStep > currentStep ? -1 : 1;
         Animated.parallel([
             Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
-            Animated.timing(slideAnim, { toValue: direction * 30, duration: 150, useNativeDriver: true }),
+            Animated.timing(slideAnim, { toValue: direction * 50, duration: 150, useNativeDriver: true }),
         ]).start(() => {
             setCurrentStep(nextStep);
-            slideAnim.setValue(-direction * 30);
+            slideAnim.setValue(-direction * 50);
             Animated.parallel([
                 Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
                 Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20 }),
@@ -106,743 +147,807 @@ const OnboardingScreen = () => {
     };
 
     const handleGetStarted = async () => {
-        const hours = reminderTime.getHours();
-        const minutes = reminderTime.getMinutes();
-        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
         await updateSettings({
-            notificationTime: timeString,
-            notificationsEnabled: notificationsEnabled,
             darkMode: darkMode,
             language: selectedLanguage,
             userName: userName.trim(),
         });
-
-        if (notificationsEnabled) {
-            const hasPermission = await notificationService.requestPermissions();
-            if (hasPermission) {
-                const settings = useAppStore.getState().settings;
-                await notificationService.scheduleRandomDailyNotifications(
-                    settings.notificationFrequency,
-                    settings.notificationContentType,
-                    { start: settings.quietHoursStart, end: settings.quietHoursEnd },
-                    settings.weekendMode
-                );
-            } else {
-                await updateSettings({ notificationsEnabled: false });
-            }
-        }
-
         await setOnboardingCompleted(true);
     };
 
-    const handleTimeChange = (_event: any, selectedDate?: Date) => {
-        if (selectedDate) setReminderTime(selectedDate);
-    };
-
-    const toggleNotifications = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        setNotificationsEnabled(!notificationsEnabled);
-    };
-
     return (
-        <ClubhouseBackground color="creamLight">
-            <View style={[styles.container, { paddingTop: insets.top + spacing.md }]}>
-                {/* Header: Back + Progress + Step */}
-                <View style={styles.headerRow}>
-                    {currentStep > 0 ? (
-                        <TouchableOpacity onPress={handleBack} style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                            <Ionicons name="chevron-back" size={26} color={tc.text} />
-                        </TouchableOpacity>
-                    ) : <View style={{ width: 26 }} />}
-                    <View style={styles.progressBarWrapper}>
-                        <ProgressBar step={currentStep} total={TOTAL_STEPS} color={tc.purple} bgColor={tc.border} />
-                    </View>
-                    <Text style={[styles.stepCounter, { color: tc.textTertiary }]}>{currentStep + 1}/{TOTAL_STEPS}</Text>
-                </View>
-
-                <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateX: slideAnim }] }}>
-                    {currentStep === 0 && (
-                        <WelcomeStep onNext={handleNext} onSkip={handleSkip} userName={userName} setUserName={setUserName} />
-                    )}
-                    {currentStep === 1 && (
-                        <LanguageAppearanceStep
-                            selectedLanguage={selectedLanguage}
-                            onLanguageChange={handleLanguageChange}
-                            darkMode={darkMode}
-                            onDarkModeToggle={handleDarkModeToggle}
-                            onNext={handleNext}
-                            onSkip={handleSkip}
-                        />
-                    )}
-                    {currentStep === 2 && (
-                        <FeatureShowcaseStep onNext={handleNext} onSkip={handleSkip} />
-                    )}
-                    {currentStep === 3 && (
-                        <MoodPreviewStep
-                            selectedMood={selectedMood}
-                            onMoodSelect={setSelectedMood}
-                            onNext={handleNext}
-                            onSkip={handleSkip}
-                        />
-                    )}
-                    {currentStep === 4 && (
-                        <NotificationStep
-                            notificationsEnabled={notificationsEnabled}
-                            toggleNotifications={toggleNotifications}
-                            reminderTime={reminderTime}
-                            onTimeChange={handleTimeChange}
-                            onGetStarted={handleGetStarted}
-                        />
-                    )}
-                </Animated.View>
-            </View>
-        </ClubhouseBackground>
-    );
-};
-
-// ── Step 1: Welcome + Name ──
-const WelcomeStep: React.FC<{
-    onNext: () => void; onSkip: () => void;
-    userName: string; setUserName: (name: string) => void;
-}> = ({ onNext, onSkip, userName, setUserName }) => {
-    const { colors: tc } = useTheme();
-    const { t } = useTranslation();
-    return (
-        <View style={styles.screenWrapper}>
-            <View style={styles.topSection}>
-                <View style={styles.iconContainer}>
-                    <View style={[styles.iconBackground, { backgroundColor: tc.white, borderColor: tc.border }]}>
-                        <Ionicons name="book" size={56} color={tc.text} />
-                    </View>
-                </View>
-                <Text style={[styles.appName, { color: tc.text }]}>Noor Daily</Text>
-                <Text style={[styles.subtitle, { color: tc.textSecondary }]}>{t('onboarding.daily_guidance')}</Text>
-            </View>
-            <View style={[styles.middleSection, { justifyContent: 'center' }]}>
-                <Text style={[styles.heading, { color: tc.text }]}>{t('onboarding.whats_your_name')}</Text>
-                <TextInput
-                    style={[styles.nameInput, { backgroundColor: tc.white, borderColor: tc.border, color: tc.text }]}
-                    placeholder={t('onboarding.name_placeholder')}
-                    placeholderTextColor={tc.textTertiary}
-                    value={userName}
-                    onChangeText={setUserName}
-                    maxLength={30}
-                    autoCapitalize="words"
-                    returnKeyType="done"
-                />
-                <Text style={[styles.description, { color: tc.textSecondary }]}>{t('onboarding.name_desc')}</Text>
-            </View>
-            <BottomButtons onNext={onNext} onSkip={onSkip} nextLabel={t('onboarding.continue')} />
+        <View style={[styles.container, { backgroundColor: tc.creamLight }]}>
+            <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateX: slideAnim }] }}>
+                {currentStep === 0 && (
+                    <WelcomeStep
+                        onNext={handleNext}
+                        onSkip={handleSkip}
+                    />
+                )}
+                {currentStep === 1 && (
+                    <SetupStep
+                        userName={userName}
+                        setUserName={setUserName}
+                        selectedLanguage={selectedLanguage}
+                        onLanguageChange={handleLanguageChange}
+                        darkMode={darkMode}
+                        onDarkModeToggle={handleDarkModeToggle}
+                        selectedMood={selectedMood}
+                        onMoodSelect={setSelectedMood}
+                        onGetStarted={handleGetStarted}
+                        onBack={handleBack}
+                    />
+                )}
+            </Animated.View>
         </View>
     );
 };
 
-// ── Step 2: Language & Appearance ──
-const LanguageAppearanceStep: React.FC<{
+// ══════════════════════════════════════════════════════════
+// ── STEP 1: Hero Welcome Screen (inspired by Neuro app) ──
+// ══════════════════════════════════════════════════════════
+const WelcomeStep: React.FC<{
+    onNext: () => void;
+    onSkip: () => void;
+}> = ({ onNext, onSkip }) => {
+    const { colors: tc, isDark } = useTheme();
+    const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
+
+    return (
+        <View style={styles.welcomeContainer}>
+            {/* ── Hero Section (top ~55%) ── */}
+            <View style={[styles.heroSection, { backgroundColor: isDark ? '#1A1030' : '#EDE5F7' }]}>
+                {/* Gradient overlay stripes (decorative) */}
+                <View style={[styles.heroGradientOverlay, { backgroundColor: isDark ? '#2D1B69' : '#D8CCF0' }]} />
+                <View style={[styles.heroGradientOverlay2, { backgroundColor: isDark ? '#1E1245' : '#E8DFF5' }]} />
+
+                {/* Floating Preview Cards */}
+                <View style={[styles.floatingCardsContainer, { paddingTop: insets.top + 20 }]}>
+                    {/* Verse Card - main, slightly left */}
+                    <FloatingCard
+                        delay={200}
+                        rotation={-3}
+                        style={styles.floatingCardVerse}
+                    >
+                        <View style={[styles.previewCard, styles.previewCardLarge, {
+                            backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                            shadowColor: isDark ? '#000' : '#7A5BE6',
+                        }]}>
+                            <View style={[styles.previewCardBadge, { backgroundColor: tc.purple + '15' }]}>
+                                <Ionicons name="book-outline" size={12} color={tc.purple} />
+                                <Text style={[styles.previewCardBadgeText, { color: tc.purple }]}>Quran</Text>
+                            </View>
+                            <Text style={[styles.previewArabic, { color: tc.text }]}>
+                                بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+                            </Text>
+                            <Text style={[styles.previewTranslation, { color: tc.textSecondary }]}>
+                                In the name of Allah, the Most Gracious, the Most Merciful
+                            </Text>
+                            <View style={styles.previewCardFooter}>
+                                <Text style={[styles.previewRef, { color: tc.textTertiary }]}>Al-Fatiha 1:1</Text>
+                                <Ionicons name="heart" size={14} color={tc.coral} />
+                            </View>
+                        </View>
+                    </FloatingCard>
+
+                    {/* Hadith Card - right, overlapping */}
+                    <FloatingCard
+                        delay={500}
+                        rotation={4}
+                        style={styles.floatingCardHadith}
+                    >
+                        <View style={[styles.previewCard, styles.previewCardSmall, {
+                            backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                            shadowColor: isDark ? '#000' : '#4DB579',
+                        }]}>
+                            <View style={[styles.previewCardBadge, { backgroundColor: tc.green + '15' }]}>
+                                <Ionicons name="chatbubble-outline" size={10} color={tc.green} />
+                                <Text style={[styles.previewCardBadgeText, { color: tc.green, fontSize: 9 }]}>Hadith</Text>
+                            </View>
+                            <Text style={[styles.previewSmallText, { color: tc.text }]} numberOfLines={3}>
+                                "The best among you are those who have the best character."
+                            </Text>
+                            <Text style={[styles.previewRef, { color: tc.textTertiary, fontSize: 9 }]}>Sahih Bukhari</Text>
+                        </View>
+                    </FloatingCard>
+
+                    {/* Mood Chip - floating top right */}
+                    <FloatingCard
+                        delay={800}
+                        rotation={-2}
+                        style={styles.floatingCardMood}
+                    >
+                        <View style={[styles.moodChipFloat, {
+                            backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                            shadowColor: isDark ? '#000' : '#FBB81B',
+                        }]}>
+                            <View style={[styles.moodChipIcon, { backgroundColor: tc.moods.grateful + '20' }]}>
+                                <Ionicons name="heart" size={14} color={tc.moods.grateful} />
+                            </View>
+                            <Text style={[styles.moodChipText, { color: tc.text }]}>Grateful</Text>
+                            <View style={[styles.moodChipDot, { backgroundColor: tc.moods.grateful }]} />
+                        </View>
+                    </FloatingCard>
+
+                    {/* AI Insight chip */}
+                    <FloatingCard
+                        delay={1100}
+                        rotation={2}
+                        style={styles.floatingCardAI}
+                    >
+                        <View style={[styles.aiChipFloat, {
+                            backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                            shadowColor: isDark ? '#000' : '#7A5BE6',
+                        }]}>
+                            <Ionicons name="sparkles" size={12} color={tc.purple} />
+                            <Text style={[styles.aiChipText, { color: tc.purple }]}>AI Tafsir</Text>
+                        </View>
+                    </FloatingCard>
+                </View>
+            </View>
+
+            {/* ── Bottom Section (~45%) ── */}
+            <View style={[styles.welcomeBottom, { backgroundColor: tc.creamLight }]}>
+                {/* Logo */}
+                <View style={styles.logoContainer}>
+                    <View style={[styles.logoCircle, { backgroundColor: tc.purple }]}>
+                        <Text style={styles.logoIcon}>☪</Text>
+                    </View>
+                    <Text style={[styles.logoText, { color: tc.text }]}>Noor Daily</Text>
+                </View>
+
+                {/* Headline */}
+                <Text style={[styles.heroHeadline, { color: tc.text }]}>
+                    Your Daily Spiritual{'\n'}Companion
+                </Text>
+
+                {/* Subtitle */}
+                <Text style={[styles.heroSubtitle, { color: tc.textSecondary }]}>
+                    Quran verses & Hadith matched to your mood.{'\n'}AI-powered insights. Beautiful & personal.
+                </Text>
+
+                {/* CTA Button */}
+                <View style={[styles.welcomeCTAContainer, { paddingBottom: insets.bottom + spacing.sm }]}>
+                    <ClubhouseButton
+                        title={t('onboarding.get_started') || 'Get Started'}
+                        onPress={onNext}
+                        variant="primary"
+                        style={styles.heroCTA}
+                    />
+                    <TouchableOpacity onPress={onSkip} style={styles.skipLink}>
+                        <Text style={[styles.skipLinkText, { color: tc.textTertiary }]}>
+                            {t('onboarding.skip_intro') || 'Skip for now'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </View>
+    );
+};
+
+// ══════════════════════════════════════════════════════════
+// ── STEP 2: Quick Setup (Name + Language + Mood) ──
+// ══════════════════════════════════════════════════════════
+const SetupStep: React.FC<{
+    userName: string;
+    setUserName: (name: string) => void;
     selectedLanguage: string;
     onLanguageChange: (code: string) => void;
     darkMode: boolean;
     onDarkModeToggle: (v: boolean) => void;
-    onNext: () => void;
-    onSkip: () => void;
-}> = ({ selectedLanguage, onLanguageChange, darkMode, onDarkModeToggle, onNext, onSkip }) => {
-    const { colors: tc } = useTheme();
+    selectedMood: Mood | null;
+    onMoodSelect: (mood: Mood) => void;
+    onGetStarted: () => Promise<void>;
+    onBack: () => void;
+}> = ({ userName, setUserName, selectedLanguage, onLanguageChange, darkMode, onDarkModeToggle, selectedMood, onMoodSelect, onGetStarted, onBack }) => {
+    const { colors: tc, isDark } = useTheme();
     const { t } = useTranslation();
-    return (
-        <View style={styles.screenWrapper}>
-            <View style={styles.topSection}>
-                <Text style={[styles.heading, { color: tc.text }]}>{t('onboarding.personalize_title')}</Text>
-                <Text style={[styles.howItWorksSubtitle, { color: tc.textSecondary }]}>{t('onboarding.personalize_desc')}</Text>
-            </View>
-            <ScrollView style={styles.middleSection} contentContainerStyle={{ gap: spacing.md }} showsVerticalScrollIndicator={false}>
-                {/* Language Selection */}
-                <Text style={[styles.sectionLabel, { color: tc.textTertiary }]}>{t('onboarding.choose_language')}</Text>
-                <View style={styles.languageGrid}>
-                    {LANGUAGES.map((lang) => (
-                        <TouchableOpacity
-                            key={lang.code}
-                            style={[
-                                styles.languageChip,
-                                { backgroundColor: tc.white, borderColor: tc.border },
-                                selectedLanguage === lang.code && { borderColor: tc.purple, backgroundColor: tc.purple + '10' },
-                            ]}
-                            onPress={() => onLanguageChange(lang.code)}
-                        >
-                            <Text style={[styles.languageNative, { color: selectedLanguage === lang.code ? tc.purple : tc.text }]}>{lang.native}</Text>
-                            <Text style={[styles.languageLabel, { color: tc.textSecondary }]}>{lang.label}</Text>
-                            {selectedLanguage === lang.code && (
-                                <View style={[styles.checkCircle, { backgroundColor: tc.purple }]}>
-                                    <Ionicons name="checkmark" size={12} color="#fff" />
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                </View>
+    const insets = useSafeAreaInsets();
+    const sectionAnims = useRef([0, 1, 2, 3].map(() => new Animated.Value(0))).current;
 
-                {/* Dark Mode */}
-                <Text style={[styles.sectionLabel, { color: tc.textTertiary, marginTop: spacing.md }]}>{t('onboarding.choose_appearance')}</Text>
-                <View style={[styles.appearanceCard, { backgroundColor: tc.white, borderColor: tc.border }]}>
-                    <View style={styles.appearanceRow}>
-                        <View style={[styles.iconBadge, { backgroundColor: '#1C1C1E' }]}>
-                            <Ionicons name="moon" size={20} color="#FFD60A" />
+    useEffect(() => {
+        Animated.stagger(120, sectionAnims.map(a =>
+            Animated.spring(a, { toValue: 1, tension: 40, friction: 8, useNativeDriver: true })
+        )).start();
+    }, []);
+
+    const handleMoodSelect = (mood: Mood) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        onMoodSelect(mood);
+    };
+
+    const animStyle = (index: number) => ({
+        opacity: sectionAnims[index],
+        transform: [{ translateY: sectionAnims[index].interpolate({ inputRange: [0, 1], outputRange: [25, 0] }) }],
+    });
+
+    return (
+        <View style={[styles.setupContainer, { paddingTop: insets.top }]}>
+            {/* Header */}
+            <View style={styles.setupHeader}>
+                <TouchableOpacity onPress={onBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                    <Ionicons name="chevron-back" size={26} color={tc.text} />
+                </TouchableOpacity>
+                <View style={styles.setupDots}>
+                    <View style={[styles.dot, { backgroundColor: tc.textTertiary }]} />
+                    <View style={[styles.dot, styles.dotActive, { backgroundColor: tc.purple }]} />
+                </View>
+                <View style={{ width: 26 }} />
+            </View>
+
+            {/* Title */}
+            <Animated.View style={[styles.setupTitleContainer, animStyle(0)]}>
+                <Text style={[styles.setupTitle, { color: tc.text }]}>
+                    {t('onboarding.make_it_yours') || 'Make It Yours'}
+                </Text>
+                <Text style={[styles.setupSubtitle, { color: tc.textSecondary }]}>
+                    {t('onboarding.personalize_desc') || 'Personalize your experience in seconds'}
+                </Text>
+            </Animated.View>
+
+            <ScrollView
+                style={styles.setupScroll}
+                contentContainerStyle={[styles.setupScrollContent, { paddingBottom: insets.bottom + 100 }]}
+                showsVerticalScrollIndicator={false}
+                keyboardDismissMode="on-drag"
+            >
+                {/* ── Name Section ── */}
+                <Animated.View style={animStyle(0)}>
+                    <Text style={[styles.setupSectionLabel, { color: tc.textTertiary }]}>YOUR NAME</Text>
+                    <TextInput
+                        style={[styles.setupNameInput, {
+                            backgroundColor: isDark ? tc.backgroundSecondary : '#FFFFFF',
+                            borderColor: tc.border,
+                            color: tc.text,
+                        }]}
+                        placeholder={t('onboarding.name_placeholder') || 'Enter your name'}
+                        placeholderTextColor={tc.textTertiary}
+                        value={userName}
+                        onChangeText={setUserName}
+                        maxLength={30}
+                        autoCapitalize="words"
+                        returnKeyType="done"
+                    />
+                </Animated.View>
+
+                {/* ── Language Section ── */}
+                <Animated.View style={animStyle(1)}>
+                    <Text style={[styles.setupSectionLabel, { color: tc.textTertiary }]}>
+                        {t('onboarding.language') || 'LANGUAGE'}
+                    </Text>
+                    <View style={styles.setupLanguageGrid}>
+                        {LANGUAGES.map((lang) => {
+                            const isSelected = selectedLanguage === lang.code;
+                            return (
+                                <TouchableOpacity
+                                    key={lang.code}
+                                    style={[
+                                        styles.setupLangChip,
+                                        {
+                                            backgroundColor: isDark ? tc.backgroundSecondary : '#FFFFFF',
+                                            borderColor: isSelected ? tc.purple : tc.border,
+                                            borderWidth: isSelected ? 2 : 1,
+                                        },
+                                    ]}
+                                    onPress={() => onLanguageChange(lang.code)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.setupLangFlag}>{lang.flag}</Text>
+                                    <Text style={[styles.setupLangNative, { color: isSelected ? tc.purple : tc.text }]}>
+                                        {lang.native}
+                                    </Text>
+                                    {isSelected && (
+                                        <View style={[styles.setupCheckCircle, { backgroundColor: tc.purple }]}>
+                                            <Ionicons name="checkmark" size={10} color="#fff" />
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </Animated.View>
+
+                {/* ── Mood Section ── */}
+                <Animated.View style={animStyle(2)}>
+                    <Text style={[styles.setupSectionLabel, { color: tc.textTertiary }]}>
+                        {t('onboarding.try_mood_title') || 'HOW ARE YOU FEELING?'}
+                    </Text>
+                    <View style={styles.setupMoodGrid}>
+                        {MOOD_PREVIEW.map((m) => {
+                            const moodColor = tc.moods[m.mood];
+                            const isSelected = selectedMood === m.mood;
+                            return (
+                                <TouchableOpacity
+                                    key={m.mood}
+                                    style={[
+                                        styles.setupMoodChip,
+                                        {
+                                            backgroundColor: isSelected ? moodColor + '18' : (isDark ? tc.backgroundSecondary : '#FFFFFF'),
+                                            borderColor: isSelected ? moodColor : tc.border,
+                                            borderWidth: isSelected ? 2 : 1,
+                                        },
+                                    ]}
+                                    onPress={() => handleMoodSelect(m.mood)}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={[styles.setupMoodIcon, { backgroundColor: moodColor + '18' }]}>
+                                        <Ionicons name={m.icon} size={18} color={moodColor} />
+                                    </View>
+                                    <Text style={[styles.setupMoodLabel, { color: isSelected ? moodColor : tc.text }]}>
+                                        {t(`mood.${m.mood}`) || m.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </Animated.View>
+
+                {/* ── Dark Mode Toggle ── */}
+                <Animated.View style={animStyle(3)}>
+                    <View style={[styles.setupDarkModeCard, {
+                        backgroundColor: isDark ? tc.backgroundSecondary : '#FFFFFF',
+                        borderColor: tc.border,
+                    }]}>
+                        <View style={[styles.setupDarkModeIcon, { backgroundColor: isDark ? '#2C2C3E' : '#F2F2F7' }]}>
+                            <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? '#FFD60A' : tc.orange} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={[styles.featureTitle, { color: tc.text }]}>{t('settings.dark_mode')}</Text>
-                            <Text style={[styles.featureDescription, { color: tc.textSecondary }]}>{t('onboarding.dark_mode_desc')}</Text>
+                            <Text style={[styles.setupDarkModeTitle, { color: tc.text }]}>
+                                {t('settings.dark_mode') || 'Dark Mode'}
+                            </Text>
                         </View>
                         <Switch
                             value={darkMode}
                             onValueChange={onDarkModeToggle}
                             trackColor={{ false: tc.border, true: tc.purple }}
                             thumbColor="#fff"
+                            ios_backgroundColor={tc.border}
                         />
                     </View>
-                </View>
+                </Animated.View>
             </ScrollView>
-            <BottomButtons onNext={onNext} onSkip={onSkip} nextLabel={t('onboarding.continue')} />
-        </View>
-    );
-};
 
-// ── Step 3: Feature Showcase ──
-const FEATURES = [
-    { icon: 'heart' as const, color: 'purple', titleKey: 'onboarding.feat_mood', descKey: 'onboarding.feat_mood_desc' },
-    { icon: 'flame' as const, color: 'orange', titleKey: 'onboarding.feat_journey', descKey: 'onboarding.feat_journey_desc' },
-    { icon: 'school-outline' as const, color: 'teal', titleKey: 'onboarding.feat_exam', descKey: 'onboarding.feat_exam_desc' },
-    { icon: 'star' as const, color: 'green', titleKey: 'onboarding.feat_names', descKey: 'onboarding.feat_names_desc' },
-    { icon: 'sparkles' as const, color: 'coral', titleKey: 'onboarding.feat_ai', descKey: 'onboarding.feat_ai_desc' },
-];
-
-const FeatureShowcaseStep: React.FC<{ onNext: () => void; onSkip: () => void }> = ({ onNext, onSkip }) => {
-    const { colors: tc } = useTheme();
-    const { t } = useTranslation();
-    const anims = useRef(FEATURES.map(() => new Animated.Value(0))).current;
-
-    useEffect(() => {
-        Animated.stagger(100, anims.map(a => Animated.spring(a, { toValue: 1, tension: 40, friction: 8, useNativeDriver: true }))).start();
-    }, []);
-
-    const getColor = (c: string) => {
-        const map: Record<string, string> = { purple: tc.purple, orange: tc.orange, teal: tc.teal, green: tc.green, coral: tc.coral };
-        return map[c] || tc.purple;
-    };
-
-    return (
-        <View style={styles.screenWrapper}>
-            <View style={styles.topSection}>
-                <Text style={[styles.heading, { color: tc.text }]}>{t('onboarding.discover_features')}</Text>
-                <Text style={[styles.howItWorksSubtitle, { color: tc.textSecondary }]}>{t('onboarding.discover_features_desc')}</Text>
-            </View>
-            <ScrollView style={styles.middleSection} contentContainerStyle={{ gap: spacing.sm }} showsVerticalScrollIndicator={false}>
-                {FEATURES.map((f, i) => {
-                    const c = getColor(f.color);
-                    return (
-                        <Animated.View key={i} style={{ opacity: anims[i], transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
-                            <View style={[styles.featureCard, { backgroundColor: tc.white, borderColor: tc.border }]}>
-                                <View style={[styles.featureIconContainer, { backgroundColor: c + '12' }]}>
-                                    <Ionicons name={f.icon} size={22} color={c} />
-                                </View>
-                                <View style={styles.featureContent}>
-                                    <Text style={[styles.featureTitle, { color: tc.text }]}>{t(f.titleKey)}</Text>
-                                    <Text style={[styles.featureDescription, { color: tc.textSecondary }]}>{t(f.descKey)}</Text>
-                                </View>
-                            </View>
-                        </Animated.View>
-                    );
-                })}
-            </ScrollView>
-            <BottomButtons onNext={onNext} onSkip={onSkip} nextLabel={t('onboarding.continue')} />
-        </View>
-    );
-};
-
-// ── Step 4: Mood Preview ──
-const MOOD_PREVIEW: { mood: Mood; icon: keyof typeof Ionicons.glyphMap; arabic: string }[] = [
-    { mood: 'grateful', icon: 'heart', arabic: 'Alhamdulillah' },
-    { mood: 'peace', icon: 'leaf', arabic: 'Salaam' },
-    { mood: 'strength', icon: 'shield', arabic: 'Tawakkul' },
-    { mood: 'guidance', icon: 'navigate-circle', arabic: 'Hidayah' },
-    { mood: 'anxious', icon: 'pulse', arabic: 'Qalaq' },
-    { mood: 'hopeful', icon: 'sunny', arabic: "Rajā'" },
-];
-
-const MoodPreviewStep: React.FC<{
-    selectedMood: Mood | null;
-    onMoodSelect: (mood: Mood) => void;
-    onNext: () => void;
-    onSkip: () => void;
-}> = ({ selectedMood, onMoodSelect, onNext, onSkip }) => {
-    const { colors: tc } = useTheme();
-    const { t } = useTranslation();
-    const anims = useRef(MOOD_PREVIEW.map(() => new Animated.Value(0))).current;
-
-    useEffect(() => {
-        Animated.stagger(80, anims.map(a => Animated.spring(a, { toValue: 1, tension: 40, friction: 7, useNativeDriver: true }))).start();
-    }, []);
-
-    const handleSelect = (mood: Mood) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        onMoodSelect(mood);
-    };
-
-    return (
-        <View style={styles.screenWrapper}>
-            <View style={styles.topSection}>
-                <Text style={[styles.heading, { color: tc.text }]}>{t('onboarding.try_mood_title')}</Text>
-                <Text style={[styles.howItWorksSubtitle, { color: tc.textSecondary }]}>{t('onboarding.try_mood_desc')}</Text>
-            </View>
-            <View style={[styles.middleSection, { justifyContent: 'flex-start', paddingTop: spacing.lg }]}>
-                <View style={styles.moodGrid}>
-                    {MOOD_PREVIEW.map((m, i) => {
-                        const moodColor = tc.moods[m.mood];
-                        const isSelected = selectedMood === m.mood;
-                        return (
-                            <Animated.View
-                                key={m.mood}
-                                style={{
-                                    opacity: anims[i],
-                                    transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-                                    width: (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm * 2) / 3,
-                                }}
-                            >
-                                <TouchableOpacity
-                                    style={[
-                                        styles.moodCard,
-                                        { backgroundColor: tc.white, borderColor: tc.border },
-                                        isSelected && { borderColor: moodColor, borderWidth: 2, backgroundColor: moodColor + '10' },
-                                    ]}
-                                    onPress={() => handleSelect(m.mood)}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.moodIconCircle, { backgroundColor: moodColor + '15' }]}>
-                                        <Ionicons name={m.icon} size={22} color={moodColor} />
-                                    </View>
-                                    <Text style={[styles.moodLabel, { color: isSelected ? moodColor : tc.text }]}>{t(`mood.${m.mood}`)}</Text>
-                                    <Text style={[styles.moodArabic, { color: tc.textSecondary }]}>{m.arabic}</Text>
-                                    {isSelected && (
-                                        <View style={[styles.moodCheck, { backgroundColor: moodColor }]}>
-                                            <Ionicons name="checkmark" size={10} color="#fff" />
-                                        </View>
-                                    )}
-                                </TouchableOpacity>
-                            </Animated.View>
-                        );
-                    })}
-                </View>
-                {selectedMood && (
-                    <Animated.View style={[styles.moodHint, { backgroundColor: tc.moods[selectedMood] + '10', borderColor: tc.moods[selectedMood] + '30' }]}>
-                        <Ionicons name="sparkles" size={16} color={tc.moods[selectedMood]} />
-                        <Text style={[styles.moodHintText, { color: tc.moods[selectedMood] }]}>
-                            {t('onboarding.mood_selected_hint')}
-                        </Text>
-                    </Animated.View>
-                )}
-            </View>
-            <BottomButtons onNext={onNext} onSkip={onSkip} nextLabel={t('onboarding.continue')} />
-        </View>
-    );
-};
-
-// ── Step 5: Notifications ──
-const NotificationStep: React.FC<{
-    notificationsEnabled: boolean;
-    toggleNotifications: () => void;
-    reminderTime: Date;
-    onTimeChange: (event: any, date?: Date) => void;
-    onGetStarted: () => void;
-}> = ({ notificationsEnabled, toggleNotifications, reminderTime, onTimeChange, onGetStarted }) => {
-    const { colors: tc } = useTheme();
-    const { t } = useTranslation();
-    return (
-        <View style={styles.screenWrapper}>
-            <View style={styles.topSection}>
-                <Text style={[styles.heading, { color: tc.text }]}>{t('onboarding.daily_reminder')}</Text>
-                <Text style={[styles.howItWorksSubtitle, { color: tc.textSecondary }]}>{t('onboarding.when_verse')}</Text>
-            </View>
-            <View style={[styles.middleSection, { justifyContent: 'center' }]}>
-                <View style={[styles.timePickerCard, { backgroundColor: tc.white, borderColor: tc.border }]}>
-                    <DateTimePicker
-                        value={reminderTime}
-                        mode="time"
-                        display="spinner"
-                        onChange={onTimeChange}
-                        textColor={tc.text}
-                        style={styles.timePicker}
-                    />
-                    <View style={[styles.notificationRow, { borderTopColor: tc.border + '30' }]}>
-                        <View style={styles.notificationLeft}>
-                            <View style={[styles.iconBadge, { backgroundColor: tc.purple + '10' }]}>
-                                <Ionicons name="notifications" size={20} color={tc.purple} />
-                            </View>
-                            <View style={styles.notificationText}>
-                                <Text style={[styles.notificationTitle, { color: tc.text }]}>{t('onboarding.notifications')}</Text>
-                                <Text style={[styles.notificationSubtitle, { color: tc.textSecondary }]}>{t('onboarding.enable_push')}</Text>
-                            </View>
-                        </View>
-                        <Switch
-                            value={notificationsEnabled}
-                            onValueChange={toggleNotifications}
-                            trackColor={{ false: tc.border, true: tc.purple }}
-                            thumbColor="#fff"
-                        />
-                    </View>
-                </View>
-            </View>
-            <View style={styles.bottomSection}>
-                <View style={styles.buttonContainer}>
-                    <ClubhouseButton
-                        title={t('onboarding.get_started')}
-                        onPress={onGetStarted}
-                        variant="primary"
-                        style={styles.actionButton}
-                    />
-                    <Text style={[styles.changeText, { color: tc.textTertiary }]}>{t('onboarding.change_anytime')}</Text>
-                </View>
-            </View>
-        </View>
-    );
-};
-
-// ── Shared Bottom Buttons ──
-const BottomButtons: React.FC<{ onNext: () => void; onSkip: () => void; nextLabel: string }> = ({ onNext, onSkip, nextLabel }) => {
-    const { colors: tc } = useTheme();
-    const { t } = useTranslation();
-    return (
-        <View style={styles.bottomSection}>
-            <View style={styles.buttonContainer}>
-                <ClubhouseButton title={nextLabel} onPress={onNext} variant="primary" style={styles.actionButton} />
-                <TouchableOpacity onPress={onSkip} style={styles.skipButton}>
-                    <Text style={[styles.skipText, { color: tc.textTertiary }]}>{t('onboarding.skip_intro')}</Text>
-                </TouchableOpacity>
+            {/* ── Fixed Bottom CTA ── */}
+            <View style={[styles.setupBottomCTA, {
+                paddingBottom: insets.bottom + spacing.sm,
+                backgroundColor: tc.creamLight,
+                borderTopColor: tc.border,
+            }]}>
+                <ClubhouseButton
+                    title={t('onboarding.get_started') || 'Start Your Journey'}
+                    onPress={onGetStarted}
+                    variant="primary"
+                    style={styles.setupCTAButton}
+                />
             </View>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
+    // ── Root ──
     container: {
         flex: 1,
-        paddingBottom: spacing.xl,
+    },
+
+    // ══════════════════════════════════
+    // ── STEP 1: Welcome Hero Screen ──
+    // ══════════════════════════════════
+    welcomeContainer: {
+        flex: 1,
+    },
+    heroSection: {
+        flex: 0.52,
+        overflow: 'hidden',
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+    },
+    heroGradientOverlay: {
+        position: 'absolute',
+        top: 0,
+        right: -40,
+        width: SCREEN_WIDTH * 0.6,
+        height: '100%',
+        opacity: 0.3,
+        transform: [{ skewX: '-12deg' }],
+    },
+    heroGradientOverlay2: {
+        position: 'absolute',
+        top: 0,
+        left: -20,
+        width: SCREEN_WIDTH * 0.4,
+        height: '100%',
+        opacity: 0.2,
+        transform: [{ skewX: '8deg' }],
+    },
+    floatingCardsContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
         paddingHorizontal: spacing.lg,
     },
-    screenWrapper: {
-        flex: 1,
-        justifyContent: 'space-between',
+
+    // Floating card positions
+    floatingCardVerse: {
+        position: 'absolute',
+        left: spacing.lg,
+        top: '18%',
+        zIndex: 3,
     },
-    topSection: {
+    floatingCardHadith: {
+        position: 'absolute',
+        right: spacing.md,
+        top: '45%',
+        zIndex: 2,
+    },
+    floatingCardMood: {
+        position: 'absolute',
+        right: spacing.xl,
+        top: '12%',
+        zIndex: 4,
+    },
+    floatingCardAI: {
+        position: 'absolute',
+        left: spacing.xl + 10,
+        bottom: '12%',
+        zIndex: 4,
+    },
+
+    // Preview cards
+    previewCard: {
+        borderRadius: 16,
+        padding: spacing.base,
+        ...Platform.select({
+            ios: {
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.15,
+                shadowRadius: 16,
+            },
+            android: {
+                elevation: 8,
+            },
+        }),
+    },
+    previewCardLarge: {
+        width: SCREEN_WIDTH * 0.58,
+        gap: spacing.sm,
+    },
+    previewCardSmall: {
+        width: SCREEN_WIDTH * 0.42,
+        gap: spacing.xs,
+    },
+    previewCardBadge: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: spacing.base,
+        alignSelf: 'flex-start',
+        gap: 4,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 3,
+        borderRadius: 8,
     },
-    middleSection: {
-        flex: 1,
-        paddingVertical: spacing.md,
+    previewCardBadgeText: {
+        ...typography.small,
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
-    bottomSection: {
-        paddingBottom: spacing.lg,
+    previewArabic: {
+        fontFamily: 'Amiri_400Regular',
+        fontSize: 18,
+        lineHeight: 30,
+        textAlign: 'right',
     },
-    headerRow: {
+    previewTranslation: {
+        ...typography.small,
+        fontSize: 11,
+        lineHeight: 16,
+    },
+    previewSmallText: {
+        ...typography.small,
+        fontSize: 11,
+        lineHeight: 16,
+        fontStyle: 'italic',
+    },
+    previewCardFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    previewRef: {
+        ...typography.small,
+        fontSize: 10,
+        fontWeight: '600',
+    },
+
+    // Floating chips
+    moodChipFloat: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.sm,
-        marginBottom: spacing.sm,
-        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: 20,
+        ...Platform.select({
+            ios: {
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.12,
+                shadowRadius: 8,
+            },
+            android: { elevation: 4 },
+        }),
     },
-    backButton: {
-        width: 26,
-    },
-    progressBarWrapper: {
-        flex: 1,
-    },
-    progressBarBg: {
-        height: 4,
-        borderRadius: 2,
-        overflow: 'hidden',
-    },
-    progressBarFill: {
-        height: '100%',
-        borderRadius: 2,
-    },
-    stepCounter: {
-        ...typography.caption,
-        fontSize: 11,
-        fontWeight: '700',
-        letterSpacing: 0.5,
-        minWidth: 28,
-        textAlign: 'right',
-    },
-
-    // Welcome
-    iconContainer: {
-        alignItems: 'center',
-        marginBottom: spacing.lg,
-    },
-    iconBackground: {
-        width: 100,
-        height: 100,
-        borderRadius: 30,
+    moodChipIcon: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        ...shadows.medium,
     },
-    appName: {
+    moodChipText: {
+        ...typography.small,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    moodChipDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+    },
+    aiChipFloat: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: 16,
+        ...Platform.select({
+            ios: {
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.12,
+                shadowRadius: 8,
+            },
+            android: { elevation: 4 },
+        }),
+    },
+    aiChipText: {
+        ...typography.small,
+        fontSize: 11,
+        fontWeight: '700',
+    },
+
+    // Welcome bottom section
+    welcomeBottom: {
+        flex: 0.48,
+        paddingHorizontal: spacing.lg,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        marginBottom: spacing.lg,
+    },
+    logoCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoIcon: {
+        fontSize: 18,
+        color: '#FFFFFF',
+    },
+    logoText: {
+        ...typography.h3,
+        fontSize: 20,
+        fontWeight: '700',
+    },
+    heroHeadline: {
         ...typography.h1,
         fontSize: 32,
         textAlign: 'center',
-        marginBottom: spacing.xs,
+        lineHeight: 40,
+        marginBottom: spacing.md,
+        letterSpacing: -0.5,
     },
-    subtitle: {
-        ...typography.caption,
-        fontSize: 12,
-        textAlign: 'center',
-        letterSpacing: 2,
-        fontWeight: '700',
-    },
-    heading: {
-        ...typography.h2,
-        fontSize: 26,
-        textAlign: 'center',
-        marginBottom: spacing.sm,
-    },
-    description: {
+    heroSubtitle: {
         ...typography.body,
         fontSize: 15,
         textAlign: 'center',
         lineHeight: 22,
+        marginBottom: spacing.xl,
         paddingHorizontal: spacing.md,
     },
-    nameInput: {
-        ...typography.body,
-        fontSize: 18,
-        textAlign: 'center',
-        paddingVertical: spacing.base,
-        paddingHorizontal: spacing.lg,
-        borderRadius: 16,
-        borderWidth: 1,
-        marginHorizontal: spacing.md,
-        marginBottom: spacing.lg,
+    welcomeCTAContainer: {
+        width: '100%',
+        paddingHorizontal: spacing.sm,
+    },
+    heroCTA: {
+        height: 56,
+        borderRadius: 28,
+        ...shadows.medium,
+    },
+    skipLink: {
+        alignItems: 'center',
+        paddingVertical: spacing.md,
+    },
+    skipLinkText: {
+        ...typography.caption,
+        fontSize: 13,
+        fontWeight: '600',
     },
 
-    // Language & Appearance
-    sectionLabel: {
-        ...typography.caption,
-        fontSize: 10,
-        fontWeight: '800',
-        letterSpacing: 1.5,
+    // ══════════════════════════════════
+    // ── STEP 2: Quick Setup Screen ──
+    // ══════════════════════════════════
+    setupContainer: {
+        flex: 1,
+    },
+    setupHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+    },
+    setupDots: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+    },
+    dot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        opacity: 0.4,
+    },
+    dotActive: {
+        width: 24,
+        borderRadius: 4,
+        opacity: 1,
+    },
+    setupTitleContainer: {
+        paddingHorizontal: spacing.lg,
+        marginBottom: spacing.lg,
+    },
+    setupTitle: {
+        ...typography.h1,
+        fontSize: 28,
         marginBottom: spacing.xs,
     },
-    languageGrid: {
+    setupSubtitle: {
+        ...typography.body,
+        fontSize: 15,
+        lineHeight: 22,
+    },
+    setupScroll: {
+        flex: 1,
+    },
+    setupScrollContent: {
+        paddingHorizontal: spacing.lg,
+        gap: spacing.lg,
+    },
+
+    // Name input
+    setupSectionLabel: {
+        ...typography.small,
+        fontSize: 11,
+        fontWeight: '800',
+        letterSpacing: 1.5,
+        marginBottom: spacing.sm,
+        textTransform: 'uppercase',
+    },
+    setupNameInput: {
+        ...typography.body,
+        fontSize: 16,
+        paddingVertical: 14,
+        paddingHorizontal: spacing.base,
+        borderRadius: 14,
+        borderWidth: 1,
+    },
+
+    // Language grid
+    setupLanguageGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: spacing.sm,
     },
-    languageChip: {
-        width: (SCREEN_WIDTH - spacing.lg * 4 - spacing.sm) / 2,
-        borderRadius: 16,
-        padding: spacing.base,
-        borderWidth: 1.5,
+    setupLangChip: {
+        width: (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm) / 2,
+        borderRadius: 14,
+        paddingVertical: spacing.base,
+        paddingHorizontal: spacing.md,
         alignItems: 'center',
-        position: 'relative',
+        justifyContent: 'center',
+        position: 'relative' as const,
+        gap: 2,
     },
-    languageNative: {
-        ...typography.h3,
-        fontSize: 18,
-        fontWeight: '700',
+    setupLangFlag: {
+        fontSize: 22,
         marginBottom: 2,
     },
-    languageLabel: {
-        ...typography.caption,
-        fontSize: 12,
+    setupLangNative: {
+        ...typography.body,
+        fontSize: 15,
+        fontWeight: '700',
     },
-    checkCircle: {
+    setupCheckCircle: {
         position: 'absolute',
         top: 8,
         right: 8,
-        width: 20,
-        height: 20,
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    // Mood grid
+    setupMoodGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: spacing.sm,
+    },
+    setupMoodChip: {
+        width: (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm * 2) / 3,
+        borderRadius: 14,
+        paddingVertical: spacing.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing.xs,
+    },
+    setupMoodIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    setupMoodLabel: {
+        ...typography.small,
+        fontSize: 12,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
+
+    // Dark mode card
+    setupDarkModeCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        padding: spacing.base,
+        borderRadius: 14,
+        borderWidth: 1,
+    },
+    setupDarkModeIcon: {
+        width: 36,
+        height: 36,
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    appearanceCard: {
-        borderRadius: 20,
-        padding: spacing.lg,
-        borderWidth: 1,
-    },
-    appearanceRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-    },
-    howItWorksSubtitle: {
+    setupDarkModeTitle: {
         ...typography.body,
         fontSize: 15,
-        textAlign: 'center',
-        lineHeight: 22,
-        paddingHorizontal: spacing.md,
+        fontWeight: '600',
     },
 
-    // Feature Showcase
-    featureCard: {
-        borderRadius: 20,
-        padding: spacing.base,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-    },
-    featureIconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: spacing.md,
-    },
-    featureContent: {
-        flex: 1,
-    },
-    featureTitle: {
-        ...typography.body,
-        fontSize: 15,
-        fontWeight: '700',
-        marginBottom: 2,
-    },
-    featureDescription: {
-        ...typography.body,
-        fontSize: 13,
-        lineHeight: 18,
-    },
-
-    // Mood Preview
-    moodGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: spacing.sm,
-        justifyContent: 'center',
-    },
-    moodCard: {
-        borderRadius: 18,
-        paddingVertical: spacing.base,
-        paddingHorizontal: spacing.xs,
-        alignItems: 'center',
-        borderWidth: 1,
-        position: 'relative',
-    },
-    moodIconCircle: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: spacing.xs,
-    },
-    moodLabel: {
-        ...typography.body,
-        fontSize: 12,
-        fontWeight: '700',
-        textAlign: 'center',
-    },
-    moodArabic: {
-        ...typography.caption,
-        fontSize: 10,
-        textAlign: 'center',
-    },
-    moodCheck: {
+    // Bottom CTA
+    setupBottomCTA: {
         position: 'absolute',
-        top: 6,
-        right: 6,
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    moodHint: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.xs,
+        bottom: 0,
+        left: 0,
+        right: 0,
         paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm,
-        borderRadius: 14,
-        borderWidth: 1,
-        marginTop: spacing.lg,
-        alignSelf: 'center',
-    },
-    moodHintText: {
-        ...typography.caption,
-        fontSize: 12,
-        fontWeight: '700',
-    },
-
-    // Notifications
-    timePickerCard: {
-        borderRadius: 24,
-        padding: spacing.lg,
-        borderWidth: 1,
-        ...shadows.medium,
-    },
-    timePicker: {
-        height: 160,
-    },
-    notificationRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: spacing.lg,
-        marginTop: spacing.md,
+        paddingTop: spacing.md,
         borderTopWidth: 1,
     },
-    notificationLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    iconBadge: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: spacing.md,
-    },
-    notificationText: {
-        flex: 1,
-    },
-    notificationTitle: {
-        ...typography.body,
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    notificationSubtitle: {
-        ...typography.caption,
-        fontSize: 13,
-    },
-
-    // Common
-    buttonContainer: {
-        paddingHorizontal: 0,
-    },
-    actionButton: {
+    setupCTAButton: {
         height: 56,
-        borderRadius: 20,
+        borderRadius: 28,
         ...shadows.medium,
-    },
-    skipButton: {
-        alignItems: 'center',
-        paddingVertical: spacing.md,
-    },
-    skipText: {
-        ...typography.caption,
-        fontSize: 12,
-        fontWeight: '800',
-        letterSpacing: 1,
-    },
-    changeText: {
-        ...typography.caption,
-        fontSize: 13,
-        textAlign: 'center',
-        marginTop: spacing.md,
     },
 });
 
