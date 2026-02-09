@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -27,12 +27,64 @@ import journeyService from '../services/journeyService';
 import analyticsService from '../services/analyticsService';
 import { useTranslation } from 'react-i18next';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CALENDAR_COLS = 6;
 const CALENDAR_GAP = 10;
 const CALENDAR_DAY_SIZE = Math.floor(
     (SCREEN_WIDTH - spacing.lg * 2 - spacing.lg * 2 - CALENDAR_GAP * (CALENDAR_COLS - 1)) / CALENDAR_COLS
 );
+
+// ── Floating Preview Card (matches onboarding style) ──
+const FloatingCard: React.FC<{
+    children: React.ReactNode;
+    style?: any;
+    delay?: number;
+    rotation?: number;
+}> = ({ children, style, delay = 0, rotation = 0 }) => {
+    const floatAnim = useRef(new Animated.Value(0)).current;
+    const entryAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.spring(entryAnim, {
+            toValue: 1,
+            tension: 30,
+            friction: 8,
+            delay,
+            useNativeDriver: true,
+        }).start();
+
+        const float = () => {
+            Animated.sequence([
+                Animated.timing(floatAnim, { toValue: 1, duration: 2500 + delay, useNativeDriver: true }),
+                Animated.timing(floatAnim, { toValue: 0, duration: 2500 + delay, useNativeDriver: true }),
+            ]).start(() => float());
+        };
+        setTimeout(float, delay);
+    }, []);
+
+    const translateY = floatAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -8],
+    });
+
+    return (
+        <Animated.View
+            style={[
+                {
+                    opacity: entryAnim,
+                    transform: [
+                        { translateY: Animated.add(translateY, entryAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] })) },
+                        { scale: entryAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+                        { rotate: `${rotation}deg` },
+                    ],
+                },
+                style,
+            ]}
+        >
+            {children}
+        </Animated.View>
+    );
+};
 
 const THEME_COLORS: Record<string, string> = {
     gratitude: '#D4A853',
@@ -59,7 +111,7 @@ const THEME_LABELS: Record<string, string> = {
 };
 
 const JourneyScreen = () => {
-    const { colors: tc } = useTheme();
+    const { colors: tc, isDark } = useTheme();
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const {
@@ -252,74 +304,128 @@ const JourneyScreen = () => {
         );
     }
 
-    // ── Not Started State ──
+    // ── Not Started State (Onboarding-style hero) ──
     if (journeyStatus === 'not_started') {
         return (
-            <ClubhouseBackground>
-                <ClubhouseHeader title={t('journey.title')} subtitle={t('journey.spiritual_growth')} />
+            <View style={[styles.notStartedContainer, { backgroundColor: tc.creamLight }]}>
+                {/* ── Hero Section (top ~50%) ── */}
+                <View style={[styles.nsHeroSection, { backgroundColor: isDark ? '#1A1030' : '#EDE5F7' }]}>
+                    <View style={[styles.nsHeroOverlay1, { backgroundColor: isDark ? '#2D1B69' : '#D8CCF0' }]} />
+                    <View style={[styles.nsHeroOverlay2, { backgroundColor: isDark ? '#1E1245' : '#E8DFF5' }]} />
+
+                    <View style={[styles.nsFloatingContainer, { paddingTop: insets.top + 20 }]}>
+                        {/* Day card — main floating card */}
+                        <FloatingCard delay={200} rotation={-3} style={styles.nsFloatDay}>
+                            <View style={[styles.nsPreviewCard, styles.nsPreviewLarge, {
+                                backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                                shadowColor: isDark ? '#000' : '#7A5BE6',
+                            }]}>
+                                <View style={[styles.nsPreviewBadge, { backgroundColor: THEME_COLORS.gratitude + '15' }]}>
+                                    <Ionicons name="heart" size={12} color={THEME_COLORS.gratitude} />
+                                    <Text style={[styles.nsPreviewBadgeText, { color: THEME_COLORS.gratitude }]}>DAY 1 · GRATITUDE</Text>
+                                </View>
+                                <Text style={[styles.nsPreviewArabic, { color: tc.text }]}>
+                                    وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ
+                                </Text>
+                                <Text style={[styles.nsPreviewTranslation, { color: tc.textSecondary }]}>
+                                    "If you are grateful, I will surely increase you."
+                                </Text>
+                                <View style={styles.nsPreviewFooter}>
+                                    <Text style={[styles.nsPreviewRef, { color: tc.textTertiary }]}>Ibrahim 14:7</Text>
+                                    <Ionicons name="heart" size={14} color={tc.coral} />
+                                </View>
+                            </View>
+                        </FloatingCard>
+
+                        {/* Journal card — right side */}
+                        <FloatingCard delay={500} rotation={4} style={styles.nsFloatJournal}>
+                            <View style={[styles.nsPreviewCard, styles.nsPreviewSmall, {
+                                backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                                shadowColor: isDark ? '#000' : '#4DB579',
+                            }]}>
+                                <View style={[styles.nsPreviewBadge, { backgroundColor: tc.green + '15' }]}>
+                                    <Ionicons name="journal-outline" size={10} color={tc.green} />
+                                    <Text style={[styles.nsPreviewBadgeText, { color: tc.green, fontSize: 9 }]}>Journal</Text>
+                                </View>
+                                <Text style={[styles.nsPreviewSmallText, { color: tc.text }]} numberOfLines={3}>
+                                    "Today I reflected on the blessings I often overlook..."
+                                </Text>
+                                <Text style={[styles.nsPreviewRef, { color: tc.textTertiary, fontSize: 9 }]}>Day 1 Reflection</Text>
+                            </View>
+                        </FloatingCard>
+
+                        {/* Streak chip */}
+                        <FloatingCard delay={800} rotation={-2} style={styles.nsFloatStreak}>
+                            <View style={[styles.nsChipFloat, {
+                                backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                                shadowColor: isDark ? '#000' : '#FBB81B',
+                            }]}>
+                                <View style={[styles.nsChipIcon, { backgroundColor: tc.orange + '20' }]}>
+                                    <Ionicons name="flame" size={14} color={tc.orange} />
+                                </View>
+                                <Text style={[styles.nsChipText, { color: tc.text }]}>7-Day Streak</Text>
+                                <View style={[styles.nsChipDot, { backgroundColor: tc.orange }]} />
+                            </View>
+                        </FloatingCard>
+
+                        {/* Badge chip */}
+                        <FloatingCard delay={1100} rotation={2} style={styles.nsFloatBadge}>
+                            <View style={[styles.nsBadgeChip, {
+                                backgroundColor: isDark ? '#2A2A3E' : '#FFFFFF',
+                                shadowColor: isDark ? '#000' : '#7A5BE6',
+                            }]}>
+                                <Text style={{ fontSize: 14 }}>🏆</Text>
+                                <Text style={[styles.nsBadgeChipText, { color: tc.purple }]}>Badge Earned!</Text>
+                            </View>
+                        </FloatingCard>
+                    </View>
+                </View>
+
+                {/* ── Bottom Section (~50%) ── */}
                 <ScrollView
-                    contentContainerStyle={[styles.scrollContent, { paddingBottom: BOTTOM_PAD }]}
+                    style={[styles.nsBottom, { backgroundColor: tc.creamLight }]}
+                    contentContainerStyle={[styles.nsBottomContent, { paddingBottom: insets.bottom + 100 }]}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Hero */}
-                    <Animated.View style={[styles.heroSection, {
-                        opacity: heroAnim,
-                        transform: [{ scale: heroAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }],
-                    }]}>
-                        <View style={styles.heroIconRow}>
-                            <View style={[styles.heroIconCircle, { backgroundColor: tc.purple + '12' }]}>
-                                <Ionicons name="moon" size={32} color={tc.purple} />
-                            </View>
+                    {/* Logo */}
+                    <View style={styles.nsLogoRow}>
+                        <View style={[styles.nsLogoCircle, { backgroundColor: tc.purple }]}>
+                            <Ionicons name="moon" size={18} color="#FFFFFF" />
                         </View>
-                        <Text style={[styles.heroTitle, { color: tc.text }]}>{t('journey.hero_title')}</Text>
-                        <Text style={[styles.heroDescription, { color: tc.textSecondary }]}>
-                            {t('journey.hero_desc')}
-                        </Text>
-                    </Animated.View>
+                        <Text style={[styles.nsLogoText, { color: tc.text }]}>30-Day Journey</Text>
+                    </View>
 
-                    {/* What You Get */}
-                    <View style={styles.featureGrid}>
-                        {[
-                            { icon: 'book-outline' as const, color: tc.purple, title: t('journey.feature_verse'), desc: t('journey.feature_verse_desc') },
-                            { icon: 'journal-outline' as const, color: tc.green, title: t('journey.feature_journal'), desc: t('journey.feature_journal_desc') },
-                            { icon: 'trophy-outline' as const, color: tc.orange, title: t('journey.feature_badges'), desc: t('journey.feature_badges_desc') },
-                            { icon: 'share-social-outline' as const, color: tc.coral, title: t('journey.feature_share'), desc: t('journey.feature_share_desc') },
-                        ].map((f, i) => (
-                            <View key={i} style={[styles.featureItem, { backgroundColor: tc.cream, borderColor: tc.border }]}>
-                                <View style={[styles.featureIconCircle, { backgroundColor: f.color + '12' }]}>
-                                    <Ionicons name={f.icon} size={20} color={f.color} />
-                                </View>
-                                <Text style={[styles.featureTitle, { color: tc.text }]}>{f.title}</Text>
-                                <Text style={[styles.featureDesc, { color: tc.textSecondary }]}>{f.desc}</Text>
+                    {/* Headline */}
+                    <Text style={[styles.nsHeadline, { color: tc.text }]}>
+                        Transform Your{'\n'}Spiritual Life
+                    </Text>
+
+                    {/* Subtitle */}
+                    <Text style={[styles.nsSubtitle, { color: tc.textSecondary }]}>
+                        Daily Quran verses, guided reflections,{'\n'}journaling & badges. One day at a time.
+                    </Text>
+
+                    {/* Theme pills row */}
+                    <View style={styles.nsThemePills}>
+                        {Object.entries(THEME_LABELS).map(([key, label]) => (
+                            <View key={key} style={[styles.nsThemePill, { backgroundColor: THEME_COLORS[key] + '12' }]}>
+                                <Ionicons name={THEME_ICONS[key]} size={12} color={THEME_COLORS[key]} />
+                                <Text style={[styles.nsThemePillText, { color: THEME_COLORS[key] }]}>{label}</Text>
                             </View>
                         ))}
                     </View>
 
-                    {/* Theme Preview */}
-                    <View style={[styles.themeSection, { backgroundColor: tc.cream, borderColor: tc.border }]}>
-                        <Text style={[styles.themeSectionTitle, { color: tc.textTertiary }]}>{t('journey.themes_title')}</Text>
-                        <View style={styles.themeList}>
-                            {Object.entries(THEME_LABELS).map(([key, label]) => (
-                                <View key={key} style={styles.themeRow}>
-                                    <View style={[styles.themeIconSmall, { backgroundColor: THEME_COLORS[key] + '15' }]}>
-                                        <Ionicons name={THEME_ICONS[key]} size={16} color={THEME_COLORS[key]} />
-                                    </View>
-                                    <Text style={[styles.themeRowLabel, { color: tc.text }]}>{label}</Text>
-                                    <Text style={[styles.themeRowDays, { color: tc.textTertiary }]}>6 days</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
-
                     {/* CTA */}
-                    <ClubhouseButton
-                        title={t('journey.begin')}
-                        onPress={handleStartJourney}
-                        variant="primary"
-                        style={styles.startButton}
-                    />
+                    <View style={styles.nsCTAContainer}>
+                        <ClubhouseButton
+                            title={t('journey.begin') || 'Begin Your Journey'}
+                            onPress={handleStartJourney}
+                            variant="primary"
+                            style={styles.nsCTAButton}
+                        />
+                    </View>
                 </ScrollView>
-            </ClubhouseBackground>
+            </View>
         );
     }
 
@@ -637,30 +743,268 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 
-    // ── Not Started: Hero ──
-    heroSection: {
-        alignItems: 'center',
-        paddingTop: spacing.xl,
-        paddingBottom: spacing.lg,
+    // ── Not Started: Onboarding-style Hero ──
+    notStartedContainer: {
+        flex: 1,
     },
-    heroIconRow: {
+    nsHeroSection: {
+        flex: 0.50,
+        overflow: 'hidden',
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+    },
+    nsHeroOverlay1: {
+        position: 'absolute',
+        top: 0,
+        right: -40,
+        width: SCREEN_WIDTH * 0.6,
+        height: '100%',
+        opacity: 0.3,
+        transform: [{ skewX: '-12deg' }],
+    },
+    nsHeroOverlay2: {
+        position: 'absolute',
+        top: 0,
+        left: -20,
+        width: SCREEN_WIDTH * 0.4,
+        height: '100%',
+        opacity: 0.2,
+        transform: [{ skewX: '8deg' }],
+    },
+    nsFloatingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: spacing.lg,
+    },
+
+    // Floating card positions
+    nsFloatDay: {
+        position: 'absolute',
+        left: spacing.lg,
+        top: '18%',
+        zIndex: 3,
+    },
+    nsFloatJournal: {
+        position: 'absolute',
+        right: spacing.md,
+        top: '45%',
+        zIndex: 2,
+    },
+    nsFloatStreak: {
+        position: 'absolute',
+        right: spacing.xl,
+        top: '12%',
+        zIndex: 4,
+    },
+    nsFloatBadge: {
+        position: 'absolute',
+        left: spacing.xl + 10,
+        bottom: '12%',
+        zIndex: 4,
+    },
+
+    // Preview cards
+    nsPreviewCard: {
+        borderRadius: 16,
+        padding: spacing.base,
+        ...Platform.select({
+            ios: {
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.15,
+                shadowRadius: 16,
+            },
+            android: {
+                elevation: 8,
+            },
+        }),
+    },
+    nsPreviewLarge: {
+        width: SCREEN_WIDTH * 0.58,
+        gap: spacing.sm,
+    },
+    nsPreviewSmall: {
+        width: SCREEN_WIDTH * 0.42,
+        gap: spacing.xs,
+    },
+    nsPreviewBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 4,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 3,
+        borderRadius: 8,
+    },
+    nsPreviewBadgeText: {
+        ...typography.small,
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+    nsPreviewArabic: {
+        fontFamily: 'Amiri_400Regular',
+        fontSize: 17,
+        lineHeight: 28,
+        textAlign: 'right',
+    },
+    nsPreviewTranslation: {
+        ...typography.small,
+        fontSize: 11,
+        lineHeight: 16,
+    },
+    nsPreviewSmallText: {
+        ...typography.small,
+        fontSize: 11,
+        lineHeight: 16,
+        fontStyle: 'italic',
+    },
+    nsPreviewFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    nsPreviewRef: {
+        ...typography.small,
+        fontSize: 10,
+        fontWeight: '600',
+    },
+
+    // Floating chips
+    nsChipFloat: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: 20,
+        ...Platform.select({
+            ios: {
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.12,
+                shadowRadius: 8,
+            },
+            android: { elevation: 4 },
+        }),
+    },
+    nsChipIcon: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    nsChipText: {
+        ...typography.small,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    nsChipDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+    },
+    nsBadgeChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: 16,
+        ...Platform.select({
+            ios: {
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.12,
+                shadowRadius: 8,
+            },
+            android: { elevation: 4 },
+        }),
+    },
+    nsBadgeChipText: {
+        ...typography.small,
+        fontSize: 11,
+        fontWeight: '700',
+    },
+
+    // Bottom section
+    nsBottom: {
+        flex: 0.50,
+    },
+    nsBottomContent: {
+        paddingHorizontal: spacing.lg,
+        alignItems: 'center',
+        paddingTop: spacing.lg,
+    },
+    nsLogoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
         marginBottom: spacing.lg,
     },
+    nsLogoCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    nsLogoText: {
+        ...typography.h3,
+        fontSize: 20,
+        fontWeight: '700',
+    },
+    nsHeadline: {
+        ...typography.h1,
+        fontSize: 32,
+        textAlign: 'center',
+        lineHeight: 40,
+        marginBottom: spacing.md,
+        letterSpacing: -0.5,
+    },
+    nsSubtitle: {
+        ...typography.body,
+        fontSize: 15,
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: spacing.lg,
+        paddingHorizontal: spacing.md,
+    },
+    nsThemePills: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: spacing.sm,
+        marginBottom: spacing.xl,
+    },
+    nsThemePill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: spacing.md,
+        paddingVertical: 6,
+        borderRadius: 16,
+    },
+    nsThemePillText: {
+        ...typography.small,
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    nsCTAContainer: {
+        width: '100%',
+        paddingHorizontal: spacing.sm,
+    },
+    nsCTAButton: {
+        height: 56,
+        borderRadius: 28,
+    },
+
+    // Keep heroIconCircle for completed state
     heroIconCircle: {
         width: 80,
         height: 80,
         borderRadius: 40,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    heroTitle: {
-        ...typography.h1,
-        fontSize: 28,
-        color: colors.black,
-        textAlign: 'center',
-        lineHeight: 36,
-        marginBottom: spacing.md,
-        letterSpacing: -0.3,
     },
     heroDescription: {
         ...typography.body,
@@ -669,88 +1013,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 23,
         paddingHorizontal: spacing.md,
-    },
-
-    // ── Not Started: Feature Grid ──
-    featureGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: spacing.sm,
-    },
-    featureItem: {
-        width: (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm) / 2,
-        backgroundColor: colors.white,
-        borderRadius: 20,
-        padding: spacing.base,
-        borderWidth: 1,
-        borderColor: colors.border,
-    },
-    featureIconCircle: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: spacing.sm,
-    },
-    featureTitle: {
-        ...typography.caption,
-        fontWeight: '700',
-        color: colors.text,
-        marginBottom: 3,
-    },
-    featureDesc: {
-        ...typography.small,
-        fontSize: 12,
-        color: colors.textSecondary,
-        lineHeight: 17,
-    },
-
-    // ── Not Started: Theme Section ──
-    themeSection: {
-        backgroundColor: colors.white,
-        borderRadius: 20,
-        padding: spacing.lg,
-        borderWidth: 0.5,
-        borderColor: colors.border,
-    },
-    themeSectionTitle: {
-        ...typography.small,
-        fontWeight: '800',
-        color: colors.textTertiary,
-        letterSpacing: 1.5,
-        textAlign: 'center',
-        marginBottom: spacing.base,
-    },
-    themeList: {
-        gap: spacing.md,
-    },
-    themeRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-    },
-    themeIconSmall: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    themeRowLabel: {
-        ...typography.caption,
-        fontWeight: '600',
-        color: colors.text,
-        flex: 1,
-    },
-    themeRowDays: {
-        ...typography.small,
-        color: colors.textTertiary,
-        fontWeight: '600',
-    },
-
-    startButton: {
-        marginTop: spacing.xs,
     },
 
     // ── Completed ──

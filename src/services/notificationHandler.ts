@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { Alert } from 'react-native';
 import { useAppStore } from '../store/appStore';
 import verseService from './verseService';
 import hadithService from './hadithService';
@@ -41,8 +42,6 @@ class NotificationHandlerClass implements NotificationHandler {
             }
 
             // Default behavior (tap on notification or VIEW_ACTION)
-            // Store the notification data globally so it can be picked up
-            // when the app finishes loading or is already running
             const notifType = data.type === 'verse' ? 'daily_verse'
                 : data.type === 'name' ? 'daily_name'
                 : 'daily_hadith';
@@ -52,6 +51,11 @@ class NotificationHandlerClass implements NotificationHandler {
                 id: data.id,
                 timestamp: Date.now(),
             };
+
+            // Show the notification content to the user
+            const title = notification.request.content.title || 'Noor Daily';
+            const body = notification.request.content.body || '';
+            Alert.alert(title, body);
         } catch (error) {
             console.error('Error handling notification response:', error);
         }

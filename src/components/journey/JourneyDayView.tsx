@@ -187,35 +187,62 @@ export const JourneyDayView: React.FC<JourneyDayViewProps> = ({
 
                         {/* Verse Section */}
                         {verse && (
-                            <View style={[styles.contentCard, { borderLeftColor: themeColor, backgroundColor: tc.cream }]}>
-                                <View style={styles.contentLabel}>
-                                    <Ionicons name="book-outline" size={16} color={themeColor} />
-                                    <Text style={[styles.contentLabelText, { color: themeColor }]}>
-                                        QURAN
+                            <View style={[styles.contentCard, { backgroundColor: tc.cream }]}>
+                                {/* Card Header */}
+                                <View style={styles.cardHeaderRow}>
+                                    <View style={[styles.typeBadge, { backgroundColor: themeColor + '15' }]}>
+                                        <Ionicons name="book" size={12} color={themeColor} />
+                                        <Text style={[styles.typeBadgeText, { color: themeColor }]}>QURAN</Text>
+                                    </View>
+                                    <Text style={[styles.refBadge, { color: tc.textTertiary, backgroundColor: tc.backgroundSecondary }]}>
+                                        {verse.surah} {verse.verseNumber}
                                     </Text>
                                 </View>
-                                <Text style={[styles.arabicText, { color: tc.text }]}>{verse.arabic}</Text>
-                                <Text style={[styles.englishText, { color: tc.text }]}>{verse.english}</Text>
-                                <Text style={[styles.reference, { color: tc.textTertiary }]}>
-                                    Surah {verse.surah} — Verse {verse.verseNumber}
+
+                                {/* Arabic */}
+                                <View style={styles.arabicContainer}>
+                                    <Text style={[styles.arabicText, { color: tc.text }]}>{verse.arabic}</Text>
+                                    <View style={[styles.arabicDecoration, { backgroundColor: themeColor + '10' }]} />
+                                </View>
+
+                                {/* English */}
+                                <Text style={[styles.englishText, { color: tc.text }]}>"{verse.english}"</Text>
+
+                                {/* Footer */}
+                                <Text style={[styles.footerLabel, { color: tc.textTertiary }]}>
+                                    SURAH {verse.surah.toUpperCase()} — VERSE {verse.verseNumber}
                                 </Text>
                             </View>
                         )}
 
                         {/* Hadith Section */}
                         {hadith && (
-                            <View style={[styles.contentCard, { borderLeftColor: themeColor, backgroundColor: tc.cream }]}>
-                                <View style={styles.contentLabel}>
-                                    <Ionicons name="chatbubble-outline" size={16} color={themeColor} />
-                                    <Text style={[styles.contentLabelText, { color: themeColor }]}>
-                                        HADITH
+                            <View style={[styles.contentCard, { backgroundColor: tc.cream }]}>
+                                {/* Card Header */}
+                                <View style={styles.cardHeaderRow}>
+                                    <View style={[styles.typeBadge, { backgroundColor: themeColor + '15' }]}>
+                                        <Ionicons name="heart" size={12} color={themeColor} />
+                                        <Text style={[styles.typeBadgeText, { color: themeColor }]}>HADITH</Text>
+                                    </View>
+                                    <Text style={[styles.refBadge, { color: tc.textTertiary, backgroundColor: tc.backgroundSecondary }]}>
+                                        {hadith.reference}
                                     </Text>
                                 </View>
-                                <Text style={[styles.arabicText, { color: tc.text }]}>{hadith.arabic}</Text>
-                                <Text style={[styles.englishText, { color: tc.text }]}>{hadith.english}</Text>
-                                <Text style={[styles.reference, { color: tc.textTertiary }]}>
-                                    {hadith.reference} — Narrated by {hadith.narrator}
-                                </Text>
+
+                                {/* Arabic */}
+                                <View style={styles.arabicContainer}>
+                                    <Text style={[styles.arabicText, { color: tc.text }]}>{hadith.arabic}</Text>
+                                    <View style={[styles.arabicDecoration, { backgroundColor: themeColor + '10' }]} />
+                                </View>
+
+                                {/* English */}
+                                <Text style={[styles.englishText, { color: tc.text }]}>"{hadith.english}"</Text>
+
+                                {/* Footer */}
+                                <View style={styles.hadithFooterRow}>
+                                    <Text style={[styles.narratorLabel, { color: tc.text }]}>{hadith.narrator}</Text>
+                                    <Text style={[styles.footerLabel, { color: tc.textTertiary }]}>{hadith.reference}</Text>
+                                </View>
                             </View>
                         )}
 
@@ -409,37 +436,102 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
     },
 
-    // Content Cards (Verse / Hadith)
+    // Content Cards (Verse / Hadith) — matches UnifiedGuidanceDisplay
     contentCard: {
         backgroundColor: colors.cream,
-        borderRadius: 20,
-        padding: spacing.lg,
-        borderLeftWidth: 4,
+        borderRadius: 24,
+        paddingVertical: spacing.lg,
+        paddingHorizontal: spacing.lg,
         gap: spacing.md,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        elevation: 3,
     },
-    contentLabel: {
+    cardHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: spacing.sm,
+    },
+    typeBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: spacing.xs,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        gap: 6,
     },
-    contentLabelText: {
-        ...typography.small,
+    typeBadgeText: {
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 0.5,
+    },
+    refBadge: {
+        fontSize: 12,
         fontWeight: '700',
-        letterSpacing: 1,
+        color: colors.textTertiary,
+        backgroundColor: colors.backgroundSecondary,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 8,
+        overflow: 'hidden',
+    },
+    arabicContainer: {
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: spacing.md,
+        position: 'relative',
     },
     arabicText: {
-        ...typography.arabic,
+        ...typography.arabicLarge,
+        fontSize: 28,
         color: colors.text,
+        textAlign: 'center',
+        lineHeight: 52,
+        zIndex: 2,
+    },
+    arabicDecoration: {
+        position: 'absolute',
+        top: '10%',
+        bottom: '10%',
+        left: '5%',
+        right: '5%',
+        borderRadius: 40,
+        zIndex: 1,
     },
     englishText: {
-        ...typography.body,
+        ...typography.bodyLarge,
+        fontSize: 17,
         color: colors.text,
-        fontStyle: 'italic',
-        lineHeight: 26,
+        textAlign: 'center',
+        lineHeight: 28,
+        width: '100%',
+        paddingHorizontal: spacing.sm,
+        fontWeight: '500',
     },
-    reference: {
-        ...typography.small,
+    footerLabel: {
+        ...typography.caption,
+        fontSize: 11,
+        fontWeight: '600',
         color: colors.textTertiary,
+        letterSpacing: 1.5,
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        marginTop: spacing.sm,
+    },
+    hadithFooterRow: {
+        alignItems: 'center',
+        gap: 2,
+        marginTop: spacing.sm,
+    },
+    narratorLabel: {
+        ...typography.caption,
+        fontSize: 13,
+        fontWeight: '600',
+        color: colors.text,
     },
 
     // Tafsir

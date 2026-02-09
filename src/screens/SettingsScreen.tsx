@@ -24,6 +24,7 @@ import { ClubhouseBackground, ClubhouseCard, ClubhouseHeader, ClubhouseButton } 
 import { colors, useTheme, typography, spacing, TAB_BAR_SAFE_PADDING } from '../theme';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store/appStore';
+import * as Notifications from 'expo-notifications';
 import notificationService from '../services/notificationService';
 import audioService, { Reciter } from '../services/audioService';
 import WidgetSetupScreen from './WidgetSetupScreen';
@@ -44,6 +45,8 @@ const SettingsScreen = () => {
     const [showReciterModal, setShowReciterModal] = useState(false);
     const [showWidgetSetup, setShowWidgetSetup] = useState(false);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
+    const [scheduledCount, setScheduledCount] = useState<number | null>(null);
+    const [testStatus, setTestStatus] = useState<string | null>(null);
 
     const handleNotificationToggle = async (value: boolean) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -577,6 +580,250 @@ const SettingsScreen = () => {
                                 icon="refresh"
                                 iconBg="#FFE9E7"
                                 iconColor={tc.coral}
+                            />
+                        </TouchableOpacity>
+                    </ClubhouseCard>
+                </View>
+
+                {/* 🔔 Notification Testing (Dev) */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>NOTIFICATION TESTING</Text>
+                    <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
+                        {/* Check scheduled count */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                const all = await Notifications.getAllScheduledNotificationsAsync();
+                                const guidance = all.filter(n => {
+                                    const d = n.content.data as any;
+                                    return !d?.type?.startsWith('journey_');
+                                });
+                                const journey = all.filter(n => {
+                                    const d = n.content.data as any;
+                                    return d?.type?.startsWith('journey_');
+                                });
+                                setScheduledCount(all.length);
+                                setTestStatus(`Total: ${all.length} | Guidance: ${guidance.length} | Journey: ${journey.length}`);
+                                Alert.alert(
+                                    'Scheduled Notifications',
+                                    `Total: ${all.length}\nGuidance: ${guidance.length}\nJourney: ${journey.length}\n\n` +
+                                    all.slice(0, 5).map((n, i) => {
+                                        const trigger = n.trigger as any;
+                                        const date = trigger?.dateComponents ? `${trigger.dateComponents.month}/${trigger.dateComponents.day} ${trigger.dateComponents.hour}:${String(trigger.dateComponents.minute).padStart(2,'0')}` : trigger?.date ? new Date(trigger.date).toLocaleString() : 'immediate';
+                                        return `${i+1}. ${n.content.title}\n   ${date}`;
+                                    }).join('\n') + (all.length > 5 ? `\n...and ${all.length - 5} more` : '')
+                                );
+                            }}
+                        >
+                            <SettingRow
+                                title="View Scheduled"
+                                subtitle={testStatus || 'Tap to check scheduled notifications'}
+                                icon="list"
+                                iconBg="#E3F2FF"
+                                iconColor="#007AFF"
+                                rightComponent={
+                                    <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
+                                }
+                            />
+                        </TouchableOpacity>
+
+                        <View style={styles.divider} />
+
+                        {/* Fire test verse notification (5 sec delay) */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                const granted = await notificationService.requestPermissions();
+                                if (!granted) return;
+                                await Notifications.scheduleNotificationAsync({
+                                    content: {
+                                        title: 'A message from the Quran ✨',
+                                        body: '"In the name of Allah, the Most Gracious, the Most Merciful." — Quran 1:1',
+                                        sound: true,
+                                        badge: 1,
+                                        data: { id: '1:1', type: 'verse' },
+                                        categoryIdentifier: 'GUIDANCE_NOTIFICATION',
+                                    },
+                                    trigger: {
+                                        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                                        seconds: 5,
+                                    },
+                                });
+                                Alert.alert('Scheduled!', 'Verse notification will fire in 5 seconds. Minimize the app to see it.');
+                            }}
+                        >
+                            <SettingRow
+                                title="Test Verse Notification"
+                                subtitle="Fires in 5 seconds"
+                                icon="book"
+                                iconBg="#F4EDFA"
+                                iconColor="#AF52DE"
+                                rightComponent={
+                                    <Ionicons name="play" size={20} color={tc.purple} />
+                                }
+                            />
+                        </TouchableOpacity>
+
+                        <View style={styles.divider} />
+
+                        {/* Fire test hadith notification (5 sec delay) */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                const granted = await notificationService.requestPermissions();
+                                if (!granted) return;
+                                await Notifications.scheduleNotificationAsync({
+                                    content: {
+                                        title: 'Wisdom from the Prophet \uFE0E',
+                                        body: '"The best of you are those who learn the Quran and teach it." — Sahih al-Bukhari',
+                                        sound: true,
+                                        badge: 1,
+                                        data: { id: 'hadith_001', type: 'hadith' },
+                                        categoryIdentifier: 'GUIDANCE_NOTIFICATION',
+                                    },
+                                    trigger: {
+                                        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                                        seconds: 5,
+                                    },
+                                });
+                                Alert.alert('Scheduled!', 'Hadith notification will fire in 5 seconds. Minimize the app to see it.');
+                            }}
+                        >
+                            <SettingRow
+                                title="Test Hadith Notification"
+                                subtitle="Fires in 5 seconds"
+                                icon="sparkles"
+                                iconBg="#FFF4E5"
+                                iconColor="#FF9500"
+                                rightComponent={
+                                    <Ionicons name="play" size={20} color={tc.orange} />
+                                }
+                            />
+                        </TouchableOpacity>
+
+                        <View style={styles.divider} />
+
+                        {/* Fire test Name of Allah notification (5 sec delay) */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                const granted = await notificationService.requestPermissions();
+                                if (!granted) return;
+                                await Notifications.scheduleNotificationAsync({
+                                    content: {
+                                        title: 'A Beautiful Name of Allah ✨',
+                                        body: '\u0671\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u064F  Ar-Rahman — The Most Merciful',
+                                        sound: true,
+                                        badge: 1,
+                                        data: { id: 'name_1', type: 'name' },
+                                    },
+                                    trigger: {
+                                        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                                        seconds: 5,
+                                    },
+                                });
+                                Alert.alert('Scheduled!', 'Name of Allah notification will fire in 5 seconds. Minimize the app to see it.');
+                            }}
+                        >
+                            <SettingRow
+                                title="Test Name of Allah"
+                                subtitle="Fires in 5 seconds"
+                                icon="moon"
+                                iconBg="#E8F8EC"
+                                iconColor="#34C759"
+                                rightComponent={
+                                    <Ionicons name="play" size={20} color={tc.green} />
+                                }
+                            />
+                        </TouchableOpacity>
+
+                        <View style={styles.divider} />
+
+                        {/* Fire test journey notification (5 sec delay) */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                const granted = await notificationService.requestPermissions();
+                                if (!granted) return;
+                                await Notifications.scheduleNotificationAsync({
+                                    content: {
+                                        title: 'Your Day 5 verse awaits \uD83C\uDF19',
+                                        body: 'Continue your 30-day spiritual journey today.',
+                                        sound: true,
+                                        data: { type: 'journey_reminder', day: 5 },
+                                    },
+                                    trigger: {
+                                        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                                        seconds: 5,
+                                    },
+                                });
+                                Alert.alert('Scheduled!', 'Journey reminder will fire in 5 seconds. Minimize the app to see it.');
+                            }}
+                        >
+                            <SettingRow
+                                title="Test Journey Reminder"
+                                subtitle="Fires in 5 seconds"
+                                icon="flame"
+                                iconBg="#FFE9E7"
+                                iconColor="#FF3B30"
+                                rightComponent={
+                                    <Ionicons name="play" size={20} color={tc.coral} />
+                                }
+                            />
+                        </TouchableOpacity>
+
+                        <View style={styles.divider} />
+
+                        {/* Fire milestone notification (immediate) */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                await notificationService.sendMilestoneNotification(7, '\uD83C\uDF1F', 'First Week');
+                                Alert.alert('Sent!', 'Milestone notification fired immediately.');
+                            }}
+                        >
+                            <SettingRow
+                                title="Test Milestone (Immediate)"
+                                subtitle="Fires instantly"
+                                icon="trophy"
+                                iconBg="#FFFDE7"
+                                iconColor="#FFC107"
+                                rightComponent={
+                                    <Ionicons name="play" size={20} color={tc.orange} />
+                                }
+                            />
+                        </TouchableOpacity>
+
+                        <View style={styles.divider} />
+
+                        {/* Cancel all */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                Alert.alert(
+                                    'Cancel All Notifications?',
+                                    'This will remove all scheduled notifications.',
+                                    [
+                                        { text: 'No', style: 'cancel' },
+                                        {
+                                            text: 'Yes, Cancel All',
+                                            style: 'destructive',
+                                            onPress: async () => {
+                                                await notificationService.cancelAllNotifications();
+                                                setScheduledCount(0);
+                                                setTestStatus('All cancelled');
+                                                Alert.alert('Done', 'All notifications cancelled.');
+                                            },
+                                        },
+                                    ]
+                                );
+                            }}
+                        >
+                            <SettingRow
+                                title="Cancel All Notifications"
+                                subtitle="Remove all scheduled"
+                                icon="close-circle"
+                                iconBg="#FFE9E7"
+                                iconColor="#FF3B30"
                             />
                         </TouchableOpacity>
                     </ClubhouseCard>

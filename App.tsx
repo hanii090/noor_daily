@@ -19,8 +19,18 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { ClubhouseBackground } from './src/components/clubhouse';
 import { useTheme } from './src/theme';
 import { ErrorBoundary, OfflineBanner } from './src/components/common';
+import * as Notifications from 'expo-notifications';
 import notificationHandler from './src/services/notificationHandler';
 import notificationService from './src/services/notificationService';
+
+// MUST be set at module level (outside component) so it runs before any notification arrives
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 import verseService from './src/services/verseService';
 import { runStorageMigration } from './src/utils/storageMigration';
 import './src/i18n/config'; // Initialize i18n

@@ -78,14 +78,6 @@ class NotificationService {
                 return false;
             }
 
-            Notifications.setNotificationHandler({
-                handleNotification: async () => ({
-                    shouldShowAlert: true,
-                    shouldPlaySound: true,
-                    shouldSetBadge: true,
-                }),
-            });
-
             // Define Interactive Categories
             if (Platform.OS === 'ios') {
                 await Notifications.setNotificationCategoryAsync('GUIDANCE_NOTIFICATION', [
