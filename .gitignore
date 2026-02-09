@@ -45,6 +45,9 @@ functions/node_modules/
 # typescript
 *.tsbuildinfo
 
+# Google Play service account key
+google-service-account.json
+
 # generated native folders
 /ios
 /android
