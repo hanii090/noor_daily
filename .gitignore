@@ -47,6 +47,7 @@ functions/node_modules/
 
 # Google Play service account key
 google-service-account.json
+gen-lang-client-*.json
 
 # generated native folders
 /ios
