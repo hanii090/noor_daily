@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 import { STORAGE_KEYS } from '../utils/storageMigration';
 import { Verse, Hadith, Mood, ContentType, GuidanceContent } from '../types';
 
@@ -23,17 +24,29 @@ class HistoryService {
      */
     async saveToHistory(content: GuidanceContent, type: ContentType, date: Date, mood?: Mood): Promise<void> {
         try {
+            // Validate inputs
+            if (!content || !content.id) {
+                throw new Error('Invalid content: missing content or content.id');
+            }
+
             const dateKey = this.formatDateKey(date);
-            const existingData = await AsyncStorage.getItem(`${HISTORY_PREFIX}${dateKey}`);
-            
+            const storageKey = `${HISTORY_PREFIX}${dateKey}`;
+            const existingData = await AsyncStorage.getItem(storageKey);
+
             let entries: HistoryEntry[] = [];
             if (existingData) {
-                const parsed = JSON.parse(existingData);
-                entries = Array.isArray(parsed) ? parsed : [];
+                try {
+                    const parsed = JSON.parse(existingData);
+                    entries = Array.isArray(parsed) ? parsed : [];
+                } catch (parseError) {
+                    // Corrupted data - start fresh but log the issue
+                    __DEV__ && console.warn('Corrupted history data, resetting for date:', dateKey);
+                    entries = [];
+                }
             }
 
             // Check if this specific content is already in today's history
-            if (entries.some(e => e.content.id === content.id)) {
+            if (entries.some(e => e.content?.id === content.id)) {
                 return;
             }
 
@@ -47,16 +60,29 @@ class HistoryService {
             entries.push(newEntry);
 
             await AsyncStorage.setItem(
-                `${HISTORY_PREFIX}${dateKey}`,
+                storageKey,
                 JSON.stringify(entries)
             );
 
             // Prune old history periodically (1% chance each save)
             if (Math.random() < 0.01) {
-                this.pruneOldHistory().catch(console.error);
+                this.pruneOldHistory().catch(err => {
+                    __DEV__ && console.error('Error pruning history:', err);
+                });
             }
         } catch (error) {
-            console.error('Error saving to history:', error);
+            // Production-safe error logging
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error('Error saving to history:', errorMessage, error);
+
+            // Alert user in production for critical failures
+            if (!__DEV__) {
+                Alert.alert(
+                    'History Save Failed',
+                    'Failed to save to history. Your progress is still tracked, but history may not reflect recent activity.',
+                    [{ text: 'OK' }]
+                );
+            }
         }
     }
 
@@ -83,7 +109,16 @@ class HistoryService {
     async getAllHistory(): Promise<HistoryDay[]> {
         try {
             const keys = await AsyncStorage.getAllKeys();
+
+            if (!keys || keys.length === 0) {
+                return [];
+            }
+
             const historyKeys = keys.filter(key => key.startsWith(HISTORY_PREFIX));
+
+            if (historyKeys.length === 0) {
+                return [];
+            }
 
             const entries = await AsyncStorage.multiGet(historyKeys);
             const history: HistoryDay[] = [];
@@ -92,19 +127,33 @@ class HistoryService {
                 if (value) {
                     try {
                         const parsed = JSON.parse(value);
-                        history.push({
-                            date: key.replace(HISTORY_PREFIX, ''),
-                            entries: Array.isArray(parsed) ? parsed : []
-                        });
-                    } catch (e) {
-                        console.error('Error parsing history entry:', e);
+                        // Validate parsed data
+                        if (parsed && Array.isArray(parsed)) {
+                            history.push({
+                                date: key.replace(HISTORY_PREFIX, ''),
+                                entries: parsed
+                            });
+                        }
+                    } catch (parseError) {
+                        __DEV__ && console.warn('Error parsing history entry for key:', key, parseError);
+                        // Skip corrupted entries instead of failing
                     }
                 }
             }
 
             return history.sort((a, b) => b.date.localeCompare(a.date));
         } catch (error) {
-            console.error('Error getting all history:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error('Error getting all history:', errorMessage, error);
+
+            // In production, alert user for critical failures
+            if (!__DEV__) {
+                Alert.alert(
+                    'History Load Failed',
+                    'Unable to load your history. Please try restarting the app.',
+                    [{ text: 'OK' }]
+                );
+            }
             return [];
         }
     }
@@ -159,8 +208,14 @@ class HistoryService {
             // Current streak
             let currentStreak = 0;
             const today = new Date();
+
+            // Validate date is valid
+            if (isNaN(today.getTime())) {
+                throw new Error('Invalid date');
+            }
+
             let checkDate = new Date(today);
-            
+
             // Normalize checkDate to start of day
             checkDate.setHours(0, 0, 0, 0);
 
@@ -177,11 +232,13 @@ class HistoryService {
                     currentStreak = 0;
                 } else {
                     // Start counting from yesterday
-                    while (true) {
+                    let safetyCounter = 0;
+                    while (safetyCounter < 365) { // Prevent infinite loops
                         const k = this.formatDateKey(checkDate);
                         if (history.some(h => h.date === k)) {
                             currentStreak++;
                             checkDate.setDate(checkDate.getDate() - 1);
+                            safetyCounter++;
                         } else {
                             break;
                         }
@@ -189,11 +246,13 @@ class HistoryService {
                 }
             } else {
                 // Start counting from today
-                while (true) {
+                let safetyCounter = 0;
+                while (safetyCounter < 365) { // Prevent infinite loops
                     const k = this.formatDateKey(checkDate);
                     if (history.some(h => h.date === k)) {
                         currentStreak++;
                         checkDate.setDate(checkDate.getDate() - 1);
+                        safetyCounter++;
                     } else {
                         break;
                     }
@@ -203,9 +262,11 @@ class HistoryService {
             // Mood counts
             const moodCounts: Record<string, number> = {};
             for (const day of history) {
-                for (const entry of day.entries) {
-                    if (entry.mood) {
-                        moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+                if (day.entries && Array.isArray(day.entries)) {
+                    for (const entry of day.entries) {
+                        if (entry && entry.mood) {
+                            moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+                        }
                     }
                 }
             }
@@ -216,7 +277,8 @@ class HistoryService {
                 moodCounts: moodCounts as Record<Mood, number>,
             };
         } catch (error) {
-            console.error('Error getting history stats:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error('Error getting history stats:', errorMessage, error);
             return {
                 totalDays: 0,
                 currentStreak: 0,
@@ -233,14 +295,14 @@ class HistoryService {
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - MAX_HISTORY_DAYS);
             const cutoffKey = this.formatDateKey(cutoffDate);
-            
+
             const keys = await AsyncStorage.getAllKeys();
             const historyKeys = keys.filter(key => key.startsWith(HISTORY_PREFIX));
             const oldKeys = historyKeys.filter(key => {
                 const date = key.replace(HISTORY_PREFIX, '');
                 return date < cutoffKey;
             });
-            
+
             if (oldKeys.length > 0) {
                 await AsyncStorage.multiRemove(oldKeys);
             }
