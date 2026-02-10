@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 import { STORAGE_KEYS } from '../utils/storageMigration';
 import { ExamVerse, ExamSession, ExamTiming, ExamSubject, ExamFeeling, ExamPhase, Verse } from '../types';
 import examVersesData from '../data/exam-verses.json';
@@ -144,13 +145,28 @@ class ExamService {
      */
     async saveExamSession(session: ExamSession): Promise<void> {
         try {
+            // Validate input
+            if (!session || !session.createdAt) {
+                throw new Error('Invalid exam session: missing session or createdAt');
+            }
+
             const sessions = await this.getExamHistory();
             sessions.unshift(session);
             // Keep last 50 sessions
             const trimmed = sessions.slice(0, 50);
             await AsyncStorage.setItem(EXAM_SESSIONS_KEY, JSON.stringify(trimmed));
         } catch (error) {
-            console.error('Error saving exam session:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error('Error saving exam session:', errorMessage, error);
+
+            // Alert user in production
+            if (!__DEV__) {
+                Alert.alert(
+                    'Exam Session Save Failed',
+                    'Failed to save exam session. Your exam data may not be tracked in history.',
+                    [{ text: 'OK' }]
+                );
+            }
         }
     }
 
@@ -161,9 +177,27 @@ class ExamService {
         try {
             const stored = await AsyncStorage.getItem(EXAM_SESSIONS_KEY);
             if (!stored) return [];
-            return JSON.parse(stored) as ExamSession[];
+
+            const parsed = JSON.parse(stored);
+            // Validate parsed data
+            if (!Array.isArray(parsed)) {
+                __DEV__ && console.warn('Exam history data is not an array, resetting');
+                return [];
+            }
+
+            return parsed as ExamSession[];
         } catch (error) {
-            console.error('Error loading exam history:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error('Error loading exam history:', errorMessage, error);
+
+            // Alert user in production
+            if (!__DEV__) {
+                Alert.alert(
+                    'Exam History Load Failed',
+                    'Unable to load exam history. Please try restarting the app.',
+                    [{ text: 'OK' }]
+                );
+            }
             return [];
         }
     }

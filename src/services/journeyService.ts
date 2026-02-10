@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 import { STORAGE_KEYS } from '../utils/storageMigration';
 import { JourneyDay, JourneyProgress, JourneyStatus, JourneyBadge, Verse, Hadith } from '../types';
 import journeyData from '../data/journey-30day.json';
@@ -49,9 +50,27 @@ class JourneyService {
         try {
             const stored = await AsyncStorage.getItem(JOURNEY_PROGRESS_KEY);
             if (!stored) return null;
-            return JSON.parse(stored) as JourneyProgress;
+
+            const parsed = JSON.parse(stored);
+            // Validate parsed data structure
+            if (!parsed || typeof parsed !== 'object') {
+                __DEV__ && console.warn('Journey progress data is corrupted, resetting');
+                return null;
+            }
+
+            return parsed as JourneyProgress;
         } catch (error) {
-            console.error('Error loading journey progress:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error('Error loading journey progress:', errorMessage, error);
+
+            // Alert user in production for critical journey failures
+            if (!__DEV__) {
+                Alert.alert(
+                    'Journey Progress Load Failed',
+                    'Unable to load your journey progress. Your streak and progress may not display correctly.',
+                    [{ text: 'OK' }]
+                );
+            }
             return null;
         }
     }
@@ -241,10 +260,32 @@ class JourneyService {
      * Use the one-time streak freeze
      */
     async useStreakFreeze(): Promise<void> {
-        const progress = await this.getProgress();
-        if (!progress) return;
-        progress.streakFreezeUsed = true;
-        await AsyncStorage.setItem(JOURNEY_PROGRESS_KEY, JSON.stringify(progress));
+        try {
+            const progress = await this.getProgress();
+            if (!progress) {
+                throw new Error('No journey progress found');
+            }
+
+            if (progress.streakFreezeUsed) {
+                __DEV__ && console.warn('Streak freeze already used');
+                return;
+            }
+
+            progress.streakFreezeUsed = true;
+            await AsyncStorage.setItem(JOURNEY_PROGRESS_KEY, JSON.stringify(progress));
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error('Error using streak freeze:', errorMessage, error);
+
+            // Alert user in production
+            if (!__DEV__) {
+                Alert.alert(
+                    'Streak Freeze Failed',
+                    'Unable to apply streak freeze. Please try again.',
+                    [{ text: 'OK' }]
+                );
+            }
+        }
     }
 
     /**
@@ -288,13 +329,17 @@ class JourneyService {
             const hadith = hadithService.getHadithById(journeyDay.hadithId);
 
             if (!verse || !hadith) {
-                console.error(`Missing content for journey day ${day}`);
+                __DEV__ && console.error(`Missing content for journey day ${day}`);
                 return null;
             }
 
             return { journeyDay, verse, hadith };
         } catch (error) {
-            console.error(`Error loading journey day ${day} content:`, error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            __DEV__ && console.error(`Error loading journey day ${day} content:`, errorMessage, error);
+
+            // Don't alert for content loading errors as they're less critical
+            // The UI should handle null gracefully
             return null;
         }
     }
