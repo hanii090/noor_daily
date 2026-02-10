@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { ShareBottomSheet } from './common/ShareBottomSheet';
 import type { ShareOption } from './common/ShareBottomSheet';
 import { Toast } from './common/Toast';
+import { useAppStore } from '../store/appStore';
 
 interface UnifiedGuidanceDisplayProps {
     content: Verse | Hadith;
@@ -51,6 +52,7 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
 }) => {
     const { colors: tc, isDark } = useTheme();
     const { t } = useTranslation();
+    const { addToHistory } = useAppStore();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(20)).current;
     const swipeX = useRef(new Animated.Value(0)).current;
@@ -108,11 +110,24 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
         })
     ).current;
 
+    // Auto-save to history after 5 seconds of viewing
+    useEffect(() => {
+        if (!content) return;
+
+        const timer = setTimeout(() => {
+            // Extract mood from content if available
+            const mood = (content as Verse).moods?.[0] as Mood | undefined;
+            addToHistory(content, type, mood);
+        }, 5000);
+
+        return () => clearTimeout(timer);
+    }, [content?.id, type, addToHistory]);
+
     useEffect(() => {
         fadeAnim.setValue(0);
         slideAnim.setValue(20);
         setAiInsight(null);
-        
+
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
@@ -238,10 +253,10 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
         return (
             <View style={styles.cardHeader}>
                 <View style={[styles.typeBadge, { backgroundColor: moodColor + '15' }]}>
-                    <Ionicons 
-                        name={isV ? "book" : "heart"} 
-                        size={12} 
-                        color={moodColor} 
+                    <Ionicons
+                        name={isV ? "book" : "heart"}
+                        size={12}
+                        color={moodColor}
                     />
                     <Text style={[styles.typeBadgeText, { color: moodColor }]}>
                         {isV ? t('guidance.quranic_verse') : t('guidance.prophetic_hadith')}
@@ -279,8 +294,8 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
             ]}
             {...panResponder.panHandlers}
         >
-            <ClubhouseCard 
-                backgroundColor={tc.white} 
+            <ClubhouseCard
+                backgroundColor={tc.white}
                 style={styles.card}
             >
                 <ScrollView
@@ -306,10 +321,10 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
 
                     {aiInsight && (
                         <Animated.View style={[
-                            styles.aiInsightContainer, 
-                            { 
+                            styles.aiInsightContainer,
+                            {
                                 backgroundColor: moodColor + '08',
-                                borderColor: moodColor + '20' 
+                                borderColor: moodColor + '20'
                             }
                         ]}>
                             <View style={styles.aiHeader}>
@@ -328,8 +343,8 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                         {isVerse(content) && (
                             <AudioPlayer verse={content} moodColor={moodColor} variant="compact" />
                         )}
-                        <TouchableOpacity 
-                            onPress={fetchAIInsight} 
+                        <TouchableOpacity
+                            onPress={fetchAIInsight}
                             style={[styles.circleAction, aiInsight && { backgroundColor: moodColor + '15' }]}
                             disabled={isFetchingAI}
                             accessibilityRole="button"
@@ -338,10 +353,10 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                             {isFetchingAI ? (
                                 <ActivityIndicator size="small" color={moodColor} />
                             ) : (
-                                <Ionicons 
-                                    name={aiInsight ? "sparkles" : "sparkles-outline"} 
-                                    size={22} 
-                                    color={aiInsight ? moodColor : tc.textSecondary} 
+                                <Ionicons
+                                    name={aiInsight ? "sparkles" : "sparkles-outline"}
+                                    size={22}
+                                    color={aiInsight ? moodColor : tc.textSecondary}
                                 />
                             )}
                         </TouchableOpacity>
@@ -365,8 +380,8 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
                     </View>
                 </View>
 
-                <TouchableOpacity 
-                    style={[styles.changeMoodPill, { backgroundColor: tc.backgroundSecondary, borderColor: tc.border }]} 
+                <TouchableOpacity
+                    style={[styles.changeMoodPill, { backgroundColor: tc.backgroundSecondary, borderColor: tc.border }]}
                     onPress={onChangeMood}
                     activeOpacity={0.8}
                 >
