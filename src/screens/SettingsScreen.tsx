@@ -41,7 +41,6 @@ const SettingsScreen = () => {
     const { t, i18n } = useTranslation();
     const { settings, updateSettings, favoriteVerses, favoriteHadiths, setOnboardingCompleted, clearAllFavorites } = useAppStore();
     const insets = useSafeAreaInsets();
-    const [showTimePicker, setShowTimePicker] = useState(false);
     const [showReciterModal, setShowReciterModal] = useState(false);
     const [showWidgetSetup, setShowWidgetSetup] = useState(false);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -102,45 +101,7 @@ const SettingsScreen = () => {
 
 
 
-    const handleTimeChange = async (event: any, selectedDate?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowTimePicker(false);
-        }
 
-        if (selectedDate) {
-            const hours = selectedDate.getHours().toString().padStart(2, '0');
-            const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-            const newTime = `${hours}:${minutes}`;
-
-            if (quietHoursType === 'start') {
-                await updateSettings({ quietHoursStart: newTime });
-            } else if (quietHoursType === 'end') {
-                await updateSettings({ quietHoursEnd: newTime });
-            } else {
-                await updateSettings({ notificationTime: newTime });
-            }
-
-            // Reschedule
-            if (settings.notificationsEnabled) {
-                await notificationService.scheduleRandomDailyNotifications(
-                    settings.notificationFrequency,
-                    settings.notificationContentType,
-                    {
-                        start: quietHoursType === 'start' ? newTime : settings.quietHoursStart,
-                        end: quietHoursType === 'end' ? newTime : settings.quietHoursEnd,
-                    },
-                    settings.weekendMode
-                );
-            }
-        }
-
-        // On iOS, we might want to keep it open if it's inline, but since we use it as a modal trigger, 
-        // we should close it after the user is done. For 'spinner' or 'default' on iOS, 
-        // usually we close it on 'dismiss' or after selection.
-        if (event.type === 'dismissed' || Platform.OS === 'ios') {
-            setShowTimePicker(false);
-        }
-    };
 
 
     const handleReciterSelect = async (reciter: string) => {
@@ -477,14 +438,6 @@ const SettingsScreen = () => {
                                     }
                                 />
                             </TouchableOpacity>
-                            <View style={styles.divider} />
-                            <SettingRow
-                                title={t('settings.acknowledgments')}
-                                subtitle={t('settings.acknowledgments_desc')}
-                                icon="heart"
-                                iconBg="#F4EDFA"
-                                iconColor="#AF52DE"
-                            />
                         </ClubhouseCard>
                     </View>
 
@@ -518,62 +471,7 @@ const SettingsScreen = () => {
                     {/* Version */}
                     <Text style={[styles.version, { color: tc.textTertiary }]}>Version {Constants.expoConfig?.version || '1.0.0'}</Text>
 
-                    {/* Date Picker - wrapped in Modal on iOS */}
-                    {showTimePicker && Platform.OS === 'ios' && (
-                        <Modal
-                            visible={showTimePicker}
-                            transparent={true}
-                            animationType="slide"
-                            onRequestClose={() => setShowTimePicker(false)}
-                        >
-                            <View style={styles.modalOverlay}>
-                                <View style={[styles.modalContent, { backgroundColor: tc.white }]}>
-                                    <View style={styles.modalHeader}>
-                                        <Text style={[styles.modalTitle, { color: tc.text }]}>Set Time</Text>
-                                        <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                                            <Ionicons name="close" size={24} color={tc.text} />
-                                        </TouchableOpacity>
-                                    </View>
-                                    <DateTimePicker
-                                        value={(() => {
-                                            const timeStr = quietHoursType === 'start'
-                                                ? settings.quietHoursStart
-                                                : quietHoursType === 'end'
-                                                    ? settings.quietHoursEnd
-                                                    : settings.notificationTime;
-                                            const [h, m] = timeStr.split(':').map(Number);
-                                            const d = new Date();
-                                            d.setHours(h, m, 0, 0);
-                                            return d;
-                                        })()}
-                                        mode="time"
-                                        is24Hour={false}
-                                        display="spinner"
-                                        onChange={handleTimeChange}
-                                    />
-                                </View>
-                            </View>
-                        </Modal>
-                    )}
-                    {showTimePicker && Platform.OS === 'android' && (
-                        <DateTimePicker
-                            value={(() => {
-                                const timeStr = quietHoursType === 'start'
-                                    ? settings.quietHoursStart
-                                    : quietHoursType === 'end'
-                                        ? settings.quietHoursEnd
-                                        : settings.notificationTime;
-                                const [h, m] = timeStr.split(':').map(Number);
-                                const d = new Date();
-                                d.setHours(h, m, 0, 0);
-                                return d;
-                            })()}
-                            mode="time"
-                            is24Hour={false}
-                            display="default"
-                            onChange={handleTimeChange}
-                        />
-                    )}
+
 
                     {/* Reciter Modal */}
                     <Modal
