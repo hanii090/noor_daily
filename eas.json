@@ -18,7 +18,7 @@
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./gen-lang-client-0773000137-7580f6c1027f.json",
+        "serviceAccountKeyPath": "./play-store-credentials.json",
         "track": "production",
         "releaseStatus": "draft"
       }
