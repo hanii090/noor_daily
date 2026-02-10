@@ -24,13 +24,20 @@ import notificationHandler from './src/services/notificationHandler';
 import notificationService from './src/services/notificationService';
 
 // MUST be set at module level (outside component) so it runs before any notification arrives
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+} catch (error) {
+  console.error('Failed to set notification handler:', error);
+  // App will continue to work without notifications
+}
 import verseService from './src/services/verseService';
 import { runStorageMigration } from './src/utils/storageMigration';
 import './src/i18n/config'; // Initialize i18n
@@ -39,7 +46,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const { colors } = useTheme();
   const { loadOnboardingStatus, loadFavorites, loadSettings, loadHistory, loadDailyInspiration, settings } = useAppStore();
-  
+
   // Load custom fonts
   const [fontsLoaded] = useFonts({
     Amiri_400Regular,

@@ -46,7 +46,8 @@
           "sounds": []
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker"
     ],
     "notification": {
       "icon": "./assets/icon.png",
@@ -57,7 +58,8 @@
       "eas": {
         "projectId": "c2c6ebae-dcf3-4631-a6cd-5164956ee2e0"
       },
-      "aiProxyUrl": "https://us-central1-noor-fd44d.cloudfunctions.net/aiProxy"
+      "aiProxyUrl": "https://us-central1-noor-fd44d.cloudfunctions.net/aiProxy",
+      "togetherApiKey": "742f5397e7a1a274205a5faf598a9b44e170ed16f68ac01d679e1f3b20988499"
     }
   }
 }

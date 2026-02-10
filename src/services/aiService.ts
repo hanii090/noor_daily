@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 import { GuidanceContent, ContentType, Mood } from '../types';
 import cacheService from './cacheService';
 
@@ -7,17 +8,18 @@ const DEFAULT_MODEL = 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo';
 
 /**
  * Make an AI chat completion request via Together AI directly.
- * Requires EXPO_PUBLIC_TOGETHER_API_KEY in .env
+ * API key is loaded from app.json extra config in production
  */
 const aiChat = async (
     messages: { role: string; content: string }[],
     maxTokens = 250,
     temperature = 0.7,
 ): Promise<string> => {
-    const apiKey = process.env.EXPO_PUBLIC_TOGETHER_API_KEY;
+    // In production, use Constants.expoConfig.extra instead of process.env
+    const apiKey = Constants.expoConfig?.extra?.togetherApiKey || process.env.EXPO_PUBLIC_TOGETHER_API_KEY;
 
     if (!apiKey || apiKey.includes('YOUR_')) {
-        throw new Error('Set EXPO_PUBLIC_TOGETHER_API_KEY in .env');
+        throw new Error('Together AI API key not configured');
     }
 
     try {
@@ -52,7 +54,7 @@ class AIService {
         if (cached) return cached;
 
         try {
-            const prompt = type === 'verse' 
+            const prompt = type === 'verse'
                 ? `Provide a brief, spiritually uplifting insight and practical application for this Quranic verse: "${content.english}". Keep it under 100 words.`
                 : `Provide a brief, spiritually uplifting insight and practical application for this Hadith: "${content.english}". Keep it under 100 words.`;
 
