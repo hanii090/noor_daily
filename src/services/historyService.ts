@@ -51,6 +51,7 @@ class HistoryService {
                 date: dateKey,
                 content_id: content.id,
                 content_type: type,
+                content_data: content, // Store full content for display
                 mood: mood || null,
                 timestamp: new Date().toISOString(),
             };
@@ -129,10 +130,9 @@ class HistoryService {
                 return [];
             }
 
-            // Convert to HistoryEntry format
-            // Note: We only have content IDs, actual content should be fetched separately
+            // Convert to HistoryEntry format with full content from content_data
             const entries: HistoryEntry[] = data.map(row => ({
-                content: { id: row.content_id } as GuidanceContent, // Minimal content
+                content: row.content_data || { id: row.content_id } as GuidanceContent,
                 type: row.content_type as ContentType,
                 mood: row.mood as Mood | undefined,
                 timestamp: new Date(row.timestamp).getTime(),
@@ -176,7 +176,7 @@ class HistoryService {
                 }
 
                 grouped.get(row.date)!.push({
-                    content: { id: row.content_id } as GuidanceContent,
+                    content: row.content_data || { id: row.content_id } as GuidanceContent,
                     type: row.content_type as ContentType,
                     mood: row.mood as Mood | undefined,
                     timestamp: new Date(row.timestamp).getTime(),

@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS history_entries (
   date DATE NOT NULL,
   content_id TEXT NOT NULL,
   content_type TEXT NOT NULL CHECK (content_type IN ('verse', 'hadith', 'name_of_allah', 'dua')),
-  mood TEXT CHECK (mood IN ('grateful', 'seeking_peace', 'anxious', 'joyful', 'reflective', 'struggling')),
+  content_data JSONB, -- Store essential content (text, translation) for display
+  mood TEXT CHECK (mood IN ('grateful', 'peace', 'strength', 'guidance', 'celebrating', 'anxious', 'sad', 'hopeful')),
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   
