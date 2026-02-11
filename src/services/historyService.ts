@@ -4,6 +4,8 @@ import { supabase } from '../config/supabase';
 import userIdentityService from './userIdentityService';
 import offlineQueueService from './offlineQueueService';
 import { Verse, Hadith, Mood, ContentType, GuidanceContent } from '../types';
+import logger from '../utils/logger';
+import metricsService from '../utils/metrics';
 
 export interface HistoryDay {
     date: string; // YYYY-MM-DD
@@ -27,6 +29,7 @@ class HistoryService {
      * Uses Supabase for persistence with offline queue fallback
      */
     async saveToHistory(content: GuidanceContent, type: ContentType, date: Date, mood?: Mood): Promise<void> {
+        const startTime = Date.now();
         try {
             // Validate inputs
             if (!content || !content.id) {
@@ -34,16 +37,14 @@ class HistoryService {
             }
 
             const dateKey = this.formatDateKey(date);
-
-            __DEV__ && console.log('[HistoryService] Saving to cloud:', {
-                dateKey,
-                contentId: content.id,
-                type,
-                mood,
-            });
-
-            // Get user ID
             const userId = await userIdentityService.getUserId();
+
+            logger.debug('Saving to history', {
+                service: 'historyService',
+                action: 'saveToHistory',
+                userId,
+                metadata: { dateKey, contentId: content.id, type, mood }
+            });
 
             // Prepare data for Supabase
             const historyData = {
@@ -71,10 +72,21 @@ class HistoryService {
                     throw error;
                 }
 
-                __DEV__ && console.log('[HistoryService] Saved to cloud successfully');
+                logger.info('History saved successfully', {
+                    service: 'historyService',
+                    action: 'saveToHistory',
+                    userId,
+                    metadata: { contentType: type }
+                });
             } catch (supabaseError) {
                 // If offline or error, queue the operation
-                console.warn('[HistoryService] Cloud save failed, queuing:', supabaseError);
+                logger.warn('Cloud save failed, queuing', {
+                    service: 'historyService',
+                    action: 'saveToHistory',
+                    userId,
+                    metadata: { error: supabaseError instanceof Error ? supabaseError.message : 'Unknown' }
+                });
+
                 await offlineQueueService.enqueue({
                     type: 'history_save',
                     data: historyData,
@@ -84,9 +96,22 @@ class HistoryService {
             // Also save to local cache (last 7 days)
             await this.saveToCacheAsync(dateKey, content, type, mood);
 
+            // Track performance
+            await metricsService.trackPerformance('history.save', startTime, { type, mood });
+
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[HistoryService] Save failed:', errorMessage);
+            const userId = await userIdentityService.getUserId().catch(() => 'unknown');
+
+            logger.error('History save failed', {
+                service: 'historyService',
+                action: 'saveToHistory',
+                userId,
+                metadata: { error: errorMessage }
+            });
+
+            // Track failed operation
+            await metricsService.trackPerformance('history.save', startTime, { error: errorMessage });
 
             // Alert user
             Alert.alert(
@@ -255,84 +280,90 @@ class HistoryService {
 
     /**
      * Get history statistics
+     * Uses database function for efficient server-side calculation
      */
     async getHistoryStats(): Promise<{
         totalDays: number;
         currentStreak: number;
         moodCounts: Record<Mood, number>;
     }> {
+        const startTime = Date.now();
         try {
             const userId = await userIdentityService.getUserId();
 
-            // Get all unique dates
-            const { data: dates, error: datesError } = await supabase
-                .from('history_entries')
-                .select('date')
-                .eq('user_id', userId)
-                .order('date', { ascending: false });
+            // Use database function for streak calculation (much faster!)
+            const { data: streakData, error: streakError } = await supabase
+                .rpc('get_user_streak', { p_user_id: userId });
 
-            if (datesError) throw datesError;
-
-            const uniqueDates = Array.from(new Set(dates?.map(d => d.date) || [])).sort().reverse();
-            const totalDays = uniqueDates.length;
-
-            if (totalDays === 0) {
-                return { totalDays: 0, currentStreak: 0, moodCounts: {} as Record<Mood, number> };
+            if (streakError) {
+                logger.error('Failed to get streak stats', {
+                    service: 'historyService',
+                    action: 'getHistoryStats',
+                    userId,
+                    metadata: { error: streakError.message }
+                });
+                throw streakError;
             }
 
-            // Calculate current streak
-            let currentStreak = 0;
-            const today = new Date();
-            let checkDate = new Date(today);
-            checkDate.setHours(0, 0, 0, 0);
+            // Use database function for mood statistics
+            const { data: moodData, error: moodError } = await supabase
+                .rpc('get_mood_statistics', { p_user_id: userId });
 
-            let hasToday = uniqueDates.includes(this.formatDateKey(checkDate));
-
-            if (!hasToday) {
-                checkDate.setDate(checkDate.getDate() - 1);
-                const hasYesterday = uniqueDates.includes(this.formatDateKey(checkDate));
-                if (!hasYesterday) {
-                    currentStreak = 0;
-                } else {
-                    while (uniqueDates.includes(this.formatDateKey(checkDate))) {
-                        currentStreak++;
-                        checkDate.setDate(checkDate.getDate() - 1);
-                    }
-                }
-            } else {
-                while (uniqueDates.includes(this.formatDateKey(checkDate))) {
-                    currentStreak++;
-                    checkDate.setDate(checkDate.getDate() - 1);
-                }
+            if (moodError) {
+                logger.warn('Failed to get mood stats', {
+                    service: 'historyService',
+                    action: 'getHistoryStats',
+                    userId,
+                    metadata: { error: moodError.message }
+                });
             }
 
-            // Get mood counts
-            const { data: moods, error: moodsError } = await supabase
-                .from('history_entries')
-                .select('mood')
-                .eq('user_id', userId)
-                .not('mood', 'is', null);
+            // Convert mood data to Record format
+            const moodCounts: Record<Mood, number> = {} as Record<Mood, number>;
+            if (moodData) {
+                moodData.forEach((item: { mood: Mood; count: string }) => {
+                    moodCounts[item.mood] = parseInt(item.count, 10);
+                });
+            }
 
-            if (moodsError) throw moodsError;
+            const stats = streakData[0] || { current_streak: 0, longest_streak: 0, total_days: 0 };
 
-            const moodCounts: Record<string, number> = {};
-            moods?.forEach(row => {
-                if (row.mood) {
-                    moodCounts[row.mood] = (moodCounts[row.mood] || 0) + 1;
+            logger.debug('Stats calculated', {
+                service: 'historyService',
+                action: 'getHistoryStats',
+                userId,
+                metadata: {
+                    totalDays: stats.total_days,
+                    currentStreak: stats.current_streak,
+                    moodCount: Object.keys(moodCounts).length
                 }
             });
 
+            // Track performance
+            await metricsService.trackPerformance('history.getStats', startTime);
+
             return {
-                totalDays,
-                currentStreak,
-                moodCounts: moodCounts as Record<Mood, number>,
+                totalDays: stats.total_days,
+                currentStreak: stats.current_streak,
+                moodCounts
             };
         } catch (error) {
-            console.error('[HistoryService] Get stats failed:', error);
+            const userId = await userIdentityService.getUserId().catch(() => 'unknown');
+            logger.error('Get stats failed', {
+                service: 'historyService',
+                action: 'getHistoryStats',
+                userId,
+                metadata: { error: error instanceof Error ? error.message : 'Unknown' }
+            });
+
+            await metricsService.trackPerformance('history.getStats', startTime, {
+                error: error instanceof Error ? error.message : 'Unknown'
+            });
+
             return {
                 totalDays: 0,
                 currentStreak: 0,
-                moodCounts: {} as Record<Mood, number>,
+                moodCounts: {} as Record<Mood, number>
             };
         }
     }
