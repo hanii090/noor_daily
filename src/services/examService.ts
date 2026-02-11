@@ -5,6 +5,8 @@ import offlineQueueService from './offlineQueueService';
 import { ExamVerse, ExamSession, ExamTiming, ExamSubject, ExamFeeling, ExamPhase, Verse } from '../types';
 import examVersesData from '../data/exam-verses.json';
 import verseService from './verseService';
+import logger from '../utils/logger';
+import metricsService from '../utils/metrics';
 
 // Feeling → category weight mapping for smart matching
 const FEELING_WEIGHTS: Record<ExamFeeling, Record<string, number>> = {
@@ -143,16 +145,25 @@ class ExamService {
      * Save an exam session to Supabase
      */
     async saveExamSession(session: ExamSession): Promise<void> {
+        const startTime = Date.now();
         try {
             // Validate input
             if (!session || !session.createdAt) {
                 throw new Error('Invalid exam session: missing session or createdAt');
             }
 
-            __DEV__ && console.log('[ExamService] Saving session to cloud');
-
-            // Get user ID
             const userId = await userIdentityService.getUserId();
+
+            logger.debug('Saving exam session', {
+                service: 'examService',
+                action: 'saveExamSession',
+                userId,
+                metadata: {
+                    timing: session.timing,
+                    subject: session.subject,
+                    feeling: session.feeling
+                }
+            });
 
             // Prepare data for Supabase
             const sessionData = {
@@ -172,21 +183,56 @@ class ExamService {
                     .insert(sessionData);
 
                 if (error) {
+                    // Check duplicate
+                    if (error.code === '23505') {
+                        logger.info('Exam session already exists', {
+                            service: 'examService',
+                            action: 'saveExamSession',
+                            userId
+                        });
+                        return;
+                    }
                     throw error;
                 }
 
-                __DEV__ && console.log('[ExamService] Session saved to cloud');
+                logger.info('Exam session saved successfully', {
+                    service: 'examService',
+                    action: 'saveExamSession',
+                    userId
+                });
             } catch (supabaseError) {
                 // If offline or error, queue the operation
-                console.warn('[ExamService] Cloud save failed, queuing:', supabaseError);
+                logger.warn('Cloud save failed, queuing', {
+                    service: 'examService',
+                    action: 'saveExamSession',
+                    userId,
+                    metadata: { error: supabaseError instanceof Error ? supabaseError.message : 'Unknown' }
+                });
+
                 await offlineQueueService.enqueue({
                     type: 'exam_save',
                     data: sessionData,
                 });
             }
+
+            // Track performance
+            await metricsService.trackPerformance('exam.save', startTime, {
+                feeling: session.feeling
+            });
+
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[ExamService] Save session failed:', errorMessage);
+            const userId = await userIdentityService.getUserId().catch(() => 'unknown');
+
+            logger.error('Save session failed', {
+                service: 'examService',
+                action: 'saveExamSession',
+                userId,
+                metadata: { error: errorMessage }
+            });
+
+            // Track failure
+            await metricsService.trackPerformance('exam.save', startTime, { error: errorMessage });
 
             Alert.alert(
                 'Exam Session Save',
@@ -200,6 +246,7 @@ class ExamService {
      * Get exam session history from Supabase
      */
     async getExamHistory(): Promise<ExamSession[]> {
+        const startTime = Date.now();
         try {
             const userId = await userIdentityService.getUserId();
 
@@ -213,6 +260,11 @@ class ExamService {
             if (error) {
                 throw error;
             }
+
+            // Track performance
+            await metricsService.trackPerformance('exam.getHistory', startTime, {
+                count: data?.length || 0
+            });
 
             if (!data || data.length === 0) {
                 return [];
@@ -231,7 +283,17 @@ class ExamService {
             return sessions;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[ExamService] Get history failed:', errorMessage);
+            const userId = await userIdentityService.getUserId().catch(() => 'unknown');
+
+            logger.error('Get exam history failed', {
+                service: 'examService',
+                action: 'getExamHistory',
+                userId,
+                metadata: { error: errorMessage }
+            });
+
+            // Track failure
+            await metricsService.trackPerformance('exam.getHistory', startTime, { error: errorMessage });
 
             Alert.alert(
                 'Exam History Load Error',

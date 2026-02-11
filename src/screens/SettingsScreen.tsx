@@ -27,6 +27,7 @@ import { useAppStore } from '../store/appStore';
 import * as Notifications from 'expo-notifications';
 import notificationService from '../services/notificationService';
 import audioService, { Reciter } from '../services/audioService';
+import dataService from '../services/dataService';
 import WidgetSetupScreen from './WidgetSetupScreen';
 
 const LANGUAGES = [
@@ -462,6 +463,19 @@ const SettingsScreen = () => {
                                     icon="refresh"
                                     iconBg="#FFE9E7"
                                     iconColor={tc.coral}
+                                />
+                            </TouchableOpacity>
+                            <View style={styles.divider} />
+                            <TouchableOpacity onPress={() => dataService.exportUserData()}>
+                                <SettingRow
+                                    title="Export My Data"
+                                    titleColor={tc.text}
+                                    icon="download"
+                                    iconBg="#E3F2FF"
+                                    iconColor="#007AFF"
+                                    rightComponent={
+                                        <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
+                                    }
                                 />
                             </TouchableOpacity>
                         </ClubhouseCard>

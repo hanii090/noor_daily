@@ -8,6 +8,9 @@ import hadithService from '../services/hadithService';
 import aiService from '../services/aiService';
 import journeyService from '../services/journeyService';
 import i18n from '../i18n/config';
+import offlineQueueService from '../services/offlineQueueService';
+import userIdentityService from '../services/userIdentityService';
+import { supabase } from '../config/supabase';
 
 interface AppStore {
     // State
@@ -169,7 +172,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         try {
             const storedVerses = await AsyncStorage.getItem(STORAGE_KEYS.FAVORITES);
             const storedHadiths = await AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_HADITHS);
-            
+
             if (storedVerses) {
                 set({ favoriteVerses: JSON.parse(storedVerses) });
             }
@@ -217,14 +220,38 @@ export const useAppStore = create<AppStore>((set, get) => ({
         const { settings } = get();
         const updated = { ...settings, ...newSettings };
         set({ settings: updated });
-        
+
         // Sync language with i18n
         if (newSettings.language && newSettings.language !== settings.language) {
             i18n.changeLanguage(newSettings.language);
         }
-        
+
         try {
             await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+
+            // Sync to cloud if user is authenticated (which they always should be via anonymous auth)
+            const userId = await userIdentityService.getUserId();
+            const { error } = await supabase
+                .from('user_preferences')
+                .upsert({
+                    user_id: userId,
+                    settings: updated,
+                    push_token: updated.pushToken || null,
+                    updated_at: new Date().toISOString()
+                });
+
+            if (error) {
+                // Queue for offline sync
+                await offlineQueueService.enqueue({
+                    type: 'preferences_save',
+                    data: {
+                        user_id: userId,
+                        settings: updated,
+                        push_token: updated.pushToken || null,
+                        updated_at: new Date().toISOString()
+                    }
+                });
+            }
         } catch (error) {
             console.error('Error updating settings:', error);
         }
@@ -239,7 +266,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
                 const { settings: defaults } = get();
                 const merged = { ...defaults, ...parsed };
                 set({ settings: merged });
-                
+
                 // Initialize i18n language
                 if (merged.language) {
                     i18n.changeLanguage(merged.language);
@@ -286,7 +313,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
             // Randomly pick verse or hadith for daily inspiration
             const type: ContentType = Math.random() > 0.5 ? 'verse' : 'hadith';
             let content: GuidanceContent;
-            
+
             if (type === 'verse') {
                 content = await verseService.getDailyVerse();
             } else {

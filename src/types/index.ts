@@ -13,17 +13,17 @@ export interface Verse {
 }
 
 export interface Hadith {
-  id: string;
-  arabic: string;
-  english: string;
-  narrator: string;
-  reference: string;
-  collection: string;
-  bookNumber: number;
-  moods: Mood[];
-  themes: string[];
-  authenticity: 'sahih' | 'hasan' | 'daif';
-  savedAt?: number;
+    id: string;
+    arabic: string;
+    english: string;
+    narrator: string;
+    reference: string;
+    collection: string;
+    bookNumber: number;
+    moods: Mood[];
+    themes: string[];
+    authenticity: 'sahih' | 'hasan' | 'daif';
+    savedAt?: number;
 }
 
 export type ContentType = 'verse' | 'hadith' | 'name';
@@ -42,6 +42,7 @@ export interface AppSettings {
     quietHoursEnd: string; // "HH:mm" format
     weekendMode: boolean;
     userName: string;
+    pushToken?: string;
 }
 
 export type VerseCardTemplate = 'minimal' | 'vibrant' | 'classic';

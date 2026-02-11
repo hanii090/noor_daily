@@ -7,6 +7,8 @@ import namesOfAllahService from './namesOfAllahService';
 import reminderApiService from './reminderApiService';
 import notificationTracker from './notificationTracker';
 import analyticsService from './analyticsService';
+import { useAppStore } from '../store/appStore';
+import Constants from 'expo-constants';
 
 // Notification title variations
 const VERSE_TITLES = [
@@ -98,6 +100,22 @@ class NotificationService {
                 ]);
             }
 
+            // Get Push Token if granted
+            try {
+                const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.expoConfig?.slug;
+                const token = await Notifications.getExpoPushTokenAsync({
+                    projectId,
+                });
+
+                // Save token to store (which syncs to Supabase)
+                useAppStore.getState().updateSettings({ pushToken: token.data });
+
+                console.log('[NotificationService] Push token saved:', token.data.substring(0, 10) + '...');
+            } catch (error) {
+                console.error('Error getting push token:', error);
+                // Don't fail the permission request if token fetch fails, just log it
+            }
+
             return true;
         } catch (error) {
             console.error('Error requesting notification permissions:', error);
@@ -128,7 +146,7 @@ class NotificationService {
      * Now schedules for 14 days (was 7) and preserves journey notifications.
      */
     async scheduleRandomDailyNotifications(
-        frequency: number = 3, 
+        frequency: number = 3,
         contentType: 'verse' | 'hadith' | 'both' = 'both',
         quietHours?: QuietHours,
         isWeekend: boolean = false
@@ -154,7 +172,7 @@ class NotificationService {
             for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
                 const date = new Date();
                 date.setDate(date.getDate() + dayOffset);
-                
+
                 const isDayWeekend = date.getDay() === 0 || date.getDay() === 6;
                 const actualFrequency = (isWeekend && isDayWeekend) ? Math.max(1, safeFrequency - 1) : safeFrequency;
 
@@ -169,7 +187,7 @@ class NotificationService {
                 for (let wi = 0; wi < selectedWindows.length; wi++) {
                     const window = selectedWindows[wi];
                     const triggerTime = this.generateRandomTimeInWindow(
-                        window.start[0], window.start[1], 
+                        window.start[0], window.start[1],
                         window.end[0], window.end[1],
                         date
                     );
@@ -291,7 +309,7 @@ class NotificationService {
         const startTotalMin = startH * 60 + startM;
         const endTotalMin = endH * 60 + endM;
         const randomTotalMin = startTotalMin + Math.floor(Math.random() * (endTotalMin - startTotalMin));
-        
+
         date.setHours(Math.floor(randomTotalMin / 60));
         date.setMinutes(randomTotalMin % 60);
         date.setSeconds(0);
@@ -304,12 +322,12 @@ class NotificationService {
      */
     private isTimeInQuietHours(time: Date, quietHours: QuietHours): boolean {
         if (!quietHours.start || !quietHours.end) return false;
-        
+
         const [startH, startM] = quietHours.start.split(':').map(Number);
         const [endH, endM] = quietHours.end.split(':').map(Number);
-        
+
         if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return false;
-        
+
         const currentMin = time.getHours() * 60 + time.getMinutes();
         const startMin = startH * 60 + startM;
         const endMin = endH * 60 + endM;
