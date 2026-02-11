@@ -31,6 +31,15 @@ class HistoryService {
 
             const dateKey = this.formatDateKey(date);
             const storageKey = `${HISTORY_PREFIX}${dateKey}`;
+
+            // Enhanced logging: Track the save attempt
+            __DEV__ && console.log('[HistoryService] Attempting to save:', {
+                dateKey,
+                contentId: content.id,
+                type,
+                mood,
+            });
+
             const existingData = await AsyncStorage.getItem(storageKey);
 
             let entries: HistoryEntry[] = [];
@@ -38,15 +47,18 @@ class HistoryService {
                 try {
                     const parsed = JSON.parse(existingData);
                     entries = Array.isArray(parsed) ? parsed : [];
+                    __DEV__ && console.log('[HistoryService] Existing entries count:', entries.length);
                 } catch (parseError) {
                     // Corrupted data - start fresh but log the issue
-                    __DEV__ && console.warn('Corrupted history data, resetting for date:', dateKey);
+                    const parseErrorMsg = parseError instanceof Error ? parseError.message : 'Unknown parse error';
+                    console.warn('[HistoryService] Corrupted history data, resetting for date:', dateKey, parseErrorMsg);
                     entries = [];
                 }
             }
 
             // Check if this specific content is already in today's history
             if (entries.some(e => e.content?.id === content.id)) {
+                __DEV__ && console.log('[HistoryService] Content already saved, skipping');
                 return;
             }
 
@@ -59,10 +71,36 @@ class HistoryService {
 
             entries.push(newEntry);
 
-            await AsyncStorage.setItem(
-                storageKey,
-                JSON.stringify(entries)
-            );
+            // Enhanced logging: Try to serialize before saving
+            let serializedData: string;
+            try {
+                serializedData = JSON.stringify(entries);
+                const dataSize = new Blob([serializedData]).size;
+                __DEV__ && console.log('[HistoryService] Serialized data size:', dataSize, 'bytes');
+
+                // Warn if data is getting large (>100KB)
+                if (dataSize > 100000) {
+                    console.warn('[HistoryService] Large history data detected:', dataSize, 'bytes');
+                }
+            } catch (serializeError) {
+                const serializeErrorMsg = serializeError instanceof Error ? serializeError.message : 'Unknown serialization error';
+                console.error('[HistoryService] JSON serialization failed:', serializeErrorMsg);
+                throw new Error(`Failed to serialize history data: ${serializeErrorMsg}`);
+            }
+
+            // Enhanced logging: Attempt AsyncStorage save with detailed error capture
+            try {
+                await AsyncStorage.setItem(storageKey, serializedData);
+                __DEV__ && console.log('[HistoryService] Successfully saved to AsyncStorage');
+            } catch (storageError) {
+                const storageErrorMsg = storageError instanceof Error ? storageError.message : 'Unknown storage error';
+                console.error('[HistoryService] AsyncStorage.setItem failed:', {
+                    error: storageErrorMsg,
+                    key: storageKey,
+                    dataSize: serializedData.length,
+                });
+                throw new Error(`AsyncStorage save failed: ${storageErrorMsg}`);
+            }
 
             // Prune old history periodically (1% chance each save)
             if (Math.random() < 0.01) {
@@ -71,15 +109,30 @@ class HistoryService {
                 });
             }
         } catch (error) {
-            // Production-safe error logging
+            // Enhanced error logging with full details
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            __DEV__ && console.error('Error saving to history:', errorMessage, error);
+            const errorStack = error instanceof Error ? error.stack : undefined;
+
+            console.error('[HistoryService] SAVE FAILED:', {
+                error: errorMessage,
+                stack: errorStack,
+                contentId: content?.id,
+                type,
+                mood,
+            });
 
             // Alert user in production for critical failures
             if (!__DEV__) {
                 Alert.alert(
                     'History Save Failed',
-                    'Failed to save to history. Your progress is still tracked, but history may not reflect recent activity.',
+                    `Failed to save to history. Your progress is still tracked, but history may not reflect recent activity.\n\nError: ${errorMessage}`,
+                    [{ text: 'OK' }]
+                );
+            } else {
+                // In development, also show alert with detailed error
+                Alert.alert(
+                    'History Save Failed (DEV)',
+                    `Error: ${errorMessage}\n\nCheck console for details.`,
                     [{ text: 'OK' }]
                 );
             }
