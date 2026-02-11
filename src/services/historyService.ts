@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
-import { STORAGE_KEYS } from '../utils/storageMigration';
+import { supabase } from '../config/supabase';
+import userIdentityService from './userIdentityService';
+import offlineQueueService from './offlineQueueService';
 import { Verse, Hadith, Mood, ContentType, GuidanceContent } from '../types';
 
 export interface HistoryDay {
@@ -15,12 +17,14 @@ export interface HistoryEntry {
     timestamp: number;
 }
 
-const HISTORY_PREFIX = STORAGE_KEYS.HISTORY_PREFIX;
-const MAX_HISTORY_DAYS = 90;
+// Local cache keys
+const CACHE_PREFIX = '@noor_history_cache_';
+const CACHE_DAYS = 7; // Keep 7 days in local cache
 
 class HistoryService {
     /**
-     * Save content to history for a specific date
+     * Save content to history
+     * Uses Supabase for persistence with offline queue fallback
      */
     async saveToHistory(content: GuidanceContent, type: ContentType, date: Date, mood?: Mood): Promise<void> {
         try {
@@ -30,128 +34,113 @@ class HistoryService {
             }
 
             const dateKey = this.formatDateKey(date);
-            const storageKey = `${HISTORY_PREFIX}${dateKey}`;
 
-            // Enhanced logging: Track the save attempt
-            __DEV__ && console.log('[HistoryService] Attempting to save:', {
+            __DEV__ && console.log('[HistoryService] Saving to cloud:', {
                 dateKey,
                 contentId: content.id,
                 type,
                 mood,
             });
 
-            const existingData = await AsyncStorage.getItem(storageKey);
+            // Get user ID
+            const userId = await userIdentityService.getUserId();
 
-            let entries: HistoryEntry[] = [];
-            if (existingData) {
-                try {
-                    const parsed = JSON.parse(existingData);
-                    entries = Array.isArray(parsed) ? parsed : [];
-                    __DEV__ && console.log('[HistoryService] Existing entries count:', entries.length);
-                } catch (parseError) {
-                    // Corrupted data - start fresh but log the issue
-                    const parseErrorMsg = parseError instanceof Error ? parseError.message : 'Unknown parse error';
-                    console.warn('[HistoryService] Corrupted history data, resetting for date:', dateKey, parseErrorMsg);
-                    entries = [];
-                }
-            }
-
-            // Check if this specific content is already in today's history
-            if (entries.some(e => e.content?.id === content.id)) {
-                __DEV__ && console.log('[HistoryService] Content already saved, skipping');
-                return;
-            }
-
-            const newEntry: HistoryEntry = {
-                content,
-                type,
-                mood,
-                timestamp: Date.now(),
+            // Prepare data for Supabase
+            const historyData = {
+                user_id: userId,
+                date: dateKey,
+                content_id: content.id,
+                content_type: type,
+                mood: mood || null,
+                timestamp: new Date().toISOString(),
             };
 
-            entries.push(newEntry);
-
-            // Enhanced logging: Try to serialize before saving
-            let serializedData: string;
+            // Try to save to Supabase
             try {
-                serializedData = JSON.stringify(entries);
-                const dataSize = new Blob([serializedData]).size;
-                __DEV__ && console.log('[HistoryService] Serialized data size:', dataSize, 'bytes');
+                const { error } = await supabase
+                    .from('history_entries')
+                    .insert(historyData);
 
-                // Warn if data is getting large (>100KB)
-                if (dataSize > 100000) {
-                    console.warn('[HistoryService] Large history data detected:', dataSize, 'bytes');
+                if (error) {
+                    // Check if it's a duplicate (unique constraint violation)
+                    if (error.code === '23505') {
+                        __DEV__ && console.log('[HistoryService] Entry already exists');
+                        return;
+                    }
+                    throw error;
                 }
-            } catch (serializeError) {
-                const serializeErrorMsg = serializeError instanceof Error ? serializeError.message : 'Unknown serialization error';
-                console.error('[HistoryService] JSON serialization failed:', serializeErrorMsg);
-                throw new Error(`Failed to serialize history data: ${serializeErrorMsg}`);
-            }
 
-            // Enhanced logging: Attempt AsyncStorage save with detailed error capture
-            try {
-                await AsyncStorage.setItem(storageKey, serializedData);
-                __DEV__ && console.log('[HistoryService] Successfully saved to AsyncStorage');
-            } catch (storageError) {
-                const storageErrorMsg = storageError instanceof Error ? storageError.message : 'Unknown storage error';
-                console.error('[HistoryService] AsyncStorage.setItem failed:', {
-                    error: storageErrorMsg,
-                    key: storageKey,
-                    dataSize: serializedData.length,
-                });
-                throw new Error(`AsyncStorage save failed: ${storageErrorMsg}`);
-            }
-
-            // Prune old history periodically (1% chance each save)
-            if (Math.random() < 0.01) {
-                this.pruneOldHistory().catch(err => {
-                    __DEV__ && console.error('Error pruning history:', err);
+                __DEV__ && console.log('[HistoryService] Saved to cloud successfully');
+            } catch (supabaseError) {
+                // If offline or error, queue the operation
+                console.warn('[HistoryService] Cloud save failed, queuing:', supabaseError);
+                await offlineQueueService.enqueue({
+                    type: 'history_save',
+                    data: historyData,
                 });
             }
+
+            // Also save to local cache (last 7 days)
+            await this.saveToCacheAsync(dateKey, content, type, mood);
+
         } catch (error) {
-            // Enhanced error logging with full details
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            const errorStack = error instanceof Error ? error.stack : undefined;
+            console.error('[HistoryService] Save failed:', errorMessage);
 
-            console.error('[HistoryService] SAVE FAILED:', {
-                error: errorMessage,
-                stack: errorStack,
-                contentId: content?.id,
-                type,
-                mood,
-            });
-
-            // Alert user in production for critical failures
-            if (!__DEV__) {
-                Alert.alert(
-                    'History Save Failed',
-                    `Failed to save to history. Your progress is still tracked, but history may not reflect recent activity.\n\nError: ${errorMessage}`,
-                    [{ text: 'OK' }]
-                );
-            } else {
-                // In development, also show alert with detailed error
-                Alert.alert(
-                    'History Save Failed (DEV)',
-                    `Error: ${errorMessage}\n\nCheck console for details.`,
-                    [{ text: 'OK' }]
-                );
-            }
+            // Alert user
+            Alert.alert(
+                'History Save Error',
+                'Failed to save to history. The entry will be synced when you\'re back online.',
+                [{ text: 'OK' }]
+            );
         }
     }
 
     /**
      * Get history for a specific date
+     * Tries cache first, then Supabase
      */
     async getHistoryForDate(date: Date): Promise<HistoryEntry[]> {
         try {
             const dateKey = this.formatDateKey(date);
-            const data = await AsyncStorage.getItem(`${HISTORY_PREFIX}${dateKey}`);
 
-            if (!data) return [];
+            // Try cache first
+            const cached = await this.getFromCache(dateKey);
+            if (cached) {
+                __DEV__ && console.log('[HistoryService] Loaded from cache:', dateKey);
+                return cached;
+            }
 
-            return JSON.parse(data) as HistoryEntry[];
+            // Fetch from Supabase
+            const userId = await userIdentityService.getUserId();
+
+            const { data, error } = await supabase
+                .from('history_entries')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('date', dateKey)
+                .order('timestamp', { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+
+            if (!data || data.length === 0) {
+                return [];
+            }
+
+            // Convert to HistoryEntry format
+            // Note: We only have content IDs, actual content should be fetched separately
+            const entries: HistoryEntry[] = data.map(row => ({
+                content: { id: row.content_id } as GuidanceContent, // Minimal content
+                type: row.content_type as ContentType,
+                mood: row.mood as Mood | undefined,
+                timestamp: new Date(row.timestamp).getTime(),
+            }));
+
+            return entries;
         } catch (error) {
-            console.error('Error getting history for date:', error);
+            console.error('[HistoryService] Get history for date failed:', error);
             return [];
         }
     }
@@ -161,52 +150,54 @@ class HistoryService {
      */
     async getAllHistory(): Promise<HistoryDay[]> {
         try {
-            const keys = await AsyncStorage.getAllKeys();
+            const userId = await userIdentityService.getUserId();
 
-            if (!keys || keys.length === 0) {
+            const { data, error } = await supabase
+                .from('history_entries')
+                .select('*')
+                .eq('user_id', userId)
+                .order('date', { ascending: false })
+                .order('timestamp', { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+
+            if (!data || data.length === 0) {
                 return [];
             }
 
-            const historyKeys = keys.filter(key => key.startsWith(HISTORY_PREFIX));
+            // Group by date
+            const grouped = new Map<string, HistoryEntry[]>();
 
-            if (historyKeys.length === 0) {
-                return [];
-            }
-
-            const entries = await AsyncStorage.multiGet(historyKeys);
-            const history: HistoryDay[] = [];
-
-            for (const [key, value] of entries) {
-                if (value) {
-                    try {
-                        const parsed = JSON.parse(value);
-                        // Validate parsed data
-                        if (parsed && Array.isArray(parsed)) {
-                            history.push({
-                                date: key.replace(HISTORY_PREFIX, ''),
-                                entries: parsed
-                            });
-                        }
-                    } catch (parseError) {
-                        __DEV__ && console.warn('Error parsing history entry for key:', key, parseError);
-                        // Skip corrupted entries instead of failing
-                    }
+            for (const row of data) {
+                if (!grouped.has(row.date)) {
+                    grouped.set(row.date, []);
                 }
+
+                grouped.get(row.date)!.push({
+                    content: { id: row.content_id } as GuidanceContent,
+                    type: row.content_type as ContentType,
+                    mood: row.mood as Mood | undefined,
+                    timestamp: new Date(row.timestamp).getTime(),
+                });
             }
+
+            const history: HistoryDay[] = Array.from(grouped.entries()).map(([date, entries]) => ({
+                date,
+                entries,
+            }));
 
             return history.sort((a, b) => b.date.localeCompare(a.date));
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            __DEV__ && console.error('Error getting all history:', errorMessage, error);
+            console.error('[HistoryService] Get all history failed:', error);
 
-            // In production, alert user for critical failures
-            if (!__DEV__) {
-                Alert.alert(
-                    'History Load Failed',
-                    'Unable to load your history. Please try restarting the app.',
-                    [{ text: 'OK' }]
-                );
-            }
+            Alert.alert(
+                'History Load Error',
+                'Unable to load history. Please check your internet connection.',
+                [{ text: 'OK' }]
+            );
+
             return [];
         }
     }
@@ -216,12 +207,23 @@ class HistoryService {
      */
     async getHistoryDates(): Promise<string[]> {
         try {
-            const keys = await AsyncStorage.getAllKeys();
-            const historyKeys = keys.filter(key => key.startsWith(HISTORY_PREFIX));
+            const userId = await userIdentityService.getUserId();
 
-            return historyKeys.map(key => key.replace(HISTORY_PREFIX, ''));
+            const { data, error } = await supabase
+                .from('history_entries')
+                .select('date')
+                .eq('user_id', userId)
+                .order('date', { ascending: false });
+
+            if (error) {
+                throw error;
+            }
+
+            // Get unique dates
+            const uniqueDates = Array.from(new Set(data?.map(row => row.date) || []));
+            return uniqueDates;
         } catch (error) {
-            console.error('Error getting history dates:', error);
+            console.error('[HistoryService] Get history dates failed:', error);
             return [];
         }
     }
@@ -231,12 +233,23 @@ class HistoryService {
      */
     async clearHistory(): Promise<void> {
         try {
-            const keys = await AsyncStorage.getAllKeys();
-            const historyKeys = keys.filter(key => key.startsWith(HISTORY_PREFIX));
+            const userId = await userIdentityService.getUserId();
 
-            await AsyncStorage.multiRemove(historyKeys);
+            const { error } = await supabase
+                .from('history_entries')
+                .delete()
+                .eq('user_id', userId);
+
+            if (error) {
+                throw error;
+            }
+
+            // Also clear local cache
+            await this.clearLocalCache();
+
+            __DEV__ && console.log('[HistoryService] History cleared');
         } catch (error) {
-            console.error('Error clearing history:', error);
+            console.error('[HistoryService] Clear history failed:', error);
         }
     }
 
@@ -249,80 +262,65 @@ class HistoryService {
         moodCounts: Record<Mood, number>;
     }> {
         try {
-            const history = await this.getAllHistory();
+            const userId = await userIdentityService.getUserId();
 
-            // Total days
-            const totalDays = history.length;
+            // Get all unique dates
+            const { data: dates, error: datesError } = await supabase
+                .from('history_entries')
+                .select('date')
+                .eq('user_id', userId)
+                .order('date', { ascending: false });
+
+            if (datesError) throw datesError;
+
+            const uniqueDates = Array.from(new Set(dates?.map(d => d.date) || [])).sort().reverse();
+            const totalDays = uniqueDates.length;
 
             if (totalDays === 0) {
                 return { totalDays: 0, currentStreak: 0, moodCounts: {} as Record<Mood, number> };
             }
 
-            // Current streak
+            // Calculate current streak
             let currentStreak = 0;
             const today = new Date();
-
-            // Validate date is valid
-            if (isNaN(today.getTime())) {
-                throw new Error('Invalid date');
-            }
-
             let checkDate = new Date(today);
-
-            // Normalize checkDate to start of day
             checkDate.setHours(0, 0, 0, 0);
 
-            // Check today first
-            let dateKey = this.formatDateKey(checkDate);
-            let hasToday = history.some(h => h.date === dateKey);
+            let hasToday = uniqueDates.includes(this.formatDateKey(checkDate));
 
             if (!hasToday) {
-                // If no entry today, check if there was one yesterday to continue the streak
                 checkDate.setDate(checkDate.getDate() - 1);
-                dateKey = this.formatDateKey(checkDate);
-                const hasYesterday = history.some(h => h.date === dateKey);
+                const hasYesterday = uniqueDates.includes(this.formatDateKey(checkDate));
                 if (!hasYesterday) {
                     currentStreak = 0;
                 } else {
-                    // Start counting from yesterday
-                    let safetyCounter = 0;
-                    while (safetyCounter < 365) { // Prevent infinite loops
-                        const k = this.formatDateKey(checkDate);
-                        if (history.some(h => h.date === k)) {
-                            currentStreak++;
-                            checkDate.setDate(checkDate.getDate() - 1);
-                            safetyCounter++;
-                        } else {
-                            break;
-                        }
+                    while (uniqueDates.includes(this.formatDateKey(checkDate))) {
+                        currentStreak++;
+                        checkDate.setDate(checkDate.getDate() - 1);
                     }
                 }
             } else {
-                // Start counting from today
-                let safetyCounter = 0;
-                while (safetyCounter < 365) { // Prevent infinite loops
-                    const k = this.formatDateKey(checkDate);
-                    if (history.some(h => h.date === k)) {
-                        currentStreak++;
-                        checkDate.setDate(checkDate.getDate() - 1);
-                        safetyCounter++;
-                    } else {
-                        break;
-                    }
+                while (uniqueDates.includes(this.formatDateKey(checkDate))) {
+                    currentStreak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
                 }
             }
 
-            // Mood counts
+            // Get mood counts
+            const { data: moods, error: moodsError } = await supabase
+                .from('history_entries')
+                .select('mood')
+                .eq('user_id', userId)
+                .not('mood', 'is', null);
+
+            if (moodsError) throw moodsError;
+
             const moodCounts: Record<string, number> = {};
-            for (const day of history) {
-                if (day.entries && Array.isArray(day.entries)) {
-                    for (const entry of day.entries) {
-                        if (entry && entry.mood) {
-                            moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
-                        }
-                    }
+            moods?.forEach(row => {
+                if (row.mood) {
+                    moodCounts[row.mood] = (moodCounts[row.mood] || 0) + 1;
                 }
-            }
+            });
 
             return {
                 totalDays,
@@ -330,8 +328,7 @@ class HistoryService {
                 moodCounts: moodCounts as Record<Mood, number>,
             };
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            __DEV__ && console.error('Error getting history stats:', errorMessage, error);
+            console.error('[HistoryService] Get stats failed:', error);
             return {
                 totalDays: 0,
                 currentStreak: 0,
@@ -340,27 +337,73 @@ class HistoryService {
         }
     }
 
-    /**
-     * Prune history older than MAX_HISTORY_DAYS
-     */
-    async pruneOldHistory(): Promise<void> {
-        try {
-            const cutoffDate = new Date();
-            cutoffDate.setDate(cutoffDate.getDate() - MAX_HISTORY_DAYS);
-            const cutoffKey = this.formatDateKey(cutoffDate);
+    // =====================================================
+    // PRIVATE HELPERS
+    // =====================================================
 
-            const keys = await AsyncStorage.getAllKeys();
-            const historyKeys = keys.filter(key => key.startsWith(HISTORY_PREFIX));
-            const oldKeys = historyKeys.filter(key => {
-                const date = key.replace(HISTORY_PREFIX, '');
-                return date < cutoffKey;
+    /**
+     * Save to local cache (AsyncStorage)
+     */
+    private async saveToCacheAsync(dateKey: string, content: GuidanceContent, type: ContentType, mood?: Mood): Promise<void> {
+        try {
+            const cacheKey = `${CACHE_PREFIX}${dateKey}`;
+            const existing = await AsyncStorage.getItem(cacheKey);
+
+            let entries: HistoryEntry[] = [];
+            if (existing) {
+                try {
+                    entries = JSON.parse(existing);
+                } catch {
+                    entries = [];
+                }
+            }
+
+            // Check if already cached
+            if (entries.some(e => e.content?.id === content.id)) {
+                return;
+            }
+
+            entries.push({
+                content,
+                type,
+                mood,
+                timestamp: Date.now(),
             });
 
-            if (oldKeys.length > 0) {
-                await AsyncStorage.multiRemove(oldKeys);
-            }
+            await AsyncStorage.setItem(cacheKey, JSON.stringify(entries));
         } catch (error) {
-            console.error('Error pruning old history:', error);
+            // Cache save is non-critical, just log
+            __DEV__ && console.warn('[HistoryService] Cache save failed:', error);
+        }
+    }
+
+    /**
+     * Get from local cache
+     */
+    private async getFromCache(dateKey: string): Promise<HistoryEntry[] | null> {
+        try {
+            const cacheKey = `${CACHE_PREFIX}${dateKey}`;
+            const cached = await AsyncStorage.getItem(cacheKey);
+
+            if (!cached) return null;
+
+            return JSON.parse(cached) as HistoryEntry[];
+        } catch (error) {
+            __DEV__ && console.warn('[HistoryService] Cache read failed:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Clear local cache
+     */
+    private async clearLocalCache(): Promise<void> {
+        try {
+            const keys = await AsyncStorage.getAllKeys();
+            const cacheKeys = keys.filter(k => k.startsWith(CACHE_PREFIX));
+            await AsyncStorage.multiRemove(cacheKeys);
+        } catch (error) {
+            console.warn('[HistoryService] Cache clear failed:', error);
         }
     }
 

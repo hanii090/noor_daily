@@ -39,6 +39,7 @@ try {
   // App will continue to work without notifications
 }
 import verseService from './src/services/verseService';
+import userIdentityService from './src/services/userIdentityService';
 import { runStorageMigration } from './src/utils/storageMigration';
 import './src/i18n/config'; // Initialize i18n
 
@@ -64,6 +65,15 @@ export default function App() {
       try {
         // Run storage key migration (v0 → v1)
         await runStorageMigration();
+
+        // Initialize Supabase user identity (anonymous auth)
+        try {
+          await userIdentityService.initialize();
+          __DEV__ && console.log('[App] Supabase user identity initialized');
+        } catch (error) {
+          console.warn('[App] Supabase initialization failed (non-critical):', error);
+          // App continues to work, data will queue until connection is available
+        }
 
         // Initialize notification handler
         notificationHandler.initialize();

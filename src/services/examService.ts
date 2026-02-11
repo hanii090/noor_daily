@@ -1,11 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
-import { STORAGE_KEYS } from '../utils/storageMigration';
+import { supabase } from '../config/supabase';
+import userIdentityService from './userIdentityService';
+import offlineQueueService from './offlineQueueService';
 import { ExamVerse, ExamSession, ExamTiming, ExamSubject, ExamFeeling, ExamPhase, Verse } from '../types';
 import examVersesData from '../data/exam-verses.json';
 import verseService from './verseService';
-
-const EXAM_SESSIONS_KEY = STORAGE_KEYS.EXAM_SESSIONS;
 
 // Feeling → category weight mapping for smart matching
 const FEELING_WEIGHTS: Record<ExamFeeling, Record<string, number>> = {
@@ -141,7 +140,7 @@ class ExamService {
     }
 
     /**
-     * Save an exam session to history
+     * Save an exam session to Supabase
      */
     async saveExamSession(session: ExamSession): Promise<void> {
         try {
@@ -150,54 +149,96 @@ class ExamService {
                 throw new Error('Invalid exam session: missing session or createdAt');
             }
 
-            const sessions = await this.getExamHistory();
-            sessions.unshift(session);
-            // Keep last 50 sessions
-            const trimmed = sessions.slice(0, 50);
-            await AsyncStorage.setItem(EXAM_SESSIONS_KEY, JSON.stringify(trimmed));
+            __DEV__ && console.log('[ExamService] Saving session to cloud');
+
+            // Get user ID
+            const userId = await userIdentityService.getUserId();
+
+            // Prepare data for Supabase
+            const sessionData = {
+                user_id: userId,
+                timing: session.timing,
+                subject: session.subject,
+                feeling: session.feeling,
+                verse_id: session.verseId,
+                exam_verse_category: session.examVerseCategory || null,
+                created_at: new Date(session.createdAt).toISOString(),
+            };
+
+            // Try to save to Supabase
+            try {
+                const { error } = await supabase
+                    .from('exam_sessions')
+                    .insert(sessionData);
+
+                if (error) {
+                    throw error;
+                }
+
+                __DEV__ && console.log('[ExamService] Session saved to cloud');
+            } catch (supabaseError) {
+                // If offline or error, queue the operation
+                console.warn('[ExamService] Cloud save failed, queuing:', supabaseError);
+                await offlineQueueService.enqueue({
+                    type: 'exam_save',
+                    data: sessionData,
+                });
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            __DEV__ && console.error('Error saving exam session:', errorMessage, error);
+            console.error('[ExamService] Save session failed:', errorMessage);
 
-            // Alert user in production
-            if (!__DEV__) {
-                Alert.alert(
-                    'Exam Session Save Failed',
-                    'Failed to save exam session. Your exam data may not be tracked in history.',
-                    [{ text: 'OK' }]
-                );
-            }
+            Alert.alert(
+                'Exam Session Save',
+                'Failed to save session. It will be synced when you\'re back online.',
+                [{ text: 'OK' }]
+            );
         }
     }
 
     /**
-     * Get exam session history
+     * Get exam session history from Supabase
      */
     async getExamHistory(): Promise<ExamSession[]> {
         try {
-            const stored = await AsyncStorage.getItem(EXAM_SESSIONS_KEY);
-            if (!stored) return [];
+            const userId = await userIdentityService.getUserId();
 
-            const parsed = JSON.parse(stored);
-            // Validate parsed data
-            if (!Array.isArray(parsed)) {
-                __DEV__ && console.warn('Exam history data is not an array, resetting');
+            const { data, error } = await supabase
+                .from('exam_sessions')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(100); // Get last 100 sessions (no storage limit!)
+
+            if (error) {
+                throw error;
+            }
+
+            if (!data || data.length === 0) {
                 return [];
             }
 
-            return parsed as ExamSession[];
+            // Convert to ExamSession format
+            const sessions: ExamSession[] = data.map(row => ({
+                timing: row.timing as ExamTiming,
+                subject: row.subject as ExamSubject,
+                feeling: row.feeling as ExamFeeling,
+                verseId: row.verse_id,
+                examVerseCategory: row.exam_verse_category || undefined,
+                createdAt: new Date(row.created_at).getTime(),
+            }));
+
+            return sessions;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            __DEV__ && console.error('Error loading exam history:', errorMessage, error);
+            console.error('[ExamService] Get history failed:', errorMessage);
 
-            // Alert user in production
-            if (!__DEV__) {
-                Alert.alert(
-                    'Exam History Load Failed',
-                    'Unable to load exam history. Please try restarting the app.',
-                    [{ text: 'OK' }]
-                );
-            }
+            Alert.alert(
+                'Exam History Load Error',
+                'Unable to load exam history. Please check your internet connection.',
+                [{ text: 'OK' }]
+            );
+
             return [];
         }
     }
