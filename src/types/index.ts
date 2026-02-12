@@ -33,7 +33,7 @@ export type GuidanceContent = Verse | Hadith;
 export interface AppSettings {
     notificationsEnabled: boolean;
     notificationTime: string; // HH:mm format, e.g., "08:00"
-    reciter: string; // Reciter edition code, e.g., "ar.alafasy"
+
     darkMode: boolean;
     language: string;
     notificationFrequency: 2 | 3 | 4;

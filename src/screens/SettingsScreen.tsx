@@ -26,7 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store/appStore';
 import * as Notifications from 'expo-notifications';
 import notificationService from '../services/notificationService';
-import audioService, { Reciter } from '../services/audioService';
+
 import dataService from '../services/dataService';
 import WidgetSetupScreen from './WidgetSetupScreen';
 
@@ -42,7 +42,7 @@ const SettingsScreen = () => {
     const { t, i18n } = useTranslation();
     const { settings, updateSettings, favoriteVerses, favoriteHadiths, setOnboardingCompleted, clearAllFavorites } = useAppStore();
     const insets = useSafeAreaInsets();
-    const [showReciterModal, setShowReciterModal] = useState(false);
+
     const [showWidgetSetup, setShowWidgetSetup] = useState(false);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
 
@@ -105,11 +105,7 @@ const SettingsScreen = () => {
 
 
 
-    const handleReciterSelect = async (reciter: string) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        await updateSettings({ reciter });
-        setShowReciterModal(false);
-    };
+
 
     const handleLanguageSelect = async (langCode: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -194,11 +190,7 @@ const SettingsScreen = () => {
         return t('settings.notifications_disabled');
     };
 
-    const getReciterName = () => {
-        const reciters = audioService.getReciters();
-        const reciter = reciters.find(r => r.edition === settings.reciter);
-        return reciter?.name || 'Mishary Alafasy';
-    };
+
 
     return (
         <ClubhouseBackground color="creamLight">
@@ -340,18 +332,7 @@ const SettingsScreen = () => {
                                 />
                             </TouchableOpacity>
                             <View style={styles.divider} />
-                            <TouchableOpacity onPress={() => setShowReciterModal(true)}>
-                                <SettingRow
-                                    title={t('settings.reciter')}
-                                    subtitle={getReciterName()}
-                                    icon="musical-notes"
-                                    iconBg={tc.cream}
-                                    iconColor={tc.purple}
-                                    rightComponent={
-                                        <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
-                                    }
-                                />
-                            </TouchableOpacity>
+
                         </ClubhouseCard>
                     </View>
 
@@ -487,44 +468,7 @@ const SettingsScreen = () => {
 
 
 
-                    {/* Reciter Modal */}
-                    <Modal
-                        visible={showReciterModal}
-                        animationType="slide"
-                        transparent={true}
-                        onRequestClose={() => setShowReciterModal(false)}
-                    >
-                        <View style={styles.modalOverlay}>
-                            <View style={[styles.modalContent, { backgroundColor: tc.white }]}>
-                                <View style={styles.modalHeader}>
-                                    <Text style={[styles.modalTitle, { color: tc.text }]}>Select Reciter</Text>
-                                    <TouchableOpacity onPress={() => setShowReciterModal(false)}>
-                                        <Ionicons name="close" size={24} color={tc.text} />
-                                    </TouchableOpacity>
-                                </View>
-                                <FlatList
-                                    data={audioService.getReciters()}
-                                    keyExtractor={(item) => item.edition}
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            style={[styles.modalItem, { borderBottomColor: tc.border }, settings.reciter === item.edition && { backgroundColor: tc.purple + '08' }]}
-                                            onPress={() => handleReciterSelect(item.edition)}
-                                        >
-                                            <View>
-                                                <Text style={[styles.modalItemTitle, { color: tc.text }, settings.reciter === item.edition && { color: tc.purple, fontWeight: '700' }]}>
-                                                    {item.name}
-                                                </Text>
-                                                <Text style={[styles.modalItemSubtitle, { color: tc.textTertiary }]}>{item.description}</Text>
-                                            </View>
-                                            {settings.reciter === item.edition && (
-                                                <Ionicons name="checkmark-circle" size={24} color={tc.purple} />
-                                            )}
-                                        </TouchableOpacity>
-                                    )}
-                                />
-                            </View>
-                        </View>
-                    </Modal>
+
 
                     {/* Widget Setup Modal */}
                     <WidgetSetupScreen

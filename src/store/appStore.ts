@@ -79,7 +79,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         notificationsEnabled: false,
         darkMode: false,
         language: 'en',
-        reciter: 'ar.alafasy',
+
         notificationFrequency: 3,
         notificationContentType: 'both',
         quietHoursStart: '23:00',

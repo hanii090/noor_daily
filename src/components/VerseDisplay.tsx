@@ -18,7 +18,7 @@ import { VerseCardTemplateComponent } from './VerseCardTemplate';
 import { colors, typography, spacing } from '../theme';
 import { Verse, VerseCardTemplate, VerseCardSize } from '../types';
 import shareService from '../services/shareService';
-import { AudioPlayer } from './AudioPlayer';
+
 
 interface VerseDisplayProps {
     verse: Verse;
@@ -151,7 +151,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
 
                         {/* Action Buttons */}
                         <View style={styles.actions}>
-                            <AudioPlayer verse={verse} moodColor={moodColor} variant="compact" />
+
                             <TouchableOpacity onPress={handleBookmark} style={styles.actionButton}>
                                 <Ionicons
                                     name={isBookmarked ? 'heart' : 'heart-outline'}

@@ -24,7 +24,7 @@ import { Verse, Hadith, ContentType, Mood, VerseCardTemplate, VerseCardSize } fr
 import shareService from '../services/shareService';
 import analyticsService from '../services/analyticsService';
 import aiService from '../services/aiService';
-import { AudioPlayer } from './AudioPlayer';
+
 import { useTranslation } from 'react-i18next';
 import { ShareBottomSheet } from './common/ShareBottomSheet';
 import type { ShareOption } from './common/ShareBottomSheet';
@@ -340,9 +340,7 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
 
                 <View style={styles.actions}>
                     <View style={styles.actionsLeft}>
-                        {isVerse(content) && (
-                            <AudioPlayer verse={content} moodColor={moodColor} variant="compact" />
-                        )}
+
                         <TouchableOpacity
                             onPress={fetchAIInsight}
                             style={[styles.circleAction, aiInsight && { backgroundColor: moodColor + '15' }]}

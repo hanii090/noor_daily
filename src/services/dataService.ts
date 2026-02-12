@@ -1,6 +1,6 @@
 
 import { Alert, Share } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import historyService from './historyService';
 import examService from './examService';
 import { useAppStore } from '../store/appStore';
