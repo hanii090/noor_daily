@@ -8,7 +8,7 @@ import { ClubhouseBackground, ClubhouseButton, ClubhouseHeader } from '../compon
 import { UnifiedGuidanceDisplay } from '../components/UnifiedGuidanceDisplay';
 import { MoodSelector } from '../components/MoodSelector';
 import { SituationGuidanceModal } from '../components/SituationGuidanceModal';
-import { GuidanceSkeleton } from '../components/common/SkeletonLoader';
+import { SkeletonScreen } from '../components/common/SkeletonScreen';
 import { colors, useTheme, typography, spacing } from '../theme';
 import { useAppStore } from '../store/appStore';
 import verseService from '../services/verseService';
@@ -48,13 +48,13 @@ const HomeScreen = () => {
 
     const fadeAnim = React.useRef(new Animated.Value(1)).current;
 
-    const { 
-        favoriteVerses, 
-        favoriteHadiths, 
-        addToFavorites, 
-        removeFromFavorites, 
-        addHadithToFavorites, 
-        removeHadithFromFavorites, 
+    const {
+        favoriteVerses,
+        favoriteHadiths,
+        addToFavorites,
+        removeFromFavorites,
+        addHadithToFavorites,
+        removeHadithFromFavorites,
         addToHistory,
         settings,
         dailyInspiration,
@@ -91,7 +91,7 @@ const HomeScreen = () => {
                     } else {
                         content = hadithService.getHadithById(pendingNotification.id);
                     }
-                    
+
                     if (content) {
                         setSelectedContent(content);
                         setSelectedMood(null);
@@ -275,7 +275,7 @@ const HomeScreen = () => {
             } else {
                 await shareService.shareHadithAsText(selectedContent as Hadith);
             }
-            
+
             if (contentType === 'hadith') {
                 analyticsService.logHadithShared(selectedContent.id, 'text');
             }
@@ -298,7 +298,7 @@ const HomeScreen = () => {
             <View style={styles.container}>
                 {/* Fixed Glass Header */}
                 <View style={styles.headerFixedContainer}>
-                    <ClubhouseHeader 
+                    <ClubhouseHeader
                         title={selectedContent ? (contentType === 'verse' ? t('home.quran') : t('home.hadith')) : getGreeting(settings.userName || undefined, t)}
                         subtitle={selectedContent ? (selectedMood ? `${t(`mood.${selectedMood}`).toUpperCase()} · ${t('home.daily_guidance')}` : t('home.daily_guidance')) : toHijri().formatted.toUpperCase()}
                         onBack={selectedContent ? handleChangeMood : undefined}
@@ -324,7 +324,9 @@ const HomeScreen = () => {
                 >
                     <Animated.View style={{ flexGrow: 1, opacity: fadeAnim }}>
                         {isLoading && (
-                            <GuidanceSkeleton />
+                            <View style={{ paddingTop: 120 }}>
+                                <SkeletonScreen showHeader={false} />
+                            </View>
                         )}
 
                         {!isLoading && error && (
@@ -345,9 +347,9 @@ const HomeScreen = () => {
                         )}
 
                         {!isLoading && !error && showMoodSelector && (
-                            <MoodSelector 
-                                onMoodSelect={handleMoodSelect} 
-                                onSkip={handleSkip} 
+                            <MoodSelector
+                                onMoodSelect={handleMoodSelect}
+                                onSkip={handleSkip}
                                 onAskAI={() => setShowAIModal(true)}
                                 headerContent={
                                     dailyInspiration && showInspiration ? (

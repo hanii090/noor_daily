@@ -21,6 +21,7 @@ import { JourneyShareCard, shareJourneyProgress } from '../components/journey/Jo
 import ViewShot from 'react-native-view-shot';
 import { colors, useTheme, typography, spacing } from '../theme';
 import { ConfettiOverlay } from '../components/common';
+import { SkeletonScreen } from '../components/common/SkeletonScreen';
 import { useAppStore } from '../store/appStore';
 import { JourneyBadge, JourneyDay } from '../types';
 import journeyService from '../services/journeyService';
@@ -297,8 +298,8 @@ const JourneyScreen = () => {
         return (
             <ClubhouseBackground>
                 <ClubhouseHeader title="30-Day Journey" />
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={tc.purple} />
+                <View style={{ flex: 1, paddingTop: spacing.xl }}>
+                    <SkeletonScreen showHeader={false} />
                 </View>
             </ClubhouseBackground>
         );

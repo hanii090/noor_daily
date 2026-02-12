@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Skeleton } from './common/Skeleton';
 import {
     View,
     Text,
@@ -428,9 +429,17 @@ export const UnifiedGuidanceDisplay: React.FC<UnifiedGuidanceDisplayProps> = ({
             {/* Generating Indicator — Modal so it renders above the fixed header */}
             <Modal visible={isGenerating} transparent animationType="fade">
                 <View style={styles.generatingOverlay}>
-                    <View style={[styles.generatingCard, { backgroundColor: tc.creamLight }]}>
-                        <ActivityIndicator size="large" color={tc.purple} />
-                        <Text style={[styles.generatingText, { color: tc.text }]}>{t('guidance.generating')}</Text>
+                    <View style={[styles.generatingCard, { backgroundColor: tc.creamLight, width: '80%', alignItems: 'stretch' }]}>
+                        {/* Skeleton Card Preview */}
+                        <View style={{ gap: spacing.md, alignItems: 'center', paddingBottom: spacing.lg }}>
+                            <Skeleton width="40%" height={24} borderRadius={12} />
+                            <Skeleton width="90%" height={40} borderRadius={8} style={{ marginTop: spacing.sm }} />
+                            <Skeleton width="70%" height={20} borderRadius={4} />
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: spacing.md }}>
+                            <ActivityIndicator size="small" color={tc.purple} />
+                            <Text style={[styles.generatingText, { color: tc.text }]}>{t('guidance.generating')}</Text>
+                        </View>
                     </View>
                 </View>
             </Modal>
