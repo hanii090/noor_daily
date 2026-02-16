@@ -46,7 +46,7 @@ import './src/i18n/config'; // Initialize i18n
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const { colors } = useTheme();
-  const { loadOnboardingStatus, loadFavorites, loadSettings, loadHistory, loadDailyInspiration, settings } = useAppStore();
+  const { loadOnboardingStatus, loadFavorites, loadSettings, loadHistory, loadDailyInspiration, loadLastRead, loadReadingPlanProgress, settings } = useAppStore();
 
   // Load custom fonts
   const [fontsLoaded] = useFonts({
@@ -84,6 +84,8 @@ export default function App() {
         await loadSettings();
         await loadHistory();
         await loadDailyInspiration();
+        await loadLastRead();
+        await loadReadingPlanProgress();
 
         // Preload popular verses in background
         verseService.preloadPopularVerses().catch((err) => {

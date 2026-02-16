@@ -42,8 +42,11 @@ export interface AppSettings {
     quietHoursEnd: string; // "HH:mm" format
     weekendMode: boolean;
     userName: string;
+    reciter: Reciter;
     pushToken?: string;
 }
+
+export type Reciter = 'alafasy' | 'abdulbasit' | 'hussary';
 
 export type VerseCardTemplate = 'minimal' | 'vibrant' | 'classic';
 export type VerseCardSize = 'story' | 'post';
@@ -175,7 +178,8 @@ export interface ExamSession {
     timing: ExamTiming;
     feeling: ExamFeeling;
     verseId: string;
-    createdAt: string;
+    examVerseCategory?: string;
+    createdAt: string | number;
     postExamReflection?: string;
 }
 
@@ -266,4 +270,56 @@ export interface DailyReminder {
         arabic: string;
         meaning: string;
     };
+}
+
+// ── Scripture Types ──
+
+export interface SurahInfo {
+    number: number;
+    name: string;
+    english: string;
+    verseCount: number;
+    revelationType: 'meccan' | 'medinan';
+}
+
+export interface ReadingPlan {
+    id: string;
+    nameKey: string;
+    descKey: string;
+    icon: string;
+    totalDays: number;
+    dailyReadings: ReadingDay[];
+}
+
+export interface ReadingDay {
+    day: number;
+    startSurah: number;
+    startVerse: number;
+    endSurah: number;
+    endVerse: number;
+    estimatedMinutes: number;
+}
+
+export interface ReadingPlanProgress {
+    planId: string;
+    startedAt: string;
+    completedDays: number[];
+    currentDay: number;
+    lastReadAt?: string;
+    completedAt?: string;
+}
+
+export interface ScriptureCollection {
+    id: string;
+    nameKey: string;
+    descKey: string;
+    icon: string;
+    color: string;
+    verses: { surah: number; verse: number; note?: string }[];
+}
+
+export interface LastReadPosition {
+    surah: number;
+    verse: number;
+    timestamp: number;
 }

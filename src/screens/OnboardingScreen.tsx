@@ -304,7 +304,7 @@ const WelcomeStep: React.FC<{
 
                 {/* Subtitle */}
                 <Text style={[styles.heroSubtitle, { color: tc.textSecondary }]}>
-                    Quran verses & Hadith matched to your mood.{'\n'}AI-powered insights. Beautiful & personal.
+                    Full Quran reader, verses & Hadith matched to your mood.{'\n'}Reading plans, collections & AI insights.
                 </Text>
 
                 {/* CTA Button */}

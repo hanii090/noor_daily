@@ -272,6 +272,7 @@ class ExamService {
 
             // Convert to ExamSession format
             const sessions: ExamSession[] = data.map(row => ({
+                id: row.id,
                 timing: row.timing as ExamTiming,
                 subject: row.subject as ExamSubject,
                 feeling: row.feeling as ExamFeeling,

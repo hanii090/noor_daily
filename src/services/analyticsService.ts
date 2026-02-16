@@ -97,6 +97,31 @@ class AnalyticsService {
     logWidgetConfigUpdated(field: string, value: string) {
         this.logEvent('widget_config_updated', { field, value });
     }
+
+    // Scripture events
+    logScriptureOpened() {
+        this.logEvent('scripture_opened');
+    }
+
+    logSurahViewed(surahNumber: number) {
+        this.logEvent('surah_viewed', { surah_number: surahNumber });
+    }
+
+    logVerseBookmarkedFromReader(surahNumber: number, verseNumber: number) {
+        this.logEvent('verse_bookmarked_from_reader', { surah_number: surahNumber, verse_number: verseNumber });
+    }
+
+    logReadingPlanStarted(planId: string) {
+        this.logEvent('reading_plan_started', { plan_id: planId });
+    }
+
+    logReadingPlanDayCompleted(planId: string, day: number) {
+        this.logEvent('reading_plan_day_completed', { plan_id: planId, day_number: day });
+    }
+
+    logCollectionViewed(collectionId: string) {
+        this.logEvent('collection_viewed', { collection_id: collectionId });
+    }
 }
 
 export default new AnalyticsService();

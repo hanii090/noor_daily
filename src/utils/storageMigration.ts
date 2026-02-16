@@ -73,4 +73,6 @@ export const STORAGE_KEYS = {
     WIDGET_CONFIG: '@noor_widget_config',
     WIDGET_DATA: '@noor_widget_data',
     HISTORY_PREFIX: '@noor_history_',
+    LAST_READ: '@noor_last_read',
+    READING_PLAN: '@noor_reading_plan',
 } as const;

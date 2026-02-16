@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../utils/storageMigration';
-import { Verse, Hadith, Mood, AppSettings, ContentType, GuidanceContent, JourneyProgress, JourneyStatus } from '../types';
+import { Verse, Hadith, Mood, AppSettings, ContentType, GuidanceContent, JourneyProgress, JourneyStatus, LastReadPosition, ReadingPlanProgress } from '../types';
 import historyService, { HistoryDay, HistoryEntry } from '../services/historyService';
 import verseService from '../services/verseService';
 import hadithService from '../services/hadithService';
 import aiService from '../services/aiService';
 import journeyService from '../services/journeyService';
+import scriptureService from '../services/scriptureService';
 import i18n from '../i18n/config';
 import offlineQueueService from '../services/offlineQueueService';
 import userIdentityService from '../services/userIdentityService';
@@ -38,6 +39,10 @@ interface AppStore {
     journeyProgress: JourneyProgress | null;
     journeyStatus: JourneyStatus;
 
+    // Scripture State
+    lastReadPosition: LastReadPosition | null;
+    readingPlanProgress: ReadingPlanProgress | null;
+
     // Actions
     setOnboardingCompleted: (value: boolean) => Promise<void>;
     setCurrentVerse: (verse: Verse | null) => void;
@@ -62,6 +67,14 @@ interface AppStore {
     startJourney: () => Promise<void>;
     completeJourneyDay: (day: number, journal?: string) => Promise<void>;
     resetJourney: () => Promise<void>;
+
+    // Scripture Actions
+    loadLastRead: () => Promise<void>;
+    updateLastRead: (surah: number, verse: number) => Promise<void>;
+    loadReadingPlanProgress: () => Promise<void>;
+    startReadingPlan: (planId: string) => Promise<void>;
+    completeReadingDay: (day: number) => Promise<void>;
+    abandonReadingPlan: () => Promise<void>;
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -86,10 +99,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
         quietHoursEnd: '07:00',
         weekendMode: false,
         userName: '',
+        reciter: 'alafasy',
     },
     dailyInspiration: null,
     journeyProgress: null,
     journeyStatus: 'not_started' as JourneyStatus,
+    lastReadPosition: null,
+    readingPlanProgress: null,
 
     // Actions
     setOnboardingCompleted: async (value: boolean) => {
@@ -366,6 +382,62 @@ export const useAppStore = create<AppStore>((set, get) => ({
             set({ journeyProgress: null, journeyStatus: 'not_started' });
         } catch (error) {
             console.error('Error resetting journey:', error);
+        }
+    },
+
+    // ── Scripture Actions ──
+
+    loadLastRead: async () => {
+        try {
+            const pos = await scriptureService.getLastRead();
+            set({ lastReadPosition: pos });
+        } catch (error) {
+            console.error('Error loading last read:', error);
+        }
+    },
+
+    updateLastRead: async (surah: number, verse: number) => {
+        try {
+            await scriptureService.setLastRead(surah, verse);
+            set({ lastReadPosition: { surah, verse, timestamp: Date.now() } });
+        } catch (error) {
+            console.error('Error updating last read:', error);
+        }
+    },
+
+    loadReadingPlanProgress: async () => {
+        try {
+            const progress = await scriptureService.getPlanProgress();
+            set({ readingPlanProgress: progress });
+        } catch (error) {
+            console.error('Error loading reading plan:', error);
+        }
+    },
+
+    startReadingPlan: async (planId: string) => {
+        try {
+            const progress = await scriptureService.startPlan(planId);
+            set({ readingPlanProgress: progress });
+        } catch (error) {
+            console.error('Error starting reading plan:', error);
+        }
+    },
+
+    completeReadingDay: async (day: number) => {
+        try {
+            const progress = await scriptureService.completePlanDay(day);
+            set({ readingPlanProgress: progress });
+        } catch (error) {
+            console.error('Error completing reading day:', error);
+        }
+    },
+
+    abandonReadingPlan: async () => {
+        try {
+            await scriptureService.abandonPlan();
+            set({ readingPlanProgress: null });
+        } catch (error) {
+            console.error('Error abandoning reading plan:', error);
         }
     },
 }));

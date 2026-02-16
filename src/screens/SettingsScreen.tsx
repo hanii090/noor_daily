@@ -28,7 +28,10 @@ import * as Notifications from 'expo-notifications';
 import notificationService from '../services/notificationService';
 
 import dataService from '../services/dataService';
+import { RECITER_INFO } from '../services/quranAudioService';
+import { Reciter } from '../types';
 import WidgetSetupScreen from './WidgetSetupScreen';
+import HistoryScreen from './HistoryScreen';
 
 const LANGUAGES = [
     { code: 'en', label: 'English', native: 'English' },
@@ -45,6 +48,8 @@ const SettingsScreen = () => {
 
     const [showWidgetSetup, setShowWidgetSetup] = useState(false);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
+    const [showReciterModal, setShowReciterModal] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
 
     const handleNotificationToggle = async (value: boolean) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -332,6 +337,19 @@ const SettingsScreen = () => {
                                 />
                             </TouchableOpacity>
                             <View style={styles.divider} />
+                            <TouchableOpacity onPress={() => setShowReciterModal(true)}>
+                                <SettingRow
+                                    title={t('settings.reciter', { defaultValue: 'Quran Reciter' })}
+                                    subtitle={RECITER_INFO[settings.reciter || 'alafasy'].name}
+                                    icon="mic"
+                                    iconBg="#E8F8EC"
+                                    iconColor="#34C759"
+                                    rightComponent={
+                                        <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
+                                    }
+                                />
+                            </TouchableOpacity>
+                            <View style={styles.divider} />
 
                         </ClubhouseCard>
                     </View>
@@ -361,6 +379,25 @@ const SettingsScreen = () => {
                                     icon="share-social"
                                     iconBg="#E3F2FF"
                                     iconColor="#007AFF"
+                                    rightComponent={
+                                        <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
+                                    }
+                                />
+                            </TouchableOpacity>
+                        </ClubhouseCard>
+                    </View>
+
+                    {/* History Section */}
+                    <View style={styles.section}>
+                        <Text style={[styles.sectionTitle, { color: tc.textTertiary }]}>{t('scripture.view_history', { defaultValue: 'History' })}</Text>
+                        <ClubhouseCard backgroundColor={tc.backgroundSecondary}>
+                            <TouchableOpacity onPress={() => setShowHistory(true)}>
+                                <SettingRow
+                                    title={t('scripture.view_history', { defaultValue: 'View History' })}
+                                    subtitle={t('scripture.view_history_desc', { defaultValue: 'Your guidance viewing history' })}
+                                    icon="calendar"
+                                    iconBg="#E8F0FE"
+                                    iconColor="#4285F4"
                                     rightComponent={
                                         <Ionicons name="chevron-forward" size={20} color={tc.textTertiary} />
                                     }
@@ -476,6 +513,16 @@ const SettingsScreen = () => {
                         onClose={() => setShowWidgetSetup(false)}
                     />
 
+                    {/* History Modal */}
+                    <Modal
+                        visible={showHistory}
+                        animationType="slide"
+                        presentationStyle="pageSheet"
+                        onRequestClose={() => setShowHistory(false)}
+                    >
+                        <HistoryScreen />
+                    </Modal>
+
                     {/* Language Selector Modal — Task 16 */}
                     <Modal
                         visible={showLanguageModal}
@@ -510,6 +557,52 @@ const SettingsScreen = () => {
                                             )}
                                         </TouchableOpacity>
                                     )}
+                                />
+                            </View>
+                        </View>
+                    </Modal>
+
+                    {/* Reciter Selector Modal */}
+                    <Modal
+                        visible={showReciterModal}
+                        animationType="slide"
+                        transparent={true}
+                        onRequestClose={() => setShowReciterModal(false)}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <View style={[styles.modalContent, { backgroundColor: tc.white }]}>
+                                <View style={styles.modalHeader}>
+                                    <Text style={[styles.modalTitle, { color: tc.text }]}>{t('settings.reciter', { defaultValue: 'Quran Reciter' })}</Text>
+                                    <TouchableOpacity onPress={() => setShowReciterModal(false)}>
+                                        <Ionicons name="close" size={24} color={tc.text} />
+                                    </TouchableOpacity>
+                                </View>
+                                <FlatList
+                                    data={Object.keys(RECITER_INFO) as Reciter[]}
+                                    keyExtractor={(item) => item}
+                                    renderItem={({ item }) => {
+                                        const isSelected = (settings.reciter || 'alafasy') === item;
+                                        return (
+                                            <TouchableOpacity
+                                                style={[styles.modalItem, { borderBottomColor: tc.border }, isSelected && { backgroundColor: tc.teal + '08' }]}
+                                                onPress={() => {
+                                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                                    updateSettings({ reciter: item });
+                                                    setShowReciterModal(false);
+                                                }}
+                                            >
+                                                <View>
+                                                    <Text style={[styles.modalItemTitle, { color: tc.text }, isSelected && { color: tc.teal, fontWeight: '700' }]}>
+                                                        {RECITER_INFO[item].name}
+                                                    </Text>
+                                                    <Text style={[styles.modalItemSubtitle, { color: tc.textTertiary }]}>{RECITER_INFO[item].nameAr}</Text>
+                                                </View>
+                                                {isSelected && (
+                                                    <Ionicons name="checkmark-circle" size={24} color={tc.teal} />
+                                                )}
+                                            </TouchableOpacity>
+                                        );
+                                    }}
                                 />
                             </View>
                         </View>

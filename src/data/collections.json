@@ -1,0 +1,249 @@
+[
+  {
+    "id": "patience",
+    "nameKey": "scripture.col_patience",
+    "descKey": "scripture.col_patience_desc",
+    "icon": "🪨",
+    "color": "purple",
+    "verses": [
+      { "surah": 2, "verse": 153, "note": "Seek help through patience and prayer" },
+      { "surah": 2, "verse": 155 },
+      { "surah": 2, "verse": 156 },
+      { "surah": 3, "verse": 186 },
+      { "surah": 3, "verse": 200, "note": "O you who believe, be patient and persevere" },
+      { "surah": 11, "verse": 115, "note": "Be patient, for Allah does not waste the reward" },
+      { "surah": 16, "verse": 126 },
+      { "surah": 31, "verse": 17 },
+      { "surah": 38, "verse": 17 },
+      { "surah": 39, "verse": 10 },
+      { "surah": 70, "verse": 5, "note": "Beautiful patience" },
+      { "surah": 90, "verse": 17, "note": "Advise each other to patience" },
+      { "surah": 103, "verse": 3 }
+    ]
+  },
+  {
+    "id": "gratitude",
+    "nameKey": "scripture.col_gratitude",
+    "descKey": "scripture.col_gratitude_desc",
+    "icon": "🤲",
+    "color": "orange",
+    "verses": [
+      { "surah": 1, "verse": 2, "note": "All praise is due to Allah" },
+      { "surah": 14, "verse": 7, "note": "If you are grateful, I will give you more" },
+      { "surah": 16, "verse": 18 },
+      { "surah": 27, "verse": 40 },
+      { "surah": 31, "verse": 12 },
+      { "surah": 34, "verse": 13, "note": "Work in gratitude, O family of David" },
+      { "surah": 39, "verse": 74 },
+      { "surah": 42, "verse": 23 },
+      { "surah": 55, "verse": 13, "note": "Which of the favors of your Lord will you deny?" },
+      { "surah": 76, "verse": 3 },
+      { "surah": 93, "verse": 11 }
+    ]
+  },
+  {
+    "id": "tawakkul",
+    "nameKey": "scripture.col_tawakkul",
+    "descKey": "scripture.col_tawakkul_desc",
+    "icon": "🕊️",
+    "color": "teal",
+    "verses": [
+      { "surah": 3, "verse": 159 },
+      { "surah": 3, "verse": 173, "note": "Allah is sufficient for us" },
+      { "surah": 9, "verse": 51, "note": "Nothing will befall us except what Allah has decreed" },
+      { "surah": 12, "verse": 67 },
+      { "surah": 13, "verse": 11 },
+      { "surah": 14, "verse": 12 },
+      { "surah": 26, "verse": 217 },
+      { "surah": 33, "verse": 3 },
+      { "surah": 57, "verse": 22 },
+      { "surah": 64, "verse": 13 },
+      { "surah": 65, "verse": 3, "note": "Whoever relies upon Allah, He is sufficient" }
+    ]
+  },
+  {
+    "id": "mercy",
+    "nameKey": "scripture.col_mercy",
+    "descKey": "scripture.col_mercy_desc",
+    "icon": "💚",
+    "color": "green",
+    "verses": [
+      { "surah": 3, "verse": 159, "note": "It was by the mercy of Allah that you were lenient" },
+      { "surah": 6, "verse": 54 },
+      { "surah": 7, "verse": 56, "note": "The mercy of Allah is near" },
+      { "surah": 12, "verse": 87 },
+      { "surah": 21, "verse": 107, "note": "We have sent you as a mercy to the worlds" },
+      { "surah": 23, "verse": 118 },
+      { "surah": 39, "verse": 53, "note": "Do not despair of the mercy of Allah" },
+      { "surah": 40, "verse": 7 },
+      { "surah": 42, "verse": 28 },
+      { "surah": 57, "verse": 28 }
+    ]
+  },
+  {
+    "id": "knowledge",
+    "nameKey": "scripture.col_knowledge",
+    "descKey": "scripture.col_knowledge_desc",
+    "icon": "📚",
+    "color": "purple",
+    "verses": [
+      { "surah": 2, "verse": 269, "note": "He grants wisdom to whom He wills" },
+      { "surah": 3, "verse": 7 },
+      { "surah": 17, "verse": 36 },
+      { "surah": 20, "verse": 114, "note": "My Lord, increase me in knowledge" },
+      { "surah": 35, "verse": 28 },
+      { "surah": 39, "verse": 9, "note": "Are those who know equal to those who do not?" },
+      { "surah": 58, "verse": 11 },
+      { "surah": 96, "verse": 1, "note": "Read! In the name of your Lord who created" },
+      { "surah": 96, "verse": 4 },
+      { "surah": 96, "verse": 5 }
+    ]
+  },
+  {
+    "id": "paradise",
+    "nameKey": "scripture.col_paradise",
+    "descKey": "scripture.col_paradise_desc",
+    "icon": "🌴",
+    "color": "green",
+    "verses": [
+      { "surah": 7, "verse": 43 },
+      { "surah": 9, "verse": 72 },
+      { "surah": 9, "verse": 111 },
+      { "surah": 19, "verse": 62 },
+      { "surah": 32, "verse": 17, "note": "No soul knows what delight is kept hidden for them" },
+      { "surah": 36, "verse": 58 },
+      { "surah": 43, "verse": 70 },
+      { "surah": 44, "verse": 51 },
+      { "surah": 50, "verse": 34 },
+      { "surah": 55, "verse": 46 },
+      { "surah": 56, "verse": 26 },
+      { "surah": 76, "verse": 11 },
+      { "surah": 88, "verse": 8 },
+      { "surah": 98, "verse": 8 }
+    ]
+  },
+  {
+    "id": "duas",
+    "nameKey": "scripture.col_duas",
+    "descKey": "scripture.col_duas_desc",
+    "icon": "🤲",
+    "color": "coral",
+    "verses": [
+      { "surah": 1, "verse": 6, "note": "Guide us to the straight path" },
+      { "surah": 2, "verse": 186, "note": "I respond to the caller when he calls" },
+      { "surah": 2, "verse": 201 },
+      { "surah": 2, "verse": 286 },
+      { "surah": 3, "verse": 8, "note": "Do not let our hearts deviate" },
+      { "surah": 3, "verse": 191 },
+      { "surah": 7, "verse": 23 },
+      { "surah": 20, "verse": 25 },
+      { "surah": 21, "verse": 83 },
+      { "surah": 21, "verse": 87, "note": "Dua of Yunus (as)" },
+      { "surah": 23, "verse": 118 },
+      { "surah": 25, "verse": 74 },
+      { "surah": 40, "verse": 60, "note": "Call upon Me; I will respond to you" },
+      { "surah": 113, "verse": 1 },
+      { "surah": 114, "verse": 1 }
+    ]
+  },
+  {
+    "id": "justice",
+    "nameKey": "scripture.col_justice",
+    "descKey": "scripture.col_justice_desc",
+    "icon": "⚖️",
+    "color": "teal",
+    "verses": [
+      { "surah": 4, "verse": 58, "note": "Judge between people with justice" },
+      { "surah": 4, "verse": 135 },
+      { "surah": 5, "verse": 8, "note": "Be just; that is nearer to righteousness" },
+      { "surah": 6, "verse": 151 },
+      { "surah": 6, "verse": 152 },
+      { "surah": 16, "verse": 90 },
+      { "surah": 42, "verse": 38 },
+      { "surah": 49, "verse": 9 },
+      { "surah": 49, "verse": 13, "note": "The most noble of you is the most righteous" },
+      { "surah": 60, "verse": 8 }
+    ]
+  },
+  {
+    "id": "family",
+    "nameKey": "scripture.col_family",
+    "descKey": "scripture.col_family_desc",
+    "icon": "❤️",
+    "color": "coral",
+    "verses": [
+      { "surah": 4, "verse": 1 },
+      { "surah": 17, "verse": 23, "note": "Be kind to parents" },
+      { "surah": 17, "verse": 24 },
+      { "surah": 25, "verse": 74, "note": "Grant us spouses and offspring who are a comfort" },
+      { "surah": 30, "verse": 21, "note": "He created for you spouses that you may find tranquility" },
+      { "surah": 31, "verse": 14 },
+      { "surah": 46, "verse": 15 },
+      { "surah": 49, "verse": 10 },
+      { "surah": 66, "verse": 6 }
+    ]
+  },
+  {
+    "id": "prophets",
+    "nameKey": "scripture.col_prophets",
+    "descKey": "scripture.col_prophets_desc",
+    "icon": "🌟",
+    "color": "orange",
+    "verses": [
+      { "surah": 2, "verse": 124, "note": "Ibrahim's trial" },
+      { "surah": 6, "verse": 84, "note": "Listing of the Prophets" },
+      { "surah": 7, "verse": 59, "note": "Story of Nuh (as)" },
+      { "surah": 12, "verse": 4, "note": "Yusuf's dream" },
+      { "surah": 12, "verse": 86, "note": "Yaqub's patience" },
+      { "surah": 19, "verse": 16, "note": "Maryam (as)" },
+      { "surah": 20, "verse": 9, "note": "Musa and the fire" },
+      { "surah": 21, "verse": 69, "note": "Ibrahim and the fire" },
+      { "surah": 21, "verse": 87, "note": "Yunus in the whale" },
+      { "surah": 27, "verse": 16, "note": "Sulayman's kingdom" },
+      { "surah": 34, "verse": 10, "note": "Dawud's blessings" },
+      { "surah": 38, "verse": 44, "note": "Ayyub's patience" }
+    ]
+  },
+  {
+    "id": "dhikr",
+    "nameKey": "scripture.col_dhikr",
+    "descKey": "scripture.col_dhikr_desc",
+    "icon": "📿",
+    "color": "purple",
+    "verses": [
+      { "surah": 2, "verse": 152, "note": "Remember Me; I will remember you" },
+      { "surah": 3, "verse": 191 },
+      { "surah": 13, "verse": 28, "note": "In the remembrance of Allah do hearts find rest" },
+      { "surah": 17, "verse": 111 },
+      { "surah": 29, "verse": 45 },
+      { "surah": 33, "verse": 41, "note": "Remember Allah with much remembrance" },
+      { "surah": 50, "verse": 39 },
+      { "surah": 62, "verse": 10 },
+      { "surah": 68, "verse": 51 },
+      { "surah": 73, "verse": 8 },
+      { "surah": 87, "verse": 15 }
+    ]
+  },
+  {
+    "id": "hardship",
+    "nameKey": "scripture.col_hardship",
+    "descKey": "scripture.col_hardship_desc",
+    "icon": "🌧️",
+    "color": "teal",
+    "verses": [
+      { "surah": 2, "verse": 214, "note": "Do you think you will enter Paradise without trial?" },
+      { "surah": 2, "verse": 286, "note": "Allah does not burden a soul beyond its capacity" },
+      { "surah": 6, "verse": 17 },
+      { "surah": 10, "verse": 62 },
+      { "surah": 12, "verse": 87, "note": "Do not despair of relief from Allah" },
+      { "surah": 29, "verse": 2, "note": "Do people think they won't be tested?" },
+      { "surah": 39, "verse": 53 },
+      { "surah": 65, "verse": 7 },
+      { "surah": 93, "verse": 3 },
+      { "surah": 93, "verse": 4 },
+      { "surah": 93, "verse": 5 },
+      { "surah": 94, "verse": 5, "note": "With hardship comes ease" },
+      { "surah": 94, "verse": 6 }
+    ]
+  }
+]

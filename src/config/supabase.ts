@@ -24,9 +24,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         storage: undefined, // We'll use AsyncStorage via custom adapter
     },
     realtime: {
-        // Disable realtime for better performance
         // We don't need live updates for this app
-        enabled: false,
     },
     global: {
         headers: {

@@ -58,9 +58,9 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
                 iconName = isFocused ? 'flame' : 'flame-outline';
                 label = t('tabs.journey', { defaultValue: 'Journey' });
                 break;
-            case 'History':
-                iconName = isFocused ? 'calendar' : 'calendar-outline';
-                label = t('tabs.history', { defaultValue: 'History' });
+            case 'Scripture':
+                iconName = isFocused ? 'book' : 'book-outline';
+                label = t('tabs.scripture', { defaultValue: 'Quran' });
                 break;
             case 'Saved':
                 iconName = isFocused ? 'bookmark' : 'bookmark-outline';
@@ -100,7 +100,7 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
                                 style={styles.tabButton}
                             >
                                 <Ionicons name={iconName} size={22} color={color} />
-                                <Text style={[styles.tabLabel, { color }]}>{label}</Text>
+                                <Text style={[styles.tabLabel, { color }]} numberOfLines={1}>{label}</Text>
                             </TouchableOpacity>
                         </Animated.View>
                     );
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
         bottom: Platform.OS === 'ios' ? spacing.xl : spacing.lg,
         left: 0,
         right: 0,
-        paddingHorizontal: spacing.xl * 2,
+        paddingHorizontal: spacing.lg,
         backgroundColor: 'transparent',
         pointerEvents: 'box-none',
     },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.12,
         shadowRadius: 16,
         elevation: 8,
-        paddingHorizontal: spacing.base,
+        paddingHorizontal: spacing.sm,
         overflow: 'hidden',
         borderWidth: 0.5,
     },
