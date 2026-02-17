@@ -47,7 +47,8 @@
         }
       ],
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-audio"
     ],
     "notification": {
       "icon": "./assets/icon.png",

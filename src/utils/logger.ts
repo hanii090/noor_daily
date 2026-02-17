@@ -149,11 +149,16 @@ class Logger {
                 .insert(logsToSend);
 
             if (error) {
-                if (__DEV__) {
-                    console.error('Failed to insert logs:', error);
+                // If table doesn't exist, silently drop logs (don't re-queue)
+                if (error.code === 'PGRST205') {
+                    // Table not created yet — skip
+                } else {
+                    if (__DEV__) {
+                        console.error('Failed to insert logs:', error);
+                    }
+                    // Put failed logs back in queue
+                    this.queue.unshift(...logsToSend);
                 }
-                // Put failed logs back in queue
-                this.queue.unshift(...logsToSend);
             }
         } catch (error) {
             if (__DEV__) {

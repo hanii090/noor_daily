@@ -86,11 +86,12 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
                     const isFocused = state.index === index;
                     const color = isFocused ? colors.text : colors.textTertiary;
                     const { iconName, label } = getTabConfig(route.name, isFocused);
+                    const isCenter = route.name === 'Scripture';
 
                     return (
                         <Animated.View
                             key={route.key}
-                            style={[styles.tab, { transform: [{ scale: scaleAnims[index] }] }]}
+                            style={[styles.tab, isCenter && styles.centerTab, { transform: [{ scale: scaleAnims[index] }] }]}
                         >
                             <TouchableOpacity
                                 accessibilityRole="button"
@@ -99,7 +100,7 @@ export const ClubhouseTabBar: React.FC<BottomTabBarProps> = ({
                                 onPress={() => handlePress(route, index, isFocused)}
                                 style={styles.tabButton}
                             >
-                                <Ionicons name={iconName} size={22} color={color} />
+                                <Ionicons name={iconName} size={isCenter ? 24 : 22} color={color} />
                                 <Text style={[styles.tabLabel, { color }]} numberOfLines={1}>{label}</Text>
                             </TouchableOpacity>
                         </Animated.View>
@@ -135,6 +136,9 @@ const styles = StyleSheet.create({
     },
     tab: {
         flex: 1,
+    },
+    centerTab: {
+        marginTop: -12,
     },
     tabButton: {
         flex: 1,

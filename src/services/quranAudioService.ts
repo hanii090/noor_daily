@@ -1,4 +1,4 @@
-import { Audio, AVPlaybackStatus } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync, AudioPlayer } from 'expo-audio';
 import { Reciter } from '../types';
 
 // ── Reciter CDN Configurations ──
@@ -32,7 +32,7 @@ type PlaybackCallback = (status: {
 }) => void;
 
 class QuranAudioService {
-    private sound: Audio.Sound | null = null;
+    private player: AudioPlayer | null = null;
     private currentReciter: Reciter = 'alafasy';
     private currentSurah: number = 0;
     private currentVerse: number = 0;
@@ -40,12 +40,13 @@ class QuranAudioService {
     private verseIndex: number = 0;
     private callback: PlaybackCallback | null = null;
     private isAutoAdvancing: boolean = false;
+    private statusInterval: ReturnType<typeof setInterval> | null = null;
+    private lastPlaying: boolean = false;
 
     async init() {
-        await Audio.setAudioModeAsync({
-            allowsRecordingIOS: false,
-            staysActiveInBackground: true,
-            playsInSilentModeIOS: true,
+        await setAudioModeAsync({
+            playsInSilentMode: true,
+            shouldPlayInBackground: true,
         });
     }
 
@@ -76,45 +77,65 @@ class QuranAudioService {
         await this.loadAndPlay(reciter, surah, startVerse);
     }
 
-    private async loadAndPlay(reciter: Reciter, surah: number, verse: number) {
-        await this.unloadCurrent();
+    private async loadAndPlay(_reciter: Reciter, surah: number, verse: number) {
+        this.stopPolling();
 
-        const url = getVerseAudioUrl(reciter, surah, verse);
+        const url = getVerseAudioUrl(_reciter, surah, verse);
+        this.currentVerse = verse;
+
         try {
-            const { sound } = await Audio.Sound.createAsync(
-                { uri: url },
-                { shouldPlay: true },
-                this.onPlaybackStatusUpdate
-            );
-            this.sound = sound;
-            this.currentVerse = verse;
-        } catch (err) {
+            if (this.player) {
+                this.player.replace({ uri: url });
+            } else {
+                this.player = createAudioPlayer({ uri: url });
+            }
+
+            this.lastPlaying = false;
+            this.player.play();
+            this.startPolling();
+        } catch {
             this.emitStatus(false, false, false, verse, 0, 0, false);
         }
     }
 
-    private onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-        if (!status.isLoaded) {
-            this.emitStatus(false, false, status.isLoaded, this.currentVerse, 0, 0, false);
-            return;
+    private startPolling() {
+        this.stopPolling();
+        this.statusInterval = setInterval(() => {
+            if (!this.player) return;
+
+            const p = this.player;
+            const playing = p.playing;
+            const loaded = p.isLoaded;
+            const buffering = p.isBuffering;
+            const posMs = (p.currentTime ?? 0) * 1000;
+            const durMs = (p.duration ?? 0) * 1000;
+
+            // Detect playback finished: was playing, now not playing, loaded, and near end
+            const didFinish = this.lastPlaying && !playing && loaded && durMs > 0 && posMs >= durMs - 200;
+            this.lastPlaying = playing;
+
+            this.emitStatus(
+                playing,
+                loaded,
+                buffering,
+                this.currentVerse,
+                posMs,
+                durMs,
+                didFinish,
+            );
+
+            if (didFinish && this.isAutoAdvancing) {
+                this.advanceToNextVerse();
+            }
+        }, 250);
+    }
+
+    private stopPolling() {
+        if (this.statusInterval) {
+            clearInterval(this.statusInterval);
+            this.statusInterval = null;
         }
-
-        const didFinish = status.didJustFinish ?? false;
-
-        this.emitStatus(
-            status.isPlaying,
-            true,
-            status.isBuffering,
-            this.currentVerse,
-            status.positionMillis ?? 0,
-            status.durationMillis ?? 0,
-            didFinish,
-        );
-
-        if (didFinish && this.isAutoAdvancing) {
-            this.advanceToNextVerse();
-        }
-    };
+    }
 
     private async advanceToNextVerse() {
         this.verseIndex += 1;
@@ -149,27 +170,31 @@ class QuranAudioService {
     }
 
     async pause() {
-        if (this.sound) {
-            await this.sound.pauseAsync();
+        if (this.player) {
+            this.player.pause();
         }
     }
 
     async resume() {
-        if (this.sound) {
-            await this.sound.playAsync();
+        if (this.player) {
+            this.player.play();
         }
     }
 
     async stop() {
         this.isAutoAdvancing = false;
         this.versesToPlay = [];
-        await this.unloadCurrent();
+        this.stopPolling();
+        if (this.player) {
+            this.player.remove();
+            this.player = null;
+        }
         this.emitStatus(false, false, false, this.currentVerse, 0, 0, false);
     }
 
     async seekTo(positionMs: number) {
-        if (this.sound) {
-            await this.sound.setPositionAsync(positionMs);
+        if (this.player) {
+            await this.player.seekTo(positionMs / 1000);
         }
     }
 
@@ -183,17 +208,6 @@ class QuranAudioService {
         await this.loadAndPlay(this.currentReciter, this.currentSurah, verse);
     }
 
-    private async unloadCurrent() {
-        if (this.sound) {
-            try {
-                await this.sound.unloadAsync();
-            } catch {
-                // Already unloaded
-            }
-            this.sound = null;
-        }
-    }
-
     getCurrentVerse(): number {
         return this.currentVerse;
     }
@@ -201,7 +215,11 @@ class QuranAudioService {
     async cleanup() {
         this.callback = null;
         this.isAutoAdvancing = false;
-        await this.unloadCurrent();
+        this.stopPolling();
+        if (this.player) {
+            this.player.remove();
+            this.player = null;
+        }
     }
 }
 
